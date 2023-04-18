@@ -12,8 +12,10 @@ import com.stripe.exception.RateLimitException
 import com.stripe.exception.StripeException
 import com.stripe.model.Customer
 import com.stripe.model.Price
+import com.stripe.model.Subscription
 import com.stripe.net.RequestOptions
 import com.stripe.param.CustomerSearchParams
+import com.stripe.param.SubscriptionListParams
 import com.stripe.param.checkout.SessionListLineItemsParams
 import com.stripe.param.checkout.SessionListParams
 import kotlinx.coroutines.Dispatchers
@@ -62,9 +64,9 @@ object StripeClient {
         }?.product ?: throw NotFound("price: [$priceId] not found")
         val customerInfo = getCustomersByEmail(customerEmail = customerEmail)
         val customerExists = customerInfo.customers.isNotEmpty()
-        if (customerExists) {
-            val products = getSubscribedProducts(customerInfo = customerInfo)
-            if (products.contains(productId)) {
+        val hasCurrentOrPriorSubscription = if (customerExists) {
+            val subscriptionInfo = getSubscriptionInfo(customerInfo = customerInfo)
+            if (subscriptionInfo.isCurrentlySubscribedTo(productId = productId)) {
                 logger.warn("Already subscribed")
                 throw AlreadySubscribed
             }
@@ -75,8 +77,13 @@ object StripeClient {
                 cancelUrl = cancelUrl,
             )
             if (existingSessions.isNotEmpty()) {
-                return existingSessions.singleOrNull() ?: existingSessions.maxBy { it.expiresAt }
+                val existingSession = existingSessions.singleOrNull() ?: existingSessions.maxBy { it.expiresAt }
+                logger.warn("Returning existing checkout session which expires at ${existingSession.expiresAt}")
+                return existingSession
             }
+            subscriptionInfo.hasCurrentOrPriorSubscription(productId = productId)
+        } else {
+            false
         }
         val params = CheckoutSessionCreateParams
             .builder()
@@ -99,11 +106,13 @@ object StripeClient {
                     )
                     setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.IF_REQUIRED)
                 } else {
-                    setSubscriptionData(
-                        CheckoutSessionCreateParams.SubscriptionData.builder()
-                            .setTrialPeriodDays(30L)
-                            .build()
-                    )
+                    if (!hasCurrentOrPriorSubscription) {
+                        setSubscriptionData(
+                            CheckoutSessionCreateParams.SubscriptionData.builder()
+                                .setTrialPeriodDays(30L)
+                                .build()
+                        )
+                    }
                     setAllowPromotionCodes(true)
                 }
             }
@@ -173,7 +182,6 @@ object StripeClient {
         val searchParams = CustomerSearchParams
             .builder()
             .setQuery("email:'$customerEmail'")
-            .addExpand("data.subscriptions")
             .build()
         val customers = stripeCall {
             Customer.search(searchParams, requestOptions)
@@ -191,43 +199,73 @@ object StripeClient {
         )
     }
 
-    suspend fun getSubscribedProducts(
+    suspend fun getCurrentSubscribedProducts(
         customerEmail: String,
     ): Collection<String>? {
         val customerInfo = getCustomersByEmail(customerEmail = customerEmail)
         if (customerInfo.customers.isEmpty()) {
             return null
         }
-        return getSubscribedProducts(customerInfo = customerInfo)
+        return getSubscriptionInfo(customerInfo = customerInfo)
+            .getCurrentSubscribedProducts()
+
     }
 
-    private fun getSubscribedProducts(
+    data class SubscriptionInfo(
+        private val productToStatusListMap: Map<String, List<Status>>,
+    ) {
+        fun getCurrentSubscribedProducts(): Collection<String> {
+            return productToStatusListMap
+                .mapValues { it.value.toSet() }
+                .filter { (_, statusSet) -> statusSet.intersect(setOf(Status.active, Status.trialing)).isNotEmpty() }
+                .keys
+        }
+
+        fun isCurrentlySubscribedTo(
+            productId: String,
+        ): Boolean = getCurrentSubscribedProducts()
+            .contains(productId)
+
+        fun hasCurrentOrPriorSubscription(
+            productId: String,
+        ) = productToStatusListMap
+            .keys
+            .contains(productId)
+    }
+
+    private suspend fun getSubscriptionInfo(
         customerInfo: CustomerInfo,
-    ): Collection<String> {
-        val productsList = customerInfo
-            .customers
-            .flatMap { customer ->
-                customer
-                    .subscriptions
-                    .data
-                    .filter {
-                        setOf(Status.active, Status.trialing)
-                            .contains(Status.valueOf(it.status))
-                    }
-                    .flatMap { subscription ->
-                        subscription
-                            .items
-                            .data
-                            .map { subscriptionItem ->
-                                subscriptionItem.price.product
+    ): SubscriptionInfo = coroutineScope {
+        SubscriptionInfo(
+            customerInfo
+                .customers
+                .map { customer ->
+                    async {
+                        stripeCall {
+                            Subscription.list(
+                                SubscriptionListParams.builder()
+                                    .setCustomer(customer.id)
+                                    .setStatus(SubscriptionListParams.Status.ALL)
+                                    .build() ,
+                                requestOptions,
+                            )
+                        }
+                            ?.data
+                            ?.flatMap { subscription ->
+                                subscription
+                                    .items
+                                    .data
+                                    .map { subscriptionItem ->
+                                        subscriptionItem.price.product to Status.valueOf(subscription.status)
+                                    }
                             }
                     }
-            }
-        val productSet = productsList.toSet()
-        if (productsList.size > productSet.size) {
-            logger.warn("Found duplicate subscriptions for stripe customer with email: ${customerInfo.customerEmail}")
-        }
-        return productSet
+                }
+                .awaitAll()
+                .filterNotNull()
+                .flatten()
+                .groupBy({ it.first }, { it.second })
+        )
     }
 
     private suspend fun getCheckoutSessions(
@@ -303,6 +341,7 @@ object StripeClient {
         incomplete_expired,
         trialing,
         paused,
+        ended,
     }
 
     private suspend fun <R> stripeCall(

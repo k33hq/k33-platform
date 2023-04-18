@@ -26,7 +26,9 @@ fun Application.module() {
                     logWithMDC("userId" to userId.value) {
                         try {
                             val userEmail = call.principal<UserInfo>()!!.email
-                            val subscribedProducts = StripeClient.getSubscribedProducts(customerEmail = userEmail)
+                            val subscribedProducts = StripeClient.getCurrentSubscribedProducts(
+                                customerEmail = userEmail,
+                            )
                             if (subscribedProducts.isNullOrEmpty()) {
                                 call.respond(HttpStatusCode.NotFound)
                             } else {
