@@ -214,7 +214,50 @@ paths:
           description: "Internal Error"
       security:
         - firebase: [ ]
+  "/payment/subscribed-products/{product_id}":
+    get:
+      description: Get customer's subscribed product in Stripe.
+      operationId: getSubscribedPaymentProduct
+      produces:
+        - application/json
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: Subscribed product
+          schema:
+            $ref: "#/definitions/SubscribedPaymentProduct"
+        404:
+          description: "Not found"
+        500:
+          description: "Internal Error"
+      security:
+        - firebase: [ ]
   "/payment/checkout-session":
+    post:
+      description: Create/fetch checkout session
+      operationId: createOrFetchCheckoutSessionDeprecated
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: "request"
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/CheckoutSessionRequest"
+      responses:
+        200:
+          description: Checkout session url and expiry date
+          schema:
+            $ref: "#/definitions/CheckoutSessionResponse"
+      security:
+        - firebase: [ ]
+  "/payment/checkout-sessions":
     post:
       description: Create/fetch checkout session
       operationId: createOrFetchCheckoutSession
@@ -236,6 +279,27 @@ paths:
       security:
         - firebase: [ ]
   "/payment/customer-portal-session":
+    post:
+      description: Create customer portal session
+      operationId: createCustomerPortalSessionDeprecated
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: "request"
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/CustomerPortalSessionRequest"
+      responses:
+        200:
+          description: Customer Portal Session
+          schema:
+            $ref: "#/definitions/CustomerPortalSessionResponse"
+      security:
+        - firebase: [ ]
+  "/payment/customer-portal-sessions":
     post:
       description: Create customer portal session
       operationId: createCustomerPortalSession
@@ -365,6 +429,19 @@ definitions:
           type: string
 
 
+  SubscribedPaymentProduct:
+    type: object
+    properties:
+      product_id:
+        type: string
+      state:
+        type: string
+        enum:
+          - active
+          - ended
+    required:
+      - product_id
+      - state
   SubscribedPaymentProducts:
     type: object
     properties:

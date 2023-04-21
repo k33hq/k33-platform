@@ -1,7 +1,7 @@
 ### get user and array of T&C
 
 GRAPHQL https://api.k33.com/graphql
-Authorization: Bearer <firebase-id-token>
+Authorization: Bearer {{firebase_id_token}}
 Content-Type: application/graphql
 
 {

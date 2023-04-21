@@ -5,12 +5,12 @@ GET https://api.k33.com/ping
 ### Open on app. Secured on gateway.
 
 GET https://api.k33.com/utc
-Authorization: Bearer <firebase-id-token>
+Authorization: Bearer {{firebase_id_token}}
 
 ### Secured on app and gateway.
 
 GET https://api.k33.com/whoami
-Authorization: Bearer <firebase-id-token>
+Authorization: Bearer {{firebase_id_token}}
 
 ### apple
 

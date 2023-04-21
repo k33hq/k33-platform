@@ -17,6 +17,18 @@ class PaymentTest : BehaviorSpec({
     val priceId = System.getenv("STRIPE_PRICE_ID_RESEARCH_PRO")!!
     val productId = System.getenv("STRIPE_PRODUCT_ID_RESEARCH_PRO")!!
 
+    suspend fun getSubscribedProduct(
+        email: String,
+    ): HttpResponse {
+        return apiClient.get {
+            url(path = "payment/subscribed-products/$productId")
+            headers {
+                appendEndpointsApiUserInfoHeader(email = email)
+                expectSuccess = false
+            }
+        }
+    }
+
     suspend fun getSubscribedProducts(
         email: String,
     ): HttpResponse {
@@ -33,7 +45,7 @@ class PaymentTest : BehaviorSpec({
         email: String,
     ): HttpResponse {
         return apiClient.post {
-            url(path = "payment/checkout-session")
+            url(path = "payment/checkout-sessions")
             headers {
                 appendEndpointsApiUserInfoHeader(email = email)
                 expectSuccess = false
@@ -49,7 +61,7 @@ class PaymentTest : BehaviorSpec({
         email: String,
     ): HttpResponse {
         return apiClient.post {
-            url(path = "payment/customer-portal-session")
+            url(path = "payment/customer-portal-sessions")
             headers {
                 appendEndpointsApiUserInfoHeader(email = email)
                 expectSuccess = false
@@ -68,7 +80,12 @@ class PaymentTest : BehaviorSpec({
                 getSubscribedProducts(email = email).status shouldBe HttpStatusCode.NotFound
             }
         }
-        `when`("POST /payment/checkout-session") {
+        `when`("GET /payment/subscribed-products/{product_id}") {
+            then("response is 404 NOT FOUND") {
+                getSubscribedProduct(email = email).status shouldBe HttpStatusCode.NotFound
+            }
+        }
+        `when`("POST /payment/checkout-sessions") {
             val response = createOrFetchCheckoutSession(email = email)
             then("response is checkout session url with expires_at") {
                 response.status shouldBe HttpStatusCode.OK
@@ -79,7 +96,7 @@ class PaymentTest : BehaviorSpec({
             }
             // status: disabled
             // reason: since user does not exist, API is unable to fetch existing checkout session
-            xand("again POST /payment/checkout-session") {
+            xand("again POST /payment/checkout-sessions") {
                 val secondResponse = createOrFetchCheckoutSession(email = email)
                 then("response should be same") {
                     secondResponse.status shouldBe HttpStatusCode.OK
@@ -90,7 +107,7 @@ class PaymentTest : BehaviorSpec({
                 }
             }
         }
-        `when`("POST /payment/customer-portal-session") {
+        `when`("POST /payment/customer-portal-sessions") {
             then("response is 404 NOT FOUND") {
                 createCustomerPortalSession(email = email).status shouldBe HttpStatusCode.NotFound
             }
@@ -99,13 +116,18 @@ class PaymentTest : BehaviorSpec({
 
     given("user exists in stripe") {
         and("a user is NOT subscribed in stripe") {
-            val email = "test.unsubscribed@k33.com"
+            val email = "test.not_subscribed@k33.com"
             `when`("GET /payment/subscribed-products") {
                 then("response is 404 NOT FOUND") {
                     getSubscribedProducts(email = email).status shouldBe HttpStatusCode.NotFound
                 }
             }
-            `when`("POST /payment/checkout-session") {
+            `when`("GET /payment/subscribed-products/{product_id}") {
+                then("response is 404 NOT FOUND") {
+                    getSubscribedProduct(email = email).status shouldBe HttpStatusCode.NotFound
+                }
+            }
+            `when`("POST /payment/checkout-sessions") {
                 val response = createOrFetchCheckoutSession(email = email)
                 then("response is checkout session url with expires_at") {
                     response.status shouldBe HttpStatusCode.OK
@@ -114,7 +136,7 @@ class PaymentTest : BehaviorSpec({
                     checkoutSession.successUrl shouldBe SETTINGS_URL
                     checkoutSession.cancelUrl shouldBe SETTINGS_URL
                 }
-                and("again POST /payment/checkout-session") {
+                and("again POST /payment/checkout-sessions") {
                     val secondResponse = createOrFetchCheckoutSession(email = email)
                     then("response should be same") {
                         secondResponse.status shouldBe HttpStatusCode.OK
@@ -122,7 +144,7 @@ class PaymentTest : BehaviorSpec({
                     }
                 }
             }
-            `when`("POST /payment/customer-portal-session") {
+            `when`("POST /payment/customer-portal-sessions") {
                 val response = createCustomerPortalSession(email = email)
                 then("response is customer portal session url") {
                     response.status shouldBe HttpStatusCode.OK
@@ -139,12 +161,64 @@ class PaymentTest : BehaviorSpec({
                     response.body<SubscribedProducts>().subscribedProducts shouldBe listOf(productId)
                 }
             }
-            `when`("POST /payment/checkout-session") {
+            `when`("GET /payment/subscribed-products/{product_id}") {
+                val response = getSubscribedProduct(email = email)
+                then("response is subscribed product with active status") {
+                    response.status shouldBe HttpStatusCode.OK
+                    response.body<SubscribedProduct>() shouldBe SubscribedProduct(
+                        productId = productId,
+                        status = ProductSubscriptionStatus.active,
+                    )
+                }
+            }
+            `when`("POST /payment/checkout-sessions") {
                 then("response is 409 CONFLICT") {
                     createOrFetchCheckoutSession(email = email).status shouldBe HttpStatusCode.Conflict
                 }
             }
-            `when`("POST /payment/customer-portal-session") {
+            `when`("POST /payment/customer-portal-sessions") {
+                val response = createCustomerPortalSession(email = email)
+                then("response is customer portal session url") {
+                    response.status shouldBe HttpStatusCode.OK
+                    response.body<CustomerPortalSession>().returnUrl shouldBe SETTINGS_URL
+                }
+            }
+        }
+        and("a user is unsubscribed in stripe") {
+            val email = "test.unsubscribed@k33.com"
+            `when`("GET /payment/subscribed-products") {
+                then("response is 404 NOT FOUND") {
+                    getSubscribedProducts(email = email).status shouldBe HttpStatusCode.NotFound
+                }
+            }
+            `when`("GET /payment/subscribed-products/{product_id}") {
+                val response = getSubscribedProduct(email = email)
+                then("response is Subscribed Product with ended status") {
+                    response.status shouldBe HttpStatusCode.OK
+                    response.body<SubscribedProduct>() shouldBe SubscribedProduct(
+                        productId = productId,
+                        status = ProductSubscriptionStatus.ended,
+                    )
+                }
+            }
+            `when`("POST /payment/checkout-sessions") {
+                val response = createOrFetchCheckoutSession(email = email)
+                then("response is checkout session url with expires_at") {
+                    response.status shouldBe HttpStatusCode.OK
+                    val checkoutSession = response.body<CheckoutSession>()
+                    checkoutSession.priceId shouldBe priceId
+                    checkoutSession.successUrl shouldBe SETTINGS_URL
+                    checkoutSession.cancelUrl shouldBe SETTINGS_URL
+                }
+                and("again POST /payment/checkout-sessions") {
+                    val secondResponse = createOrFetchCheckoutSession(email = email)
+                    then("response should be same") {
+                        secondResponse.status shouldBe HttpStatusCode.OK
+                        secondResponse.body<CheckoutSession>() shouldBe response.body<CheckoutSession>()
+                    }
+                }
+            }
+            `when`("POST /payment/customer-portal-sessions") {
                 val response = createCustomerPortalSession(email = email)
                 then("response is customer portal session url") {
                     response.status shouldBe HttpStatusCode.OK
@@ -155,6 +229,18 @@ class PaymentTest : BehaviorSpec({
     }
 
 })
+
+@Serializable
+data class SubscribedProduct(
+    @SerialName("product_id") val productId: String,
+    val status: ProductSubscriptionStatus
+)
+
+@Suppress("EnumEntryName")
+enum class ProductSubscriptionStatus {
+    active,
+    ended,
+}
 
 @Serializable
 data class SubscribedProducts(

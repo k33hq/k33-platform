@@ -1,12 +1,17 @@
 ### Get all payment subscription products
 
 GET https://api.k33.com/payment/subscribed-products
-Authorization: Bearer <firebase-id-token>
+Authorization: Bearer {{firebase_id_token}}
+
+### Get all payment subscription product
+
+GET https://api.k33.com/payment/subscribed-products/{{stripe_product_id_research_pro}}
+Authorization: Bearer {{firebase_id_token}}
 
 ###
 
-POST https://api.k33.com/payment/checkout-session
-Authorization: Bearer <firebase-id-token>
+POST https://api.k33.com/payment/checkout-sessions
+Authorization: Bearer {{firebase_id_token}}
 Content-Type: application/json
 
 {
@@ -17,8 +22,8 @@ Content-Type: application/json
 
 ###
 
-POST https://api.k33.com/payment/customer-portal-session
-Authorization: Bearer <firebase-id-token>
+POST https://api.k33.com/payment/customer-portal-sessions
+Authorization: Bearer {{firebase_id_token}}
 Content-Type: application/json
 
 {

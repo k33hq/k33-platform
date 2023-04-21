@@ -16,6 +16,7 @@ import com.stripe.model.Subscription
 import com.stripe.net.RequestOptions
 import com.stripe.param.CustomerSearchParams
 import com.stripe.param.SubscriptionListParams
+import com.stripe.param.checkout.SessionCreateParams
 import com.stripe.param.checkout.SessionListLineItemsParams
 import com.stripe.param.checkout.SessionListParams
 import kotlinx.coroutines.Dispatchers
@@ -96,6 +97,7 @@ object StripeClient {
                 } else {
                     setCustomerEmail(customerEmail)
                 }
+                setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.IF_REQUIRED)
                 if (customerEmail.endsWith("@k33.com", ignoreCase = true)) {
                     addDiscount(
                         CheckoutSessionCreateParams
@@ -104,12 +106,25 @@ object StripeClient {
                             .setCoupon(corporatePlanCoupon)
                             .build()
                     )
-                    setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.IF_REQUIRED)
                 } else {
                     if (!hasCurrentOrPriorSubscription) {
                         setSubscriptionData(
                             CheckoutSessionCreateParams.SubscriptionData.builder()
                                 .setTrialPeriodDays(30L)
+                                .setTrialSettings(
+                                    SessionCreateParams.SubscriptionData.TrialSettings
+                                        .builder()
+                                        .setEndBehavior(
+                                            SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior
+                                                .builder()
+                                                .setMissingPaymentMethod(
+                                                    SessionCreateParams.SubscriptionData.TrialSettings
+                                                        .EndBehavior.MissingPaymentMethod.CANCEL
+                                                )
+                                                .build()
+                                        )
+                                        .build()
+                                )
                                 .build()
                         )
                     }
@@ -211,6 +226,25 @@ object StripeClient {
 
     }
 
+    @Suppress("EnumEntryName")
+    enum class ProductSubscriptionStatus {
+        active,
+        ended,
+    }
+
+    suspend fun getSubscriptionStatus(
+        customerEmail: String,
+        productId: String,
+    ): ProductSubscriptionStatus? {
+        val customerInfo = getCustomersByEmail(customerEmail = customerEmail)
+        if (customerInfo.customers.isEmpty()) {
+            return null
+        }
+        return getSubscriptionInfo(customerInfo = customerInfo)
+            .getSubscriptionStatus(productId = productId)
+
+    }
+
     data class SubscriptionInfo(
         private val productToStatusListMap: Map<String, List<Status>>,
     ) {
@@ -225,6 +259,18 @@ object StripeClient {
             productId: String,
         ): Boolean = getCurrentSubscribedProducts()
             .contains(productId)
+
+        fun getSubscriptionStatus(
+            productId: String,
+        ): ProductSubscriptionStatus? {
+            val statusList = productToStatusListMap[productId]
+            return when {
+                statusList == null -> null
+                statusList.contains(Status.active) -> ProductSubscriptionStatus.active
+                statusList.contains(Status.trialing) -> ProductSubscriptionStatus.active
+                else -> ProductSubscriptionStatus.ended
+            }
+        }
 
         fun hasCurrentOrPriorSubscription(
             productId: String,
@@ -246,7 +292,7 @@ object StripeClient {
                                 SubscriptionListParams.builder()
                                     .setCustomer(customer.id)
                                     .setStatus(SubscriptionListParams.Status.ALL)
-                                    .build() ,
+                                    .build(),
                                 requestOptions,
                             )
                         }
@@ -330,19 +376,6 @@ object StripeClient {
         ?.map { lineItem -> lineItem.price.id }
         ?.contains(priceId)
         ?: false
-
-    @Suppress("EnumEntryName")
-    enum class Status {
-        active,
-        past_due,
-        unpaid,
-        canceled,
-        incomplete,
-        incomplete_expired,
-        trialing,
-        paused,
-        ended,
-    }
 
     private suspend fun <R> stripeCall(
         block: suspend () -> R

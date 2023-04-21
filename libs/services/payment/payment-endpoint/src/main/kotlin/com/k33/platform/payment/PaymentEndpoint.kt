@@ -2,6 +2,7 @@ package com.k33.platform.payment
 
 import com.k33.platform.identity.auth.gcp.UserInfo
 import com.k33.platform.payment.stripe.AlreadySubscribed
+import com.k33.platform.payment.stripe.BadRequest
 import com.k33.platform.payment.stripe.NotFound
 import com.k33.platform.payment.stripe.PaymentServiceError
 import com.k33.platform.payment.stripe.StripeClient
@@ -13,6 +14,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -21,29 +23,61 @@ fun Application.module() {
     routing {
         authenticate("esp-v2-header") {
             route("/payment") {
-                get("/subscribed-products") {
-                    val userId = UserId(call.principal<UserInfo>()!!.userId)
-                    logWithMDC("userId" to userId.value) {
-                        try {
-                            val userEmail = call.principal<UserInfo>()!!.email
-                            val subscribedProducts = StripeClient.getCurrentSubscribedProducts(
-                                customerEmail = userEmail,
-                            )
-                            if (subscribedProducts.isNullOrEmpty()) {
-                                call.respond(HttpStatusCode.NotFound)
-                            } else {
-                                call.respond(SubscribedProducts(subscribedProducts = subscribedProducts))
+                route("/subscribed-products") {
+                    get {
+                        val userId = UserId(call.principal<UserInfo>()!!.userId)
+                        logWithMDC("userId" to userId.value) {
+                            try {
+                                val userEmail = call.principal<UserInfo>()!!.email
+                                val subscribedProducts = StripeClient.getCurrentSubscribedProducts(
+                                    customerEmail = userEmail,
+                                )
+                                if (subscribedProducts.isNullOrEmpty()) {
+                                    call.respond(HttpStatusCode.NotFound)
+                                } else {
+                                    call.respond(SubscribedProducts(subscribedProducts = subscribedProducts))
+                                }
+                            } catch (e: PaymentServiceError) {
+                                call.application.log.error("Payment service error in fetching subscribed products", e)
+                                call.respond(e.httpStatusCode, e.message)
+                            } catch (e: Exception) {
+                                call.application.log.error("Exception in fetching subscribed products", e)
+                                call.respond(HttpStatusCode.InternalServerError)
                             }
-                        } catch (e: PaymentServiceError) {
-                            call.application.log.error("Payment service error in fetching subscribed products", e)
-                            call.respond(e.httpStatusCode, e.message)
-                        } catch (e: Exception) {
-                            call.application.log.error("Exception in fetching subscribed products", e)
-                            call.respond(HttpStatusCode.InternalServerError)
+                        }
+                    }
+                    get("{product-id}") {
+                        val userId = UserId(call.principal<UserInfo>()!!.userId)
+                        logWithMDC("userId" to userId.value) {
+                            val productId: String = call.parameters["product-id"]
+                                ?: throw BadRequest("Path param: product-id is mandatory")
+                            try {
+                                val userEmail = call.principal<UserInfo>()!!.email
+                                val status = StripeClient.getSubscriptionStatus(
+                                    customerEmail = userEmail,
+                                    productId = productId,
+                                )
+                                if (status == null) {
+                                    call.respond(HttpStatusCode.NotFound)
+                                } else {
+                                    call.respond(
+                                        SubscribedProduct(
+                                            productId = productId,
+                                            status = status,
+                                        )
+                                    )
+                                }
+                            } catch (e: PaymentServiceError) {
+                                call.application.log.error("Payment service error in fetching subscribed products", e)
+                                call.respond(e.httpStatusCode, e.message)
+                            } catch (e: Exception) {
+                                call.application.log.error("Exception in fetching subscribed products", e)
+                                call.respond(HttpStatusCode.InternalServerError)
+                            }
                         }
                     }
                 }
-                post("checkout-session") {
+                suspend fun PipelineContext<Unit, ApplicationCall>.createCheckoutSession() {
                     val userId = UserId(call.principal<UserInfo>()!!.userId)
                     logWithMDC("userId" to userId.value) {
                         try {
@@ -75,7 +109,13 @@ fun Application.module() {
                         }
                     }
                 }
-                post("customer-portal-session") {
+                post("checkout-session") {
+                    createCheckoutSession()
+                }
+                post("checkout-sessions") {
+                    createCheckoutSession()
+                }
+                suspend fun PipelineContext<Unit, ApplicationCall>.createCustomerPortal() {
                     val userId = UserId(call.principal<UserInfo>()!!.userId)
                     logWithMDC("userId" to userId.value) {
                         try {
@@ -102,14 +142,28 @@ fun Application.module() {
                         }
                     }
                 }
+                // deprecated
+                post("customer-portal-session") {
+                    createCustomerPortal()
+                }
+                post("customer-portal-sessions") {
+                    createCustomerPortal()
+                }
             }
         }
     }
 }
 
+
 @Serializable
 data class SubscribedProducts(
     val subscribedProducts: Collection<String>
+)
+
+@Serializable
+data class SubscribedProduct(
+    @SerialName("product_id") val productId: String,
+    val status: StripeClient.ProductSubscriptionStatus
 )
 
 @Serializable
