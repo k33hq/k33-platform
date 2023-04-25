@@ -49,15 +49,20 @@ class NotifySlackFilter : Filter<ILoggingEvent>() {
             ?: ChannelName("research")
     }
 
-    private fun getChannel(marker: Marker): Channel? {
-        val notifySlack = marker.asNotifySlack() ?: return null
-        return when (notifySlack) {
-            NotifySlack.NOTIFY_SLACK_ALERTS -> slackChannel
-            NotifySlack.NOTIFY_SLACK_GENERAL -> slackGeneralChannel
-            NotifySlack.NOTIFY_SLACK_INVEST -> slackInvestChannel
-            NotifySlack.NOTIFY_SLACK_PRODUCT -> slackProductChannel
-            NotifySlack.NOTIFY_SLACK_RESEARCH -> slackResearchChannel
-        }
+    private val slackResearchEventsChannel by lazy {
+        System.getenv("SLACK_RESEARCH_EVENTS_CHANNEL_ID")?.let { ChannelId(it) }
+            ?: System.getenv("SLACK_RESEARCH_EVENTS_CHANNEL_NAME")?.let { ChannelName(it) }
+            ?: ChannelName("research-events")
+    }
+
+    private fun getChannel(marker: Marker): Channel? = when (marker as? NotifySlack) {
+        null -> null
+        NotifySlack.ALERTS -> slackChannel
+        NotifySlack.GENERAL -> slackGeneralChannel
+        NotifySlack.INVEST -> slackInvestChannel
+        NotifySlack.PRODUCT -> slackProductChannel
+        NotifySlack.RESEARCH -> slackResearchChannel
+        NotifySlack.RESEARCH_EVENTS -> slackResearchEventsChannel
     }
 
     override fun decide(event: ILoggingEvent?): FilterReply {

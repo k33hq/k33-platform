@@ -4,7 +4,6 @@ import com.k33.platform.email.getEmailService
 import com.k33.platform.filestore.FileStoreService
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.getLogger
-import com.k33.platform.utils.logging.getMarker
 import java.io.File
 import java.io.FileWriter
 import java.security.MessageDigest
@@ -47,7 +46,7 @@ object SendgridContactsSync {
         if (success) {
             logger.info("Synced Sendgrid contact\n$message")
         } else {
-            logger.warn(NotifySlack.NOTIFY_SLACK_ALERTS.getMarker(), "Failed to sync Sendgrid Contacts")
+            logger.warn(NotifySlack.ALERTS, "Failed to sync Sendgrid Contacts")
         }
     }
 }

@@ -7,7 +7,6 @@ import com.k33.platform.email.MailTemplate
 import com.k33.platform.email.getEmailService
 import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.NotifySlack
-import com.k33.platform.utils.logging.getMarker
 import com.k33.platform.utils.logging.logWithMDC
 import com.stripe.exception.SignatureVerificationException
 import com.stripe.model.Subscription
@@ -18,7 +17,6 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -89,10 +87,7 @@ fun Application.module() {
                                         }
 
                                         fun notifySlack(message: String) {
-                                            call.application.log.info(
-                                                NotifySlack.NOTIFY_SLACK_RESEARCH.getMarker(),
-                                                message,
-                                            )
+                                            call.application.log.info(NotifySlack.RESEARCH_EVENTS, message)
                                         }
 
                                         suspend fun trialSubscriberEvent() {
@@ -122,7 +117,7 @@ fun Application.module() {
                                                     Status.incomplete -> {
                                                         // failed to subscribe
                                                         call.application.log.warn(
-                                                            NotifySlack.NOTIFY_SLACK_RESEARCH.getMarker(),
+                                                            NotifySlack.RESEARCH_EVENTS,
                                                             "$customerEmail failed to subscribe to K33 Research Pro",
                                                         )
                                                     }

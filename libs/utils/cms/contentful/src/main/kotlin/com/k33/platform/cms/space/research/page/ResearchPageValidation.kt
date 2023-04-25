@@ -8,7 +8,6 @@ import com.k33.platform.cms.events.Resource
 import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.getLogger
-import com.k33.platform.utils.logging.getMarker
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +23,7 @@ object ResearchPageValidation {
             val errors = validate(pageId = pageId)
             if (errors.isNotEmpty()) {
                 logger.warn(
-                    NotifySlack.NOTIFY_SLACK_ALERTS.getMarker(),
+                    NotifySlack.ALERTS,
                     "Validation failed for page[$pageId]: ${errors.map { it.description }}"
                 )
             }

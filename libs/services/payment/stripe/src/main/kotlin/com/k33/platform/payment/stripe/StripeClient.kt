@@ -2,7 +2,6 @@ package com.k33.platform.payment.stripe
 
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.getLogger
-import com.k33.platform.utils.logging.getMarker
 import com.stripe.exception.ApiConnectionException
 import com.stripe.exception.AuthenticationException
 import com.stripe.exception.CardException
@@ -391,14 +390,14 @@ object StripeClient {
             // 402
             // The parameters were valid but the request failed.
             catch (e: CardException) {
-                logger.error(NotifySlack.NOTIFY_SLACK_ALERTS.getMarker(), "Stripe Payment Error", e)
+                logger.error(NotifySlack.ALERTS, "Stripe Payment Error", e)
                 throw BadRequest(e.userMessage)
             }
 
             // https://stripe.com/docs/error-handling?lang=java#connection-errors
             // This is not an HTTP error
             catch (e: ApiConnectionException) {
-                logger.error(NotifySlack.NOTIFY_SLACK_ALERTS.getMarker(), "Stripe API Connection Exception", e)
+                logger.error(NotifySlack.ALERTS, "Stripe API Connection Exception", e)
                 throw ServiceUnavailable(e.userMessage)
 
             }
@@ -407,7 +406,7 @@ object StripeClient {
             // 429
             // Too many requests hit the API too quickly. We recommend an exponential backoff of your requests.
             catch (e: RateLimitException) {
-                logger.error(NotifySlack.NOTIFY_SLACK_ALERTS.getMarker(), "Received rate limit error from Stripe", e)
+                logger.error(NotifySlack.ALERTS, "Received rate limit error from Stripe", e)
                 throw TooManyRequests
 
             }
@@ -415,7 +414,7 @@ object StripeClient {
             // 401
             // No valid API key provided.
             catch (e: AuthenticationException) {
-                logger.error(NotifySlack.NOTIFY_SLACK_ALERTS.getMarker(), "Missing Stripe API key", e)
+                logger.error(NotifySlack.ALERTS, "Missing Stripe API key", e)
                 throw InternalServerError
 
             }
@@ -424,7 +423,7 @@ object StripeClient {
             // 403
             // The API key doesn't have permissions to perform the request.
             catch (e: PermissionException) {
-                logger.error(NotifySlack.NOTIFY_SLACK_ALERTS.getMarker(), "API key is missing permissions", e)
+                logger.error(NotifySlack.ALERTS, "API key is missing permissions", e)
                 throw InternalServerError
 
             }
@@ -434,7 +433,7 @@ object StripeClient {
             // You used an idempotency key for something unexpected,
             // like replaying a request but passing different parameters.
             catch (e: IdempotencyException) {
-                logger.error(NotifySlack.NOTIFY_SLACK_ALERTS.getMarker(), "Stripe Idempotency Exception", e)
+                logger.error(NotifySlack.ALERTS, "Stripe Idempotency Exception", e)
                 throw BadRequest(e.userMessage)
 
             } catch (e: StripeException) {
@@ -450,7 +449,7 @@ object StripeClient {
                     409 -> throw InternalServerError
                     // Something went wrong on Stripe's end. (These are rare.)
                     in 500..599 -> {
-                        logger.error(NotifySlack.NOTIFY_SLACK_ALERTS.getMarker(), "Stripe error", e)
+                        logger.error(NotifySlack.ALERTS, "Stripe error", e)
                         throw ServiceUnavailable(e.userMessage)
                     }
 
