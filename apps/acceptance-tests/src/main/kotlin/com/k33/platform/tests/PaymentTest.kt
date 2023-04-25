@@ -9,6 +9,8 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.random.Random
+import kotlin.random.nextUInt
 
 private const val SETTINGS_URL = "https://dev.k33.com/research/settings"
 
@@ -74,7 +76,7 @@ class PaymentTest : BehaviorSpec({
     }
 
     given("a user does not exist in stripe") {
-        val email = "invalid@k33.com"
+        val email = "delete-me-${Random.nextUInt()}@k33.com"
         `when`("GET /payment/subscribed-products") {
             then("response is 404 NOT FOUND") {
                 getSubscribedProducts(email = email).status shouldBe HttpStatusCode.NotFound
@@ -94,9 +96,7 @@ class PaymentTest : BehaviorSpec({
                 checkoutSession.successUrl shouldBe SETTINGS_URL
                 checkoutSession.cancelUrl shouldBe SETTINGS_URL
             }
-            // status: disabled
-            // reason: since user does not exist, API is unable to fetch existing checkout session
-            xand("again POST /payment/checkout-sessions") {
+            and("again POST /payment/checkout-sessions") {
                 val secondResponse = createOrFetchCheckoutSession(email = email)
                 then("response should be same") {
                     secondResponse.status shouldBe HttpStatusCode.OK

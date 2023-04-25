@@ -13,16 +13,19 @@ import com.stripe.model.Customer
 import com.stripe.model.Price
 import com.stripe.model.Subscription
 import com.stripe.net.RequestOptions
+import com.stripe.param.CustomerCreateParams
 import com.stripe.param.CustomerSearchParams
 import com.stripe.param.SubscriptionListParams
 import com.stripe.param.checkout.SessionCreateParams
 import com.stripe.param.checkout.SessionListLineItemsParams
 import com.stripe.param.checkout.SessionListParams
+import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import java.security.MessageDigest
 import java.time.Instant
 import com.stripe.model.billingportal.Session as StripeCustomerPortalSession
 import com.stripe.model.checkout.Session as StripeCheckoutSession
@@ -63,8 +66,7 @@ object StripeClient {
             Price.retrieve(priceId, requestOptions)
         }?.product ?: throw NotFound("price: [$priceId] not found")
         val customerInfo = getCustomersByEmail(customerEmail = customerEmail)
-        val customerExists = customerInfo.customers.isNotEmpty()
-        val hasCurrentOrPriorSubscription = if (customerExists) {
+        val (customerId, hasCurrentOrPriorSubscription) = if (customerInfo.customers.isNotEmpty()) {
             val subscriptionInfo = getSubscriptionInfo(customerInfo = customerInfo)
             if (subscriptionInfo.isCurrentlySubscribedTo(productId = productId)) {
                 logger.warn("Already subscribed")
@@ -73,29 +75,32 @@ object StripeClient {
             val existingSessions = getCheckoutSessions(
                 customerEmail = customerEmail,
                 priceId = priceId,
-                successUrl = successUrl,
-                cancelUrl = cancelUrl,
             )
             if (existingSessions.isNotEmpty()) {
                 val existingSession = existingSessions.singleOrNull() ?: existingSessions.maxBy { it.expiresAt }
                 logger.warn("Returning existing checkout session which expires at ${existingSession.expiresAt}")
                 return existingSession
             }
-            subscriptionInfo.hasCurrentOrPriorSubscription(productId = productId)
+            customerInfo.customers.first().id to subscriptionInfo.hasCurrentOrPriorSubscription(productId = productId)
         } else {
-            false
+            val customerId = stripeCall {
+                Customer.create(
+                    CustomerCreateParams
+                        .builder()
+                        .setEmail(customerEmail)
+                        .build(),
+                    withIdempotencyKey(payload = customerEmail),
+                )
+            }?.id ?: throw ServiceUnavailable("Failed to create Stripe customer")
+            customerId to false
         }
         val params = CheckoutSessionCreateParams
             .builder()
             .setMode(CheckoutSessionCreateParams.Mode.SUBSCRIPTION)
             .setLocale(CheckoutSessionCreateParams.Locale.AUTO)
             .apply {
-                if (customerExists) {
-                    // in case of duplicates we give priority to one created later
-                    setCustomer(customerInfo.customers.first().id)
-                } else {
-                    setCustomerEmail(customerEmail)
-                }
+                // in case of duplicates we give priority to one created later
+                setCustomer(customerId)
                 setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.IF_REQUIRED)
                 if (customerEmail.endsWith("@k33.com", ignoreCase = true)) {
                     addDiscount(
@@ -142,7 +147,10 @@ object StripeClient {
             )
             .build()
         val checkoutSession = stripeCall {
-            StripeCheckoutSession.create(params, requestOptions)
+            StripeCheckoutSession.create(
+                params,
+                withIdempotencyKey(payload = customerId + priceId),
+            )
         } ?: throw NotFound("Resource not found. Failed to create checkout session")
         val lineItems = stripeCall {
             checkoutSession.listLineItems(SessionListLineItemsParams.builder().build(), requestOptions)
@@ -316,8 +324,6 @@ object StripeClient {
     private suspend fun getCheckoutSessions(
         customerEmail: String,
         priceId: String,
-        successUrl: String,
-        cancelUrl: String,
     ): Collection<CheckoutSession> = coroutineScope {
         val details = SessionListParams.CustomerDetails
             .builder()
@@ -334,8 +340,6 @@ object StripeClient {
             ?.filter { session ->
                 session.status == "open"
                         && session.hasLineItemWith(priceId = priceId)
-                        && session.successUrl == successUrl
-                        && session.cancelUrl == cancelUrl
             }
             ?.sortedByDescending { it.expiresAt }
             ?.map { checkoutSession ->
@@ -460,5 +464,19 @@ object StripeClient {
                 }
             }
         }
+    }
+
+    private fun withIdempotencyKey(payload: String): RequestOptions {
+
+        fun hashOf(payload: String): String {
+            val md = MessageDigest.getInstance("SHA-256")
+            md.update(payload.lowercase().toByteArray())
+            return md.digest().encodeBase64()
+        }
+
+        return requestOptions
+            .toBuilderFullCopy()
+            .setIdempotencyKey(hashOf(payload = payload))
+            .build()
     }
 }
