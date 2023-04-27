@@ -9,7 +9,7 @@ object UserService {
     private val firestoreClient by lazy { FirestoreClient() }
 
     suspend fun UserId.createUser(email: String): User? {
-        if (doesNotExist()) {
+        suspend fun createUser(): User? {
             firestoreClient.put(
                 users / this,
                 User(
@@ -18,11 +18,10 @@ object UserService {
                 )
             )
             UserEventHandler.onNewUserCreated(email = email)
+            return fetchUser()
         }
-        return fetchUser()
+        return fetchUser() ?: createUser()
     }
 
     suspend fun UserId.fetchUser(): User? = firestoreClient.get(users / this)
-
-    private suspend fun UserId.doesNotExist() = fetchUser() == null
 }

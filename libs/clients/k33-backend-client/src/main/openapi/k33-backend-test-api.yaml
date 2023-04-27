@@ -432,6 +432,7 @@ definitions:
         type: string
         enum:
           - active
+          - blocked
           - ended
     required:
       - product_id

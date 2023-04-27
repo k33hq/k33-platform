@@ -236,6 +236,7 @@ object StripeClient {
     @Suppress("EnumEntryName")
     enum class ProductSubscriptionStatus {
         active,
+        blocked,
         ended,
     }
 
@@ -264,17 +265,31 @@ object StripeClient {
 
         fun isCurrentlySubscribedTo(
             productId: String,
-        ): Boolean = getCurrentSubscribedProducts()
-            .contains(productId)
+        ): Boolean = setOf(
+            ProductSubscriptionStatus.active,
+            ProductSubscriptionStatus.blocked,
+        ).contains(getSubscriptionStatus(productId))
 
         fun getSubscriptionStatus(
             productId: String,
         ): ProductSubscriptionStatus? {
             val statusList = productToStatusListMap[productId]
             return when {
+                // new user
                 statusList == null -> null
+
+                // active user
                 statusList.contains(Status.active) -> ProductSubscriptionStatus.active
                 statusList.contains(Status.trialing) -> ProductSubscriptionStatus.active
+
+                // blocked user
+                statusList.contains(Status.incomplete) -> ProductSubscriptionStatus.blocked
+                statusList.contains(Status.past_due) -> ProductSubscriptionStatus.blocked
+
+                // paused
+                // unpaid
+                // canceled
+                // incomplete_expired
                 else -> ProductSubscriptionStatus.ended
             }
         }
