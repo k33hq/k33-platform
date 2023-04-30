@@ -64,7 +64,13 @@ fun Application.module() {
                                 }.toSet()
                                 if (products.contains(product)) {
                                     coroutineScope {
-                                        suspend fun sendWelcomeEmail() {
+                                        suspend fun proSubscriptionEvent() {
+                                            launch {
+                                                emailService.upsertMarketingContacts(
+                                                    contactEmails = listOf(customerEmail),
+                                                    contactListIds = listOf(contactListId),
+                                                )
+                                            }
                                             launch {
                                                 emailService.sendEmail(
                                                     from = Email(
@@ -72,16 +78,17 @@ fun Application.module() {
                                                         label = researchProWelcomeEmail.from.label,
                                                     ),
                                                     toList = listOf(Email(customerEmail)),
-                                                    mail = MailTemplate(researchProWelcomeEmail.sendgridTemplateId)
+                                                    mail = MailTemplate(researchProWelcomeEmail.sendgridTemplateId),
+                                                    unsubscribeSettings = researchProWelcomeEmail.unsubscribeSettings,
                                                 )
                                             }
                                         }
 
-                                        suspend fun addToProContactList() {
+                                        suspend fun disableProSubscriptionEvent() {
                                             launch {
-                                                emailService.upsertMarketingContacts(
+                                                emailService.unlistMarketingContacts(
                                                     contactEmails = listOf(customerEmail),
-                                                    contactListIds = listOf(contactListId),
+                                                    contactListId = contactListId,
                                                 )
                                             }
                                         }
@@ -90,20 +97,9 @@ fun Application.module() {
                                             call.application.log.info(NotifySlack.RESEARCH_EVENTS, message)
                                         }
 
-                                        suspend fun trialSubscriberEvent() {
-                                            notifySlack("$customerEmail has become a trial subscriber of K33 Research Pro")
-                                            addToProContactList()
-                                            sendWelcomeEmail()
-                                        }
-
-                                        suspend fun activeSubscriberEvent() {
-                                            notifySlack("$customerEmail has become an active subscriber of K33 Research Pro")
-                                            addToProContactList()
-                                            sendWelcomeEmail()
-                                        }
-
                                         val status = Status.valueOf(subscription.status)
                                         val previousStatus = event.data.previousAttributes?.get("status")
+                                            ?.let { string -> Status.valueOf(string as String) }
                                         call.application.log.info("event.type: ${event.type}, status: $status, previousStatus: $previousStatus")
 
                                         when (event.type) {
@@ -111,7 +107,8 @@ fun Application.module() {
                                                 when (status) {
                                                     Status.trialing -> {
                                                         // started a trial subscription
-                                                        trialSubscriberEvent()
+                                                        notifySlack("$customerEmail has become a trial subscriber of K33 Research Pro")
+                                                        proSubscriptionEvent()
                                                     }
 
                                                     Status.incomplete -> {
@@ -120,11 +117,13 @@ fun Application.module() {
                                                             NotifySlack.RESEARCH_EVENTS,
                                                             "$customerEmail failed to subscribe to K33 Research Pro",
                                                         )
+                                                        disableProSubscriptionEvent()
                                                     }
 
                                                     Status.active -> {
                                                         // started an active (paid) subscription
-                                                        activeSubscriberEvent()
+                                                        notifySlack("$customerEmail has become an active subscriber of K33 Research Pro")
+                                                        proSubscriptionEvent()
                                                     }
 
                                                     else -> {
@@ -134,18 +133,20 @@ fun Application.module() {
                                             }
 
                                             "customer.subscription.updated" -> {
+
                                                 val subscriptionToBeCanceled =
                                                     event.data.previousAttributes?.get("cancel_at_period_end") == false
                                                             && subscription.cancelAtPeriodEnd == true
-
-                                                val subscriptionTrialToActive = previousStatus == "trialing"
-                                                        && subscription.status == "active"
-                                                val subscriptionToActive =
-                                                    !setOf("active", "trialing").contains(previousStatus)
-                                                            && subscription.status == "active"
-                                                val subscriptionToTrial =
-                                                    !setOf("active", "trialing").contains(previousStatus)
-                                                            && subscription.status == "trialing"
+                                                val subscriptionTrialToActive = previousStatus == Status.trialing
+                                                        && status == Status.active
+                                                val subscriptionIncompleteToExpired = previousStatus == Status.incomplete
+                                                        && status == Status.incomplete_expired
+                                                val subscriptionNonProToPro =
+                                                    !proStatusSet.contains(previousStatus)
+                                                            && proStatusSet.contains(status)
+                                                val subscriptionProToBlocked =
+                                                    proStatusSet.contains(previousStatus)
+                                                            && blockedStatusSet.contains(status)
 
                                                 when {
                                                     subscriptionToBeCanceled -> {
@@ -158,16 +159,20 @@ fun Application.module() {
                                                         notifySlack("$customerEmail upgraded from trial to active subscriber of K33 Research Pro")
                                                     }
 
-                                                    subscriptionToActive -> {
-                                                        // updated to an active (paid) subscription
-                                                        notifySlack("$customerEmail changed from $previousStatus to active subscriber of K33 Research Pro")
-                                                        activeSubscriberEvent()
+                                                    subscriptionIncompleteToExpired -> {
+                                                        // changed incomplete subscription to incomplete_expired
+                                                        notifySlack("$customerEmail is  from Blocked (incomplete) to ex-Pro (incomplete_expired) subscriber of K33 Research Pro because first payment was not done within 23hr past of due date.")
                                                     }
 
-                                                    subscriptionToTrial -> {
-                                                        // updated to a trial subscription
-                                                        notifySlack("$customerEmail changed from $previousStatus to trial subscriber of K33 Research Pro")
-                                                        trialSubscriberEvent()
+                                                    subscriptionProToBlocked -> {
+                                                        notifySlack("$customerEmail changed from Pro ($previousStatus) to Blocked ($status) subscriber of K33 Research Pro")
+                                                        disableProSubscriptionEvent()
+                                                    }
+
+                                                    subscriptionNonProToPro -> {
+                                                        // updated from non-pro to an active (paid) subscription
+                                                        notifySlack("$customerEmail changed from non-Pro ($previousStatus) to Pro ($status) subscriber of K33 Research Pro")
+                                                        proSubscriptionEvent()
                                                     }
 
                                                     else -> {
@@ -177,17 +182,13 @@ fun Application.module() {
                                             }
 
                                             "customer.subscription.deleted" -> {
-                                                if (status == Status.canceled) {
-                                                    // subscription is cancelled
-                                                    notifySlack("$customerEmail has unsubscribed from K33 Research Pro")
-                                                    launch {
-                                                        emailService.unlistMarketingContacts(
-                                                            contactEmails = listOf(customerEmail),
-                                                            contactListId = contactListId,
-                                                        )
+                                                when (status) {
+                                                    Status.canceled -> {
+                                                        // subscription is cancelled
+                                                        notifySlack("$customerEmail has unsubscribed from K33 Research Pro")
+                                                        disableProSubscriptionEvent()
                                                     }
-                                                } else {
-                                                    call.application.log.error("Unexpected status: ${status.name} for Stripe event: customer.subscription.deleted")
+                                                    else -> call.application.log.error("Unexpected status: ${status.name} for Stripe event: customer.subscription.deleted")
                                                 }
                                             }
 

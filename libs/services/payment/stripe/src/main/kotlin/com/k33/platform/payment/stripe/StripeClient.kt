@@ -278,19 +278,25 @@ object StripeClient {
                 // new user
                 statusList == null -> null
 
-                // active user
-                statusList.contains(Status.active) -> ProductSubscriptionStatus.active
-                statusList.contains(Status.trialing) -> ProductSubscriptionStatus.active
+                // Pro group:
+                // - active
+                // - trialing
+                statusList.intersect(proStatusSet).isNotEmpty() -> ProductSubscriptionStatus.active
 
-                // blocked user
-                statusList.contains(Status.incomplete) -> ProductSubscriptionStatus.blocked
-                statusList.contains(Status.past_due) -> ProductSubscriptionStatus.blocked
+                // Blocked group:
+                // - past_due
+                // - incomplete
+                statusList.intersect(blockedStatusSet).isNotEmpty() -> ProductSubscriptionStatus.blocked
 
-                // paused
-                // unpaid
                 // canceled
                 // incomplete_expired
-                else -> ProductSubscriptionStatus.ended
+                // unpaid
+                // paused
+                statusList.intersect(endedStatusSet).isNotEmpty() -> ProductSubscriptionStatus.ended
+                else -> {
+                    logger.error("Unknown status list: $statusList. Defaulting to ended status.")
+                    ProductSubscriptionStatus.ended
+                }
             }
         }
 

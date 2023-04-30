@@ -58,3 +58,7 @@ enum class Status {
      */
     ended,
 }
+
+val proStatusSet = setOf(Status.active, Status.trialing)
+val blockedStatusSet = setOf(Status.past_due, Status.incomplete)
+val endedStatusSet = setOf(Status.canceled, Status.incomplete_expired, Status.unpaid, Status.paused)

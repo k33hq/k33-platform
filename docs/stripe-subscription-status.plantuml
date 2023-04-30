@@ -1,0 +1,68 @@
+@startuml
+
+state Pro #green {
+    state active #green
+    state trialing #orange
+}
+
+note left of Pro
+    Show Pro content.
+    Not allowed to create new subscription.
+end note
+
+state Blocked #red {
+    state overdue
+    state incomplete
+}
+
+note right of Blocked
+    Block Pro content.
+    User must update payment method in customer portal.
+    Not allowed to create new subscription.
+end note
+
+
+state Ended #grey {
+    state canceled
+    state incomplete_expired
+    state Unreachable {
+        state unpaid
+        state paused
+    }
+}
+
+note bottom of Ended
+    Block Pro content.
+    Allowed to create new subscription.
+end note
+
+
+[*] --> trialing : new user \n (who was never offered trail)
+[*] --> active : internal user \n (who get corporate discount)
+[*] --> active : first successful payment \n by existing user \n (who have used trial before)
+[*] --> incomplete : failed first payment \n for existing user \n (who have used trial before)
+
+trialing -right-> active : successful payment \n at end of trial period
+trialing --> overdue : failed payment \n at end of trial period
+trialing --> canceled : payment method not entered \n before end of trial period
+note on link
+Next state is configurable in Stripe
+end note
+
+trialing --> canceled : scheduled to be canceled \n at end of trial period
+
+active --> overdue : failed payment \n at end of billing cycle
+active --> canceled : scheduled to be canceled \n at end of billing cycle
+
+overdue --> active : successful payment \n on retry attempt
+overdue --> canceled : after all retry attempts failed
+note on link
+Retry attempts are configurable in Stripe
+end note
+
+incomplete --> incomplete_expired : User has failed \n to update payment method \n within 23 hours
+
+incomplete_expired --> [*]
+canceled --> [*]
+
+@enduml
