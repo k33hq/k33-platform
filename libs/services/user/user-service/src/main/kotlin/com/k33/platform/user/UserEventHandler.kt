@@ -33,7 +33,8 @@ object UserEventHandler {
                         label = welcomeEmail.from.label,
                     ),
                     toList = listOf(Email(email)),
-                    mail = MailTemplate(welcomeEmail.sendgridTemplateId)
+                    mail = MailTemplate(welcomeEmail.sendgridTemplateId),
+                    unsubscribeSettings = welcomeEmail.unsubscribeSettings,
                 )
             }
             launch {
@@ -43,7 +44,8 @@ object UserEventHandler {
                         label = researchWelcomeEmail.from.label,
                     ),
                     toList = listOf(Email(email)),
-                    mail = MailTemplate(researchWelcomeEmail.sendgridTemplateId)
+                    mail = MailTemplate(researchWelcomeEmail.sendgridTemplateId),
+                    unsubscribeSettings = researchWelcomeEmail.unsubscribeSettings,
                 )
             }
         }

@@ -24,7 +24,11 @@ class EmailServiceTest : StringSpec({
             toList = listOf(Email("vihang@k33.com")),
             mail = MailTemplate(
                 templateId = ""
-            )
+            ),
+            unsubscribeSettings = UnsubscribeSettings(
+                groupId = 0,
+                preferencesGroupIds = listOf(),
+            ),
         )
     }
 })

@@ -7,6 +7,7 @@ interface EmailService {
         ccList: List<Email> = emptyList(),
         bccList: List<Email> = emptyList(),
         mail: Mail,
+        unsubscribeSettings: UnsubscribeSettings? = null,
     ): Boolean
 
     suspend fun upsertMarketingContacts(

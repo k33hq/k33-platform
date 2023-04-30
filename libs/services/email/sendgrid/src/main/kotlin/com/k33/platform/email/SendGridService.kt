@@ -6,6 +6,7 @@ import com.sendgrid.Method
 import com.sendgrid.Request
 import com.sendgrid.SendGrid
 import com.sendgrid.helpers.mail.Mail
+import com.sendgrid.helpers.mail.objects.ASM
 import com.sendgrid.helpers.mail.objects.Content
 import com.sendgrid.helpers.mail.objects.Email
 import com.sendgrid.helpers.mail.objects.MailSettings
@@ -49,7 +50,8 @@ object SendGridService : EmailService {
         toList: List<K33Email>,
         ccList: List<K33Email>,
         bccList: List<K33Email>,
-        mail: com.k33.platform.email.Mail
+        mail: com.k33.platform.email.Mail,
+        unsubscribeSettings: UnsubscribeSettings?,
     ): Boolean {
 
         val sendgridMail = Mail().apply {
@@ -97,6 +99,12 @@ object SendGridService : EmailService {
 
                 is MailTemplate -> {
                     setTemplateId(mail.templateId)
+                }
+            }
+            if (unsubscribeSettings != null) {
+                asm = ASM().apply {
+                    groupId = unsubscribeSettings.groupId
+                    groupsToDisplay = unsubscribeSettings.preferencesGroupIds.toIntArray()
                 }
             }
             if (sendGridConfig.enabled.not()) {
