@@ -421,7 +421,7 @@ gcloud iam service-accounts add-iam-policy-binding "github@${GCP_PROJECT_ID}.iam
 ### Setup Global External https load balancer with Cloud Run
 Ref: https://cloud.google.com/load-balancing/docs/https/setup-global-ext-https-serverless
 
-Reserve an external IP address
+#### Reserve an external IP address
 
 ```shell
 gcloud compute addresses create k33-web-ip \
@@ -434,7 +434,12 @@ gcloud compute addresses describe k33-web-ip \
   --global
 ```
 
-Create load balancer
+#### Create load balancer
+
+* [Enable GCP Cloud CDN for our Global Load Balancer.](https://cloud.google.com/cdn/docs/setting-up-cdn-with-serverless#gcloud_1)
+* [Cache modes](https://cloud.google.com/cdn/docs/using-cache-modes)
+* [Configure TTL](https://cloud.google.com/cdn/docs/using-ttl-overrides#gcloud_1)
+* [Enable compression](https://cloud.google.com/cdn/docs/dynamic-compression)
 
 ```shell
 gcloud compute network-endpoint-groups create cloud-run-neg \
@@ -444,6 +449,13 @@ gcloud compute network-endpoint-groups create cloud-run-neg \
 
 gcloud compute backend-services create web-backend-service \
   --load-balancing-scheme=EXTERNAL_MANAGED \
+  --enable-cdn \
+  --cache-mode=FORCE_CACHE_ALL \
+  --default-ttl=300 \
+  --client-ttl=300 \
+  --compression-mode=AUTOMATIC \
+  --custom-response-header='Cache-Status: {cdn_cache_status}' \
+  --custom-response-header='Cache-ID: {cdn_cache_id}' \
   --global
 
 gcloud compute backend-services add-backend web-backend-service \
