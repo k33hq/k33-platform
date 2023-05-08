@@ -15,6 +15,7 @@ import com.stripe.model.Subscription
 import com.stripe.net.RequestOptions
 import com.stripe.param.CustomerCreateParams
 import com.stripe.param.CustomerSearchParams
+import com.stripe.param.SubscriptionCreateParams
 import com.stripe.param.SubscriptionListParams
 import com.stripe.param.checkout.SessionCreateParams
 import com.stripe.param.checkout.SessionListLineItemsParams
@@ -386,6 +387,85 @@ object StripeClient {
             logger.warn("Found ${sessions.size} checkout sessions")
         }
         sessions
+    }
+
+    private suspend fun createTrialSubscription(
+        customerEmail: String,
+        priceId: String,
+        promotionCode: String?,
+    ) {
+        val productId = stripeCall {
+            Price.retrieve(priceId, requestOptions)
+        }?.product ?: throw NotFound("price: [$priceId] not found")
+        val customerInfo = getCustomersByEmail(customerEmail = customerEmail)
+        val customerId = if (customerInfo.customers.isNotEmpty()) {
+            val subscriptionInfo = getSubscriptionInfo(customerInfo = customerInfo)
+            if (subscriptionInfo.isCurrentlySubscribedTo(productId = productId)) {
+                logger.warn("Already subscribed")
+                throw AlreadySubscribed
+            }
+            if (subscriptionInfo.hasCurrentOrPriorSubscription(productId = productId)) {
+                logger.warn("Already had a trial before")
+                throw NotEligibleForFreeTrial
+            }
+            customerInfo.customers.first().id
+        } else {
+            val customerId = stripeCall {
+                Customer.create(
+                    CustomerCreateParams
+                        .builder()
+                        .setEmail(customerEmail)
+                        .build(),
+                    withIdempotencyKey(payload = customerEmail),
+                )
+            }?.id ?: throw ServiceUnavailable("Failed to create Stripe customer")
+            customerId
+        }
+        val params = SubscriptionCreateParams
+            .builder()
+            // in case of duplicates we give priority to one created later
+            .setCustomer(customerId)
+            .addItem(
+                SubscriptionCreateParams.Item
+                    .builder()
+                    .setPrice(priceId)
+                    .setQuantity(1)
+                    .build()
+            )
+            .apply {
+                if (customerEmail.endsWith("@k33.com", ignoreCase = true)) {
+                    setCoupon(corporatePlanCoupon)
+                } else {
+                    setTrialPeriodDays(30L)
+                    setTrialSettings(
+                        SubscriptionCreateParams.TrialSettings
+                            .builder()
+                            .setEndBehavior(
+                                SubscriptionCreateParams.TrialSettings.EndBehavior
+                                    .builder()
+                                    .setMissingPaymentMethod(
+                                        SubscriptionCreateParams.TrialSettings.EndBehavior.MissingPaymentMethod.CANCEL
+                                    )
+                                    .build()
+                            )
+                            .build()
+                    )
+                    if (promotionCode != null) {
+                        setPromotionCode(promotionCode)
+                    }
+                 }
+            }
+            .build()
+        val subscription = stripeCall {
+            Subscription.create(params, requestOptions)
+        } ?: throw ServiceUnavailable("Failed to create Stripe subscription")
+        logger.info("subscription.status: ${subscription.status}")
+        if (subscription.trialStart != null) {
+            logger.info("subscription.trialStart: ${Instant.ofEpochSecond(subscription.trialStart)}")
+        }
+        if (subscription.trialEnd != null) {
+            logger.info("subscription.trialStart: ${Instant.ofEpochSecond(subscription.trialEnd)}")
+        }
     }
 
     private suspend fun StripeCheckoutSession.hasLineItemWith(

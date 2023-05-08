@@ -36,3 +36,8 @@ object InternalServerError: PaymentServiceError(
     httpStatusCode = HttpStatusCode.InternalServerError,
     message = "Internal Server Error",
 )
+
+object NotEligibleForFreeTrial: PaymentServiceError(
+    httpStatusCode = HttpStatusCode.Forbidden,
+    message = "Not eligible for free trial",
+)
