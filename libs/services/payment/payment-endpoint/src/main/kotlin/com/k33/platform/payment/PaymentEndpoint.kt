@@ -77,7 +77,7 @@ fun Application.module() {
                         }
                     }
                 }
-                suspend fun PipelineContext<Unit, ApplicationCall>.createCheckoutSession() {
+                post("checkout-sessions") {
                     val userId = UserId(call.principal<UserInfo>()!!.userId)
                     logWithMDC("userId" to userId.value) {
                         try {
@@ -109,13 +109,7 @@ fun Application.module() {
                         }
                     }
                 }
-                post("checkout-session") {
-                    createCheckoutSession()
-                }
-                post("checkout-sessions") {
-                    createCheckoutSession()
-                }
-                suspend fun PipelineContext<Unit, ApplicationCall>.createCustomerPortal() {
+                post("customer-portal-sessions") {
                     val userId = UserId(call.principal<UserInfo>()!!.userId)
                     logWithMDC("userId" to userId.value) {
                         try {
@@ -141,13 +135,6 @@ fun Application.module() {
                             call.respond(HttpStatusCode.InternalServerError)
                         }
                     }
-                }
-                // deprecated
-                post("customer-portal-session") {
-                    createCustomerPortal()
-                }
-                post("customer-portal-sessions") {
-                    createCustomerPortal()
                 }
             }
         }
