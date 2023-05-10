@@ -61,6 +61,7 @@ Retry attempts are configurable in Stripe
 end note
 
 incomplete --> incomplete_expired : User has failed \n to update payment method \n within 23 hours
+'incomplete --> active : User has updated payment method \n within 23 hours
 
 incomplete_expired --> [*]
 canceled --> [*]

@@ -1,5 +1,6 @@
 package com.k33.platform.payment.stripe
 
+import com.k33.platform.utils.analytics.Log
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.getLogger
 import com.stripe.exception.ApiConnectionException
@@ -62,10 +63,13 @@ object StripeClient {
         priceId: String,
         successUrl: String,
         cancelUrl: String,
+        webClientId: String,
+        userAnalyticsId: String?,
     ): CheckoutSession {
-        val productId = stripeCall {
+        val price = stripeCall {
             Price.retrieve(priceId, requestOptions)
-        }?.product ?: throw NotFound("price: [$priceId] not found")
+        } ?: throw NotFound("price: [$priceId] not found")
+        val productId = price.product
         val customerInfo = getCustomersByEmail(customerEmail = customerEmail)
         val (customerId, hasCurrentOrPriorSubscription) = if (customerInfo.customers.isNotEmpty()) {
             val subscriptionInfo = getSubscriptionInfo(customerInfo = customerInfo)
@@ -99,10 +103,10 @@ object StripeClient {
             .builder()
             .setMode(CheckoutSessionCreateParams.Mode.SUBSCRIPTION)
             .setLocale(CheckoutSessionCreateParams.Locale.AUTO)
+            // in case of duplicates we give priority to one created later
+            .setCustomer(customerId)
+            .setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.IF_REQUIRED)
             .apply {
-                // in case of duplicates we give priority to one created later
-                setCustomer(customerId)
-                setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.IF_REQUIRED)
                 if (customerEmail.endsWith("@k33.com", ignoreCase = true)) {
                     addDiscount(
                         CheckoutSessionCreateParams
@@ -115,7 +119,7 @@ object StripeClient {
                     if (!hasCurrentOrPriorSubscription) {
                         setSubscriptionData(
                             CheckoutSessionCreateParams.SubscriptionData.builder()
-                                .setTrialPeriodDays(30L)
+                                .setTrialPeriodDays(TRIAL_PERIOD_DAYS.toLong())
                                 .setTrialSettings(
                                     SessionCreateParams.SubscriptionData.TrialSettings
                                         .builder()
@@ -146,6 +150,7 @@ object StripeClient {
                     .setQuantity(1)
                     .build()
             )
+            // .putMetadata("web-client-id", webClientId)
             .build()
         val checkoutSession = stripeCall {
             StripeCheckoutSession.create(
@@ -156,6 +161,13 @@ object StripeClient {
         val lineItems = stripeCall {
             checkoutSession.listLineItems(SessionListLineItemsParams.builder().build(), requestOptions)
         } ?: throw ServiceUnavailable("Missing line items in checkout session")
+        Log.beginCheckout(
+            webClientId = webClientId,
+            userAnalyticsId = userAnalyticsId,
+            value = price.unitAmount / 100.0f,
+            currency = price.currency,
+            productId = productId,
+        )
         return CheckoutSession(
             url = checkoutSession.url,
             expiresAt = Instant.ofEpochSecond(checkoutSession.expiresAt).toString(),
@@ -369,19 +381,16 @@ object StripeClient {
                     val lineItems = stripeCall {
                         checkoutSession.listLineItems(SessionListLineItemsParams.builder().build(), requestOptions)
                     } ?: throw ServiceUnavailable("Missing line items in checkout session")
-                    stripeCall {
-                        CheckoutSession(
-                            url = checkoutSession.url,
-                            expiresAt = Instant.ofEpochSecond(checkoutSession.expiresAt).toString(),
-                            priceId = lineItems.data.single().price.id,
-                            successUrl = checkoutSession.successUrl,
-                            cancelUrl = checkoutSession.cancelUrl,
-                        )
-                    }
+                    CheckoutSession(
+                        url = checkoutSession.url,
+                        expiresAt = Instant.ofEpochSecond(checkoutSession.expiresAt).toString(),
+                        priceId = lineItems.data.single().price.id,
+                        successUrl = checkoutSession.successUrl,
+                        cancelUrl = checkoutSession.cancelUrl,
+                    )
                 }
             }
             ?.awaitAll()
-            ?.filterNotNull()
             ?: emptyList()
         if (sessions.size > 1) {
             logger.warn("Found ${sessions.size} checkout sessions")
@@ -436,7 +445,7 @@ object StripeClient {
                 if (customerEmail.endsWith("@k33.com", ignoreCase = true)) {
                     setCoupon(corporatePlanCoupon)
                 } else {
-                    setTrialPeriodDays(30L)
+                    setTrialPeriodDays(TRIAL_PERIOD_DAYS.toLong())
                     setTrialSettings(
                         SubscriptionCreateParams.TrialSettings
                             .builder()
@@ -453,7 +462,7 @@ object StripeClient {
                     if (promotionCode != null) {
                         setPromotionCode(promotionCode)
                     }
-                 }
+                }
             }
             .build()
         val subscription = stripeCall {

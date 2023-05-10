@@ -5,6 +5,7 @@ import com.k33.platform.email.Email
 import com.k33.platform.email.EmailTemplateConfig
 import com.k33.platform.email.MailTemplate
 import com.k33.platform.email.getEmailService
+import com.k33.platform.utils.analytics.Log
 import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.logWithMDC
@@ -19,6 +20,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 fun Application.module() {
 
@@ -109,6 +111,11 @@ fun Application.module() {
                                                         // started a trial subscription
                                                         notifySlack("$customerEmail has become a trial subscriber of K33 Research Pro")
                                                         proSubscriptionEvent()
+                                                        Log.beginSubscriptionTrial(
+                                                            webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
+                                                            userAnalyticsId = null,
+                                                            productId = product,
+                                                        )
                                                     }
 
                                                     Status.incomplete -> {
@@ -124,6 +131,11 @@ fun Application.module() {
                                                         // started an active (paid) subscription
                                                         notifySlack("$customerEmail has become an active subscriber of K33 Research Pro")
                                                         proSubscriptionEvent()
+                                                        Log.beginSubscription(
+                                                            webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
+                                                            userAnalyticsId = null,
+                                                            productId = product,
+                                                        )
                                                     }
 
                                                     else -> {
@@ -137,16 +149,22 @@ fun Application.module() {
                                                 val subscriptionToBeCanceled =
                                                     event.data.previousAttributes?.get("cancel_at_period_end") == false
                                                             && subscription.cancelAtPeriodEnd == true
-                                                val subscriptionTrialToActive = previousStatus == Status.trialing
-                                                        && status == Status.active
-                                                val subscriptionIncompleteToExpired = previousStatus == Status.incomplete
-                                                        && status == Status.incomplete_expired
+                                                val subscriptionTrialToActive =
+                                                    previousStatus == Status.trialing
+                                                            && status == Status.active
+                                                val subscriptionIncompleteToExpired = previousStatus ==
+                                                    Status.incomplete
+                                                            && status == Status.incomplete_expired
                                                 val subscriptionNonProToPro =
-                                                    !proStatusSet.contains(previousStatus)
+                                                    previousStatus != null
+                                                            && !proStatusSet.contains(previousStatus)
                                                             && proStatusSet.contains(status)
                                                 val subscriptionProToBlocked =
                                                     proStatusSet.contains(previousStatus)
                                                             && blockedStatusSet.contains(status)
+                                                val subscriptionActive =
+                                                    previousStatus == null
+                                                            && proStatusSet.contains(status)
 
                                                 when {
                                                     subscriptionToBeCanceled -> {
@@ -157,6 +175,11 @@ fun Application.module() {
                                                     subscriptionTrialToActive -> {
                                                         // changed trial subscription to active (paid) subscription
                                                         notifySlack("$customerEmail upgraded from trial to active subscriber of K33 Research Pro")
+                                                        Log.beginSubscription(
+                                                            webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
+                                                            userAnalyticsId = null,
+                                                            productId = product,
+                                                        )
                                                     }
 
                                                     subscriptionIncompleteToExpired -> {
@@ -173,6 +196,15 @@ fun Application.module() {
                                                         // updated from non-pro to an active (paid) subscription
                                                         notifySlack("$customerEmail changed from non-Pro ($previousStatus) to Pro ($status) subscriber of K33 Research Pro")
                                                         proSubscriptionEvent()
+                                                        Log.beginSubscription(
+                                                            webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
+                                                            userAnalyticsId = null,
+                                                            productId = product,
+                                                        )
+                                                    }
+
+                                                    subscriptionActive -> {
+                                                        notifySlack("$customerEmail has done recurring payment and continued as Pro ($status) subscriber of K33 Research Pro")
                                                     }
 
                                                     else -> {
@@ -187,6 +219,11 @@ fun Application.module() {
                                                         // subscription is cancelled
                                                         notifySlack("$customerEmail has unsubscribed from K33 Research Pro")
                                                         disableProSubscriptionEvent()
+                                                        Log.endSubscription(
+                                                            webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
+                                                            userAnalyticsId = null,
+                                                            productId = product,
+                                                        )
                                                     }
                                                     else -> call.application.log.error("Unexpected status: ${status.name} for Stripe event: customer.subscription.deleted")
                                                 }

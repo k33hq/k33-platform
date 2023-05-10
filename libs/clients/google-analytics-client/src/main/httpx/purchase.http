@@ -1,0 +1,55 @@
+### debug purchase
+
+POST https://www.google-analytics.com/debug/mp/collect?measurement_id={{ga_measurement_id}}&api_secret={{ga_api_secret}}
+
+{
+  "client_id": "client_id",
+  "user_id": "user_id",
+  "timestamp_micros": 1683736170192146,
+  "events": [
+    {
+      "name": "purchase",
+      "params": {
+        "currency": "USD",
+        "transaction_id": "5a223ac3-01c1-4879-a6cb-c35c4fff8183",
+        "value": 15.0,
+        "items": [
+          {
+            "item_id": "k33-research-pro",
+            "item_name": "K33 Research Pro",
+            "price": 15.0
+          }
+        ]
+      }
+    }
+  ],
+  "non_personalized_ads": true
+}
+
+### purchase
+
+POST https://www.google-analytics.com/mp/collect?measurement_id={{ga_measurement_id}}&api_secret={{ga_api_secret}}
+
+{
+  "client_id": "client_id",
+  "user_id": "user_id",
+  "timestamp_micros": 1683736170192146,
+  "events": [
+    {
+      "name": "purchase",
+      "params": {
+        "currency": "USD",
+        "transaction_id": "5a223ac3-01c1-4879-a6cb-c35c4fff8183",
+        "value": 15.0,
+        "items": [
+          {
+            "item_id": "k33-research-pro",
+            "item_name": "K33 Research Pro",
+            "price": 15.0
+          }
+        ]
+      }
+    }
+  ],
+  "non_personalized_ads": true
+}

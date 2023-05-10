@@ -5,9 +5,11 @@ plugins {
 
 dependencies {
 
-    implementation(project(":libs:services:identity"))
-    implementation(project(":libs:utils:logging"))
     implementation(project(":libs:services:payment:stripe"))
+    implementation(project(":libs:services:identity"))
+    implementation(project(":libs:services:user:user-service"))
+    implementation(project(":libs:utils:analytics"))
+    implementation(project(":libs:utils:logging"))
 
     implementation(Ktor.server.core)
     implementation("io.ktor:ktor-server-auth:_")

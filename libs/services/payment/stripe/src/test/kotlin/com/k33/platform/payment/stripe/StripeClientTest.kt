@@ -1,6 +1,7 @@
 package com.k33.platform.payment.stripe
 
 import io.kotest.core.spec.style.StringSpec
+import java.util.UUID
 
 class StripeClientTest: StringSpec({
     "create/fetch checkout session".config(enabled = false) {
@@ -9,6 +10,8 @@ class StripeClientTest: StringSpec({
             priceId = "",
             successUrl = "https://dev.k33.com/research/settings",
             cancelUrl = "https://dev.k33.com/research/settings",
+            webClientId = UUID.randomUUID().toString(),
+            userAnalyticsId = null,
         )
         println(session.url)
     }

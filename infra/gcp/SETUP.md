@@ -413,7 +413,7 @@ GCP_PROJECT_NUMBER=$(gcloud projects describe "${GCP_PROJECT_ID}" --format="valu
 gcloud iam service-accounts add-iam-policy-binding "github@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
   --project="${GCP_PROJECT_ID}" \
   --role="roles/iam.workloadIdentityUser" \
-  --member="principalSet://iam.googleapis.com/projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-actions-workload-id-pool/attribute.repository_owner/33k33"
+  --member="principalSet://iam.googleapis.com/projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-actions-workload-id-pool/attribute.repository_owner/k33hq"
 ```
 
 ## Setup Cloud Armor

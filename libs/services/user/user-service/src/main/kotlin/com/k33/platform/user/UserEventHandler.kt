@@ -4,6 +4,7 @@ import com.k33.platform.email.Email
 import com.k33.platform.email.EmailTemplateConfig
 import com.k33.platform.email.MailTemplate
 import com.k33.platform.email.getEmailService
+import com.k33.platform.utils.analytics.Log
 import com.k33.platform.utils.config.loadConfig
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -23,7 +24,10 @@ object UserEventHandler {
     )
 
     suspend fun onNewUserCreated(
-        email: String
+        email: String,
+        userAnalyticsId: String,
+        webClientId: String,
+        idProvider: String?,
     ) {
         coroutineScope {
             launch {
@@ -46,6 +50,13 @@ object UserEventHandler {
                     toList = listOf(Email(email)),
                     mail = MailTemplate(researchWelcomeEmail.sendgridTemplateId),
                     unsubscribeSettings = researchWelcomeEmail.unsubscribeSettings,
+                )
+            }
+            launch {
+                Log.signUp(
+                    webClientId = webClientId,
+                    userAnalyticsId = userAnalyticsId,
+                    idProvider = idProvider,
                 )
             }
         }

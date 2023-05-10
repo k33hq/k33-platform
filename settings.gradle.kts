@@ -27,8 +27,9 @@ include(
     "libs:apps:invest",
 
     // libs / clients
-    "libs:clients:k33-backend-client",
     "libs:clients:contentful-client",
+    "libs:clients:google-analytics-client",
+    "libs:clients:k33-backend-client",
 
     // libs / services
 
@@ -55,6 +56,7 @@ include(
     // libs / utils
 
     "libs:utils:analytics",
+    "libs:utils:analytics:google-analytics",
 
     "libs:utils:cms",
     "libs:utils:cms:contentful",

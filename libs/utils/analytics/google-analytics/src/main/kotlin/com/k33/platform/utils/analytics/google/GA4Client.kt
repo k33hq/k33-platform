@@ -1,5 +1,8 @@
-package com.k33.platform.utils.analytics
+package com.k33.platform.utils.analytics.google
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.getLogger
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -8,98 +11,139 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.http.cio.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import io.ktor.serialization.jackson.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 
-object GoogleAnalyticsService {
+sealed class GA4Client {
 
     private val logger by getLogger()
 
-    suspend fun check(
-        clientId: String,
-        userAnalyticsId: String,
-        events: Collection<Event>,
-    ) {
-        val request = Request(
-            clientId = clientId,
-            userAnalyticsId = userAnalyticsId,
-            events = events
-        )
-        if (!request.verify()) {
-            return
+    protected val config: Config by loadConfig("googleAnalytics", "googleAnalytics")
+
+    protected open val httpClient = HttpClient(CIO) {
+        install(Logging) {
+            logger = Logger.DEFAULT
+            level = LogLevel.ALL
         }
-        val validationMessages: List<ValidationMessage> = googleAnalyticsClient.post {
-            url(path = "/debug/mp/collect")
-            setBody(request)
-        }.body()
-        if (validationMessages.isNotEmpty()) {
-            logger.error(validationMessages.joinToString())
-            return
+        install(UserAgent) {
+            agent = "k33-backend"
+        }
+        install(ContentNegotiation) {
+            jackson {
+                setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+            }
+        }
+        defaultRequest {
+            url(scheme = "https", host = "www.google-analytics.com", path = "/mp/collect") {
+                parameters.append("api_secret", config.apiKey)
+            }
+            contentType(ContentType.Application.Json)
         }
     }
 
-    suspend fun submit(
-        clientId: String,
-        userAnalyticsId: String,
-        events: Collection<Event>,
-    ) {
-        val request = Request(
-            clientId = clientId,
-            userAnalyticsId = userAnalyticsId,
-            events = events
-        )
-        googleAnalyticsClient.post {
-            setBody(request)
-        }.body<Unit>()
+    protected suspend fun validate(request: Request): Boolean {
+        if (!request.verify()) {
+            return false
+        }
+        val validationResponse: ValidationResponse = withContext(Dispatchers.IO) {
+            httpClient.post {
+                url(path = "/debug/mp/collect")
+                setBody(request)
+            }
+        }.body()
+        if (validationResponse.validationMessages.isNotEmpty()) {
+            logger.error(validationResponse.validationMessages.joinToString())
+            return false
+        }
+        return true
+    }
+
+    protected suspend fun submit(request: Request) {
+        withContext(Dispatchers.IO) {
+            httpClient.post {
+                setBody(request)
+            }.body<Unit>()
+        }
     }
 }
 
-private val googleAnalyticsClient = HttpClient(CIO) {
-    install(Logging) {
-        logger = Logger.DEFAULT
-        level = LogLevel.ALL
+object GA4ClientForApp : GA4Client() {
+
+    override val httpClient = super.httpClient.config {
+        defaultRequest {
+            url {
+                parameters.append("firebase_app_id", config.firebaseAppId)
+            }
+        }
     }
-    install(UserAgent) {
-        agent = "k33-backend"
+
+    internal suspend fun validate(request: AppRequest) = super.validate(request)
+
+    internal suspend fun submit(request: AppRequest) = super.submit(request)
+}
+
+object GA4ClientForWeb : GA4Client() {
+
+    override val httpClient = super.httpClient.config {
+        defaultRequest {
+            url {
+                parameters.append("measurement_id", config.measurementId)
+            }
+        }
     }
-    install(ContentNegotiation) {
-        json()
-    }
-    defaultRequest {
-        url("https://www.google-analytics.com/mp/collect")
-        contentType(ContentType.Application.Json)
-        parametersOf(
-            "api_secret" to listOf(System.getenv("GOOGLE_ANALYTICS_API_KEY")),
-            "measurement_id" to listOf(System.getenv("GOOGLE_ANALYTICS_MEASUREMENT_ID")),
-        )
-    }
+
+    internal suspend fun validate(request: WebRequest) = super.validate(request)
+
+    suspend fun submit(request: WebRequest) = super.submit(request)
 }
 
 /**
  * Ref: https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference
  */
-@Serializable
-private data class Request(
-    @SerialName("client_id") val clientId: String,
-    @SerialName("user_id") val userAnalyticsId: String,
-    @SerialName("timestamp_micros") val timestampInMicroseconds: Long? = null,
-    @SerialName("user_properties") val userProperties: Map<String, String>? = null,
-    @SerialName("non_personalized_ads") val nonPersonalizedAds: Boolean? = null,
+sealed class Request(
+    @get:JsonProperty("user_id")
+    val userAnalyticsId: String?,
+    @get:JsonProperty("timestamp_micros")
+    val timestampInMicroseconds: Long?,
+    @get:JsonProperty("user_properties")
+    val userProperties: Map<String, String> = emptyMap(),
+    @get:JsonProperty("non_personalized_ads")
+    val nonPersonalizedAds: Boolean = true,
     val events: Collection<Event>,
 )
 
-@Serializable
-data class Event(
-    val name: String,
-    val params: Map<String, String>? = null
+class WebRequest(
+    @JsonProperty("client_id")
+    val webClientId: String,
+    userAnalyticsId: String? = null,
+    timestampInMicroseconds: Long? = null,
+    events: Collection<Event>,
+) : Request(
+    userAnalyticsId = userAnalyticsId,
+    timestampInMicroseconds = timestampInMicroseconds,
+    events = events,
 )
 
-@Serializable
+class AppRequest(
+    @JsonProperty("app_instance_id")
+    val appInstanceId: String,
+    userAnalyticsId: String? = null,
+    timestampInMicroseconds: Long? = null,
+    events: Collection<Event>,
+) : Request(
+    userAnalyticsId = userAnalyticsId,
+    timestampInMicroseconds = timestampInMicroseconds,
+    events = events,
+)
+
+private data class ValidationResponse(
+    val validationMessages: List<ValidationMessage>
+)
+
 private data class ValidationMessage(
     val fieldPath: String? = null,
     val description: String? = null,
@@ -114,13 +158,14 @@ enum class ValidationCode {
     VALUE_OUT_OF_BOUNDS,
     EXCEEDED_MAX_ENTITIES,
     NAME_DUPLICATED,
+    INTERNAL_ERROR,
 }
 
 private val logger by lazy {
     LoggerFactory.getLogger(Request::class.java)
 }
 
-private fun Request.verify(): Boolean {
+internal fun Request.verify(): Boolean {
     val validationErrors = mutableSetOf<String>()
 
     if (events.size > 25) {
@@ -134,58 +179,14 @@ private fun Request.verify(): Boolean {
         if (foundInvalidEventNames.isNotEmpty()) {
             validationErrors += "Found invalid events names: $foundInvalidEventNames"
         }
-        val foundWithReservedNames = eventNameSet - reservedEventNames
+        val foundWithReservedNames = eventNameSet.intersect(reservedEventNames)
         if (foundWithReservedNames.isNotEmpty()) {
             validationErrors += "Found events with reserved names: $foundWithReservedNames"
         }
     }
 
-    fun verifyEventParamNames() {
-        val paramNamesSet = events
-            .mapNotNull(Event::params)
-            .flatMap(Map<String, String>::keys)
-            .toSet()
-        val foundInvalidParamNames = paramNamesSet.filterNot { it.matches(regex) }
-        if (foundInvalidParamNames.isNotEmpty()) {
-            validationErrors += "Found invalid param names: $foundInvalidParamNames"
-        }
-        if (paramNamesSet.contains(reservedEventParamName)) {
-            validationErrors += "Found event params wth reserved name: $reservedEventParamName"
-        }
-        val foundWithReservedPrefix = paramNamesSet.filter {
-            reservedEventParamNamesPrefix.any { prefix -> it.startsWith(prefix) }
-        }
-        if (foundWithReservedPrefix.isNotEmpty()) {
-            validationErrors += "Found event params with reserved prefix: $foundWithReservedPrefix"
-        }
-    }
-
-    fun verifyEventParamValues() {
-        val foundLongEventParamValues = events
-            .mapNotNull(Event::params)
-            .flatMap(Map<String, String>::values)
-            .toSet()
-            .filter { it.length > 100 }
-        if (foundLongEventParamValues.isNotEmpty()) {
-            validationErrors += "Parameter values must be 100 character or fewer. Found $foundLongEventParamValues"
-        }
-    }
-
-    fun verifyEventParams() {
-        if (events.any { (it.params?.size ?: 0) > 25 }) {
-            validationErrors += "Events can have a maximum of 25 parameters."
-        }
-        verifyEventParamNames()
-        verifyEventParamValues()
-    }
-
-    fun verifyEvents() {
-        verifyEventNames()
-        verifyEventParams()
-    }
-
     fun verifyUserProperties() {
-        if (!userProperties.isNullOrEmpty()) {
+        if (userProperties.isNotEmpty()) {
             if (userProperties.size > 25) {
                 validationErrors += "Events can have a maximum of 25 user properties."
             }
@@ -210,8 +211,7 @@ private fun Request.verify(): Boolean {
         }
     }
 
-    verifyEvents()
-    verifyUserProperties()
+    verifyEventNames()
 
     if (validationErrors.isNotEmpty()) {
         logger.error(validationErrors.joinToString())

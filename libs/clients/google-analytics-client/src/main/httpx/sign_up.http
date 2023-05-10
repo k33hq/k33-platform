@@ -1,0 +1,36 @@
+### debug sign_up
+
+POST https://www.google-analytics.com/debug/mp/collect?measurement_id={{ga_measurement_id}}&api_secret={{ga_api_secret}}
+
+{
+  "client_id": "client_id",
+  "user_id": "user_id",
+  "timestamp_micros": 1683735870192146,
+  "events": [
+    {
+      "name": "sign_up",
+      "params": {
+        "method": "google"
+      }
+    }
+  ],
+  "non_personalized_ads": true
+}
+
+### sign_up
+POST https://www.google-analytics.com/mp/collect?measurement_id={{ga_measurement_id}}&api_secret={{ga_api_secret}}
+
+{
+  "client_id": "client_id",
+  "user_id": "user_id",
+  "timestamp_micros": 1683735870192146,
+  "events": [
+    {
+      "name": "sign_up",
+      "params": {
+        "method": "google"
+      }
+    }
+  ],
+  "non_personalized_ads": true
+}
