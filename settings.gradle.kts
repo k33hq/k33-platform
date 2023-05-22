@@ -21,6 +21,8 @@ include(
     "apps:oauth2-provider-emulator",
     "apps:oauth2-provider-emulator:oauth2-provider-api",
 
+    "apps:stripe-admin-tool",
+
     // libs
 
     // libs / apps
