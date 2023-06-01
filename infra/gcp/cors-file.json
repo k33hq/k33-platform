@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://k33.retool.com"],
+    "responseHeader": ["Content-Type", "x-goog-acl"],
+    "method": ["GET", "HEAD", "POST", "PUT", "DELETE"],
+    "maxAgeSeconds": 3600
+  }
+]

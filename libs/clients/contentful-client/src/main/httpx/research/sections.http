@@ -1,0 +1,15 @@
+### fetch articles using section
+
+GRAPHQL https://graphql.contentful.com/content/v1/spaces/{{space_id}}
+Content-Type: application/graphql
+Authorization: Bearer {{token}}
+
+query {
+    articleWebCollection(where: { section: { name: "section" } }, order: [publishedDate_DESC], limit: 100) {
+        items {
+            title
+            articleSlug
+            publishedDate
+        }
+    }
+}

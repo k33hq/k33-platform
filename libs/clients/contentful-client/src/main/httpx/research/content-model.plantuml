@@ -1,0 +1,77 @@
+@startuml
+
+class article
+
+' class articleMobile
+' article <|-- articleMobile
+
+author <... article : always has many <
+product <... article : always belong to 1 <
+tag <... article : always has 1 to 5 <
+category <... article : always belong to 1 <
+
+class articleWeb
+article <|-- articleWeb : always has 1 <
+
+productWeb <... articleWeb : always belong to 1 <
+categoryWeb <... articleWeb : always belong to 1 <
+
+authorWeb <... articleWeb : always has 1
+
+subscriptionWeb <... articleWeb : always has 1
+
+class author
+
+class authorWeb
+
+author <|-- authorWeb
+
+class callToAction
+
+class category
+
+class categoryWeb
+
+category <|-- categoryWeb
+product <... categoryWeb : has many <
+productWeb <... categoryWeb : always highlights upto 2 <
+productWeb <... categoryWeb : may have many <
+
+class product
+
+class productWeb
+
+product <|-- productWeb
+categoryWeb <... productWeb : may have 1
+note on link #red: cyclic reference
+productBranding <... productWeb : always has 1
+subscriptionWeb <... productWeb : always has 1
+seoMetadata <... productWeb : always has 1
+
+class productBranding
+
+class promotion
+
+callToAction <.. promotion : always has 1 <
+
+class quote
+
+class researchLandingPageWeb
+productWeb <.. researchLandingPageWeb : has many <
+
+class seoMetadata
+
+class subscription
+
+class subscriptionProduct
+
+subscription <.. subscriptionProduct : always prices many <
+
+class subscriptionWeb
+
+subscription <|-- subscriptionWeb
+seoMetadata <... subscriptionWeb : always has 1 <
+
+class tag
+
+@enduml
