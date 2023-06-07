@@ -15,15 +15,14 @@ jobs:
       - name: Checkout the Repository
         uses: actions/checkout@v3
       - name: Google auth
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          version: 434.0.0
       - name: Deploy GCP Cloud Endpoints
         env:
           GCP_API_HOST: ${{ secrets.GCP_API_HOST }}

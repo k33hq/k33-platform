@@ -63,6 +63,7 @@ gcloud services enable dns.googleapis.com
 Needed for prod only.
 
 ```shell
+gcloud services enable iam.googleapis.com
 gcloud services enable iamcredentials.googleapis.com
 gcloud services enable cloudscheduler.googleapis.com
 ```
