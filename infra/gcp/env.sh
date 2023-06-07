@@ -21,3 +21,4 @@ ln -s .env.$1 .env
 ln -s .env.gcp.$1 .env.gcp
 
 gcloud config configurations activate k33-$1
+gcloud auth activate-service-account --key-file=infra/gcp/secrets/gcp-service-account-$1.json

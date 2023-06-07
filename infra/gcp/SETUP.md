@@ -7,33 +7,35 @@ Ref: https://cloud.google.com/run/docs/tutorials/identity-platform
 
 Ref: https://cloud.google.com/sdk/docs/quickstart  
 Ref: https://cloud.google.com/sdk/docs/initializing  
+
+Since `gcloud` is not yet setup, we have to create `gcp-service-account` in GCP web console manually and place key.json file at `infra/gcp/secrets/gcp-service-account.json`.  
 ```shell
 gcloud components update
 
 gcloud config configurations create $GCP_PROJECT_ID 
-gcloud auth login
+gcloud auth login activate-service-account --key-file=infra/gcp/secrets/gcp-service-account.json
 gcloud config set project $GCP_PROJECT_ID
 gcloud services enable compute.googleapis.com
 gcloud config set compute/region europe-west1
 gcloud config set compute/zone europe-west1-b
 gcloud config set run/region europe-west1
-# or
-gcloud init
 ```
 
 Output of `gcloud config list`
 ```text
+[auth]
+service_account_use_self_signed_jwt = None
 [compute]
 region = europe-west1
 zone = europe-west1-b
 [core]
-account = user@k33.com
+account = gcp-service-account@<GCP_PROJECT_ID>.iam.gserviceaccount.com
 disable_usage_reporting = True
-project = <<GCP_PROJECT_ID>
+project = <GCP_PROJECT_ID>
 [run]
 region = europe-west1
 
-Your active configuration is: [default]
+Your active configuration is: [<GCP_PROJECT_ID>]
 ```
 
 ## Enable GCP services
@@ -52,6 +54,10 @@ gcloud services enable cloudbuild.googleapis.com
 gcloud services enable certificatemanager.googleapis.com
 gcloud services enable firestore.googleapis.com
 gcloud alpha firestore databases update --type=firestore-native
+gcloud services enable storage.googleapis.com
+gcloud services enable drive.googleapis.com
+gcloud services enable dns.googleapis.com
+
 ```
 
 Needed for prod only.
