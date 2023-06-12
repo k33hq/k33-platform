@@ -10,6 +10,57 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.toJavaDuration
 
 fun main() {
+    val stripeApiKey = ""
+    val priceId = ""
+
+    runBlocking {
+        val requestOptions = RequestOptions
+            .builder()
+            .setApiKey(stripeApiKey)
+            .setClientId("k33-stripe-admin-tool")
+            .build()
+
+        val subscriptions = mutableListOf<Subscription>()
+
+        do {
+            val params = SubscriptionListParams
+                .builder()
+                .setPrice(priceId)
+                .setStatus(SubscriptionListParams.Status.CANCELED)
+                .setCollectionMethod(SubscriptionListParams.CollectionMethod.CHARGE_AUTOMATICALLY)
+                .setLimit(100)
+                .apply {
+                    if (subscriptions.isNotEmpty()) {
+                        this.setStartingAfter(subscriptions.last().id)
+                    }
+                }
+                .build()
+
+            val fetchedSubscriptions = Subscription
+                .list(params, requestOptions)
+                .data
+            subscriptions.addAll(fetchedSubscriptions)
+        } while (fetchedSubscriptions.size == 100)
+
+        subscriptions
+            .groupBy { it.cancellationDetails.reason ?: "unknown" }
+            .mapValues { it.value.size }
+            .forEach { (reason, size) ->
+                println("$reason -> $size")
+            }
+
+        println()
+
+        subscriptions
+            .groupBy { it.cancellationDetails.feedback ?: "unspecified" }
+            .mapValues { it.value.size }
+            .forEach { (feedback, size) ->
+                println("$feedback -> $size")
+            }
+    }
+}
+
+fun main2() {
 
     val stripeApiKey = ""
     val priceId = ""
@@ -24,7 +75,7 @@ fun main() {
         val today = Instant.now().truncatedTo(ChronoUnit.DAYS)
 
         println("Expires in days,Trail,Trail Not Uncancelled,Trail Not Uncancelled and Without Payment Method")
-        for (expiresInDays in 1 .. 4) {
+        for (expiresInDays in 1..4) {
 
             val expiryGt = today.plus((expiresInDays - 1).days.toJavaDuration())
             val expiryLt = today.plus(expiresInDays.days.toJavaDuration())

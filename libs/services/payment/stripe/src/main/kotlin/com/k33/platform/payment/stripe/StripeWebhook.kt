@@ -217,7 +217,14 @@ fun Application.module() {
                                                 when (status) {
                                                     Status.canceled -> {
                                                         // subscription is cancelled
-                                                        notifySlack("$customerEmail has unsubscribed from K33 Research Pro")
+                                                        logWithMDC(
+                                                            *listOfNotNull(
+                                                                subscription.cancellationDetails?.reason?.let { "cancellation_reason" to it },
+                                                                subscription.cancellationDetails?.feedback?.let { "cancellation_feedback" to it }
+                                                            ).toTypedArray()
+                                                        ) {
+                                                            notifySlack("$customerEmail has unsubscribed from K33 Research Pro")
+                                                        }
                                                         disableProSubscriptionEvent()
                                                         Log.endSubscription(
                                                             webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),

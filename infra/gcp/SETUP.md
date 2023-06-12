@@ -288,7 +288,7 @@ gcloud scheduler jobs delete update-firebase-users-stats-job \
 gcloud scheduler jobs create http update-firebase-users-stats-job \
   --location europe-west1 \
   --schedule "55 * * * *" \
-  --uri=https://"$GCP_BACKEND_HOST"/admin/jobs/update-firebase-users-stats \
+  --uri=https://canary---"$GCP_BACKEND_HOST"/admin/jobs/update-firebase-users-stats \
   --oidc-service-account-email=k33-backend-gateway@"$GCP_PROJECT_ID".iam.gserviceaccount.com   \
   --oidc-token-audience=https://"$GCP_BACKEND_HOST"
 ```
@@ -309,7 +309,7 @@ gcloud scheduler jobs delete sync-sendgrid-contacts-job \
 gcloud scheduler jobs create http sync-sendgrid-contacts-job \
   --location europe-west1 \
   --schedule "0 12 * * *" \
-  --uri=https://"$GCP_BACKEND_HOST"/admin/jobs/sync-sendgrid-contacts/${SENDGRID_CONTACT_LIST_ID} \
+  --uri=https://canary---"$GCP_BACKEND_HOST"/admin/jobs/sync-sendgrid-contacts/${SENDGRID_CONTACT_LIST_ID} \
   --http-method=put \
   --oidc-service-account-email=k33-backend-gateway@"$GCP_PROJECT_ID".iam.gserviceaccount.com   \
   --oidc-token-audience=https://"$GCP_BACKEND_HOST"

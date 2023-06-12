@@ -174,9 +174,13 @@ object SendGridService : EmailService {
                             val response = withContext(Dispatchers.IO) {
                                 sendGrid.api(request)
                             }
-                            (response.statusCode in 200..299)
+                            val success = response.statusCode in 200..299
+                            if (!success) {
+                                logger.error("Response for failed upsert contacts: ${response.body}")
+                            }
+                            success
                         } catch (e: Exception) {
-                            logger.error("Failed to upsert contacts", e)
+                            logger.error("Error: upsert contacts", e)
                             false
                         }
                     }
