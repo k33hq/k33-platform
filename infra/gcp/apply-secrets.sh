@@ -6,15 +6,10 @@
 
 set -e
 
+# checking bash version
 if [ -z "${BASH_VERSINFO}" ] || [ -z "${BASH_VERSINFO[0]}" ] || [ ${BASH_VERSINFO[0]} -lt 4 ]; then
   echo "This script requires Bash version >= 4"
   exit 1
-fi
-
-if [ -f .env.gcp ]; then
-  set -o allexport
-  source .env.gcp
-  set +o allexport
 fi
 
 declare -A gcp_secrets

@@ -6,18 +6,32 @@
 
 set -e
 
-#### checking bash version
+# checking bash version
 if [ -z "${BASH_VERSINFO}" ] || [ -z "${BASH_VERSINFO[0]}" ] || [ ${BASH_VERSINFO[0]} -lt 4 ]; then
   echo "This script requires Bash version >= 4"
   exit 1
 fi
 
-#### init env vars from .env
-if [ -f .env.gcp ]; then
-  set -o allexport
-  source .env.gcp
-  set +o allexport
+# init env vars from .env.gcp
+#if [ -f .env.gcp ]; then
+#  set -o allexport
+#  source .env.gcp
+#  set +o allexport
+#fi
+
+# loading secrets from 1password
+if [[ $# != 1 || "$1" != "dev" && "$1" != "prod" ]]; then
+  echo "Usage: $0 (dev|prod)"
+  exit 1
 fi
+
+ENV=$1
+
+GCP_PROJECT_ID=$(op read op://env/$ENV/gcp/GCP_PROJECT_ID)
+GCP_API_HOST=$(op read op://env/$ENV/gcp/GCP_API_HOST)
+GCP_BACKEND_HOST=$(op read op://env/$ENV/gcp/GCP_BACKEND_HOST)
+CORS_REGEX=$(op read op://env/$ENV/gcp/CORS_REGEX)
+
 
 # Deploy endpoints service
 

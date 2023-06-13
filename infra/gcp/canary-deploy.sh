@@ -6,16 +6,47 @@
 
 set -e
 
+# checking bash version
 if [ -z "${BASH_VERSINFO}" ] || [ -z "${BASH_VERSINFO[0]}" ] || [ ${BASH_VERSINFO[0]} -lt 4 ]; then
   echo "This script requires Bash version >= 4"
   exit 1
 fi
 
-if [ -f .env.gcp ]; then
-  set -o allexport
-  source .env.gcp
-  set +o allexport
-fi
+# init env vars from .env.gcp
+#if [ -f .env.gcp ]; then
+#  set -o allexport
+#  source .env.gcp
+#  set +o allexport
+#fi
+
+# loading secrets from 1password
+ENV=prod
+
+GCP_PROJECT_ID=$(op read op://env/$ENV/gcp/GCP_PROJECT_ID)
+STRIPE_PRODUCT_ID_RESEARCH_PRO=$(op read op://env/$ENV/stripe/STRIPE_PRODUCT_ID_RESEARCH_PRO)
+STRIPE_COUPON_CORPORATE_PLAN=$(op read op://env/$ENV/stripe/STRIPE_COUPON_CORPORATE_PLAN)
+SLACK_ALERTS_CHANNEL_ID=$(op read op://env/$ENV/slack/SLACK_ALERTS_CHANNEL_ID)
+SLACK_GENERAL_CHANNEL_ID=$(op read op://env/$ENV/slack/SLACK_GENERAL_CHANNEL_ID)
+SLACK_INVEST_CHANNEL_ID=$(op read op://env/$ENV/slack/SLACK_INVEST_CHANNEL_ID)
+SLACK_PRODUCT_CHANNEL_ID=$(op read op://env/$ENV/slack/SLACK_PRODUCT_CHANNEL_ID)
+SLACK_PROFESSIONAL_INVESTORS_CHANNEL_ID=$(op read op://env/$ENV/slack/SLACK_PROFESSIONAL_INVESTORS_CHANNEL_ID)
+SLACK_RESEARCH_CHANNEL_ID=$(op read op://env/$ENV/slack/SLACK_RESEARCH_CHANNEL_ID)
+SLACK_RESEARCH_EVENTS_CHANNEL_ID=$(op read op://env/$ENV/slack/SLACK_RESEARCH_EVENTS_CHANNEL_ID)
+SENDGRID_TEMPLATE_ID_WELCOME_TO_K33=$(op read op://env/$ENV/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33)
+SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH=$(op read op://env/$ENV/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH)
+SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO=$(op read op://env/$ENV/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO)
+SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_PRO=$(op read op://env/$ENV/sendgrid/SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_PRO)
+SENDGRID_UNSUBSCRIBE_GROUP_ID_K33=$(op read op://env/$ENV/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33)
+SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH=$(op read op://env/$ENV/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH)
+SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_PRO=$(op read op://env/$ENV/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_PRO)
+GOOGLE_ANALYTICS_FIREBASE_APP_ID=$(op read op://env/$ENV/analytics/GOOGLE_ANALYTICS_FIREBASE_APP_ID)
+GOOGLE_ANALYTICS_MEASUREMENT_ID=$(op read op://env/$ENV/analytics/GOOGLE_ANALYTICS_MEASUREMENT_ID)
+INVEST_DENIED_COUNTRY_CODE_LIST=$(op read op://env/$ENV/invest/INVEST_DENIED_COUNTRY_CODE_LIST)
+INVEST_EMAIL_FROM=$(op read op://env/$ENV/invest/INVEST_EMAIL_FROM)
+INVEST_EMAIL_TO_LIST=$(op read op://env/$ENV/invest/INVEST_EMAIL_TO_LIST)
+INVEST_EMAIL_CC_LIST=$(op read op://env/$ENV/invest/INVEST_EMAIL_CC_LIST)
+INVEST_EMAIL_BCC_LIST=$(op read op://env/$ENV/invest/INVEST_EMAIL_BCC_LIST)
+
 
 declare -A backendCloudRun
 backendCloudRun["service"]="k33-backend"
