@@ -23,10 +23,17 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew --no-daemon installDist --parallel
-      - name: Load github env secrets
+      - name: Load secrets
+        uses: 1password/load-secrets-action@v1
+        with:
+          # Export loaded secrets as environment variables
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          GCP_SA_KEY: op://env/github/gcp-dev/GCP_SA_KEY
+      - name: Load secrets into files
         env:
           ENV_FILE: ${{ secrets.ENV_FILE }}
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
           echo "${ENV_FILE}" >> .env
           echo "${GCP_SA_KEY}" >> infra/gcp/secrets/gcp-service-account.json
