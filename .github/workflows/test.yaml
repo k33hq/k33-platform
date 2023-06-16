@@ -30,12 +30,79 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          # gcp
+          GCP_PROJECT_ID: op://env/dev/gcp/GCP_PROJECT_ID
           GCP_SA_KEY: op://env/github/gcp-dev/GCP_SA_KEY
-      - name: Load secrets into files
-        env:
-          ENV_FILE: ${{ secrets.ENV_FILE }}
+          # stripe
+          STRIPE_API_KEY: op://env/dev/stripe/STRIPE_API_KEY
+          STRIPE_WEBHOOK_ENDPOINT_SECRET: op://env/dev/stripe/STRIPE_WEBHOOK_ENDPOINT_SECRET
+          STRIPE_PRODUCT_ID_RESEARCH_PRO: op://env/dev/stripe/STRIPE_PRODUCT_ID_RESEARCH_PRO
+          STRIPE_COUPON_CORPORATE_PLAN: op://env/dev/stripe/STRIPE_COUPON_CORPORATE_PLAN
+          # for AT
+          STRIPE_PRICE_ID_RESEARCH_PRO: op://env/dev/stripe/STRIPE_PRICE_ID_RESEARCH_PRO
+          # monitoring - metrics for app
+          METRICS_ENABLED: false
+          # sendgrid for app
+          SENDGRID_API_KEY: op://env/github/sendgrid/SENDGRID_API_KEY
+          SENDGRID_ENABLED: false
+          # contentful for app
+          INVEST_SPACE_ID: op://env/dev/contentful/INVEST_SPACE_ID
+          INVEST_SPACE_TOKEN: op://env/dev/contentful/INVEST_SPACE_TOKEN
+          LEGAL_SPACE_ID: op://env/dev/contentful/LEGAL_SPACE_ID
+          LEGAL_SPACE_TOKEN: op://env/dev/contentful/LEGAL_SPACE_TOKEN
+          RESEARCH_SPACE_ID: op://env/dev/contentful/RESEARCH_SPACE_ID
+          RESEARCH_SPACE_TOKEN: op://env/dev/contentful/RESEARCH_SPACE_TOKEN
+          # for testing
+          TEST_PAGE_ID: op://env/dev/test/TEST_PAGE_ID
+          TEST_REPORT_ID: op://env/dev/test/TEST_REPORT_ID
+          # algolia for app
+          ALGOLIA_APP_ID: op://env/dev/algolia/ALGOLIA_APP_ID
+          ALGOLIA_API_KEY: op://env/dev/algolia/ALGOLIA_API_KEY
+          # slack for app
+          SLACK_TOKEN: op://env/dev/slack/SLACK_TOKEN
+          # @vihang
+          SLACK_ALERTS_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_GENERAL_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_INVEST_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_PRODUCT_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_PROFESSIONAL_INVESTORS_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_RESEARCH_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_RESEARCH_EVENTS_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
+          # slack unit testing
+          SLACK_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
+          # user service
+          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33
+          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH
+          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33: op://env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33
+          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH: op://env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH
+          # stripe webhook
+          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO
+          SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_PRO: op://env/dev/sendgrid/SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_PRO
+          # SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH: op://env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH
+          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_PRO: op://env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_PRO
+          # analytics
+          GOOGLE_ANALYTICS_API_SECRET: op://env/dev/analytics/GOOGLE_ANALYTICS_API_SECRET
+          GOOGLE_ANALYTICS_FIREBASE_APP_ID: op://env/dev/analytics/GOOGLE_ANALYTICS_FIREBASE_APP_ID
+          GOOGLE_ANALYTICS_MEASUREMENT_ID: op://env/dev/analytics/GOOGLE_ANALYTICS_MEASUREMENT_ID
+          # for invest app
+          # List of ISO Alpha3 3-char uppercase Country codes separated by comma without space.
+          # E.g. ABC,PQR,XYZ
+          INVEST_DENIED_COUNTRY_CODE_LIST: op://env/dev/invest/INVEST_DENIED_COUNTRY_CODE_LIST
+          # Single value of the format - address#label
+          INVEST_EMAIL_FROM: op://env/dev/invest/INVEST_EMAIL_FROM
+          # Comma separated non-empty list, with each value of the format - address#label
+          INVEST_EMAIL_TO_LIST: op://env/dev/invest/INVEST_EMAIL_TO_LIST
+          # Comma separated nullable or empty (blank) list, with each value of the format - address#label
+          # INVEST_EMAIL_CC_LIST:
+          # Comma separated nullable or empty (blank) list, with each value of the format - address#label
+          # INVEST_EMAIL_BCC_LIST:
+          # for gcp emulators
+          GOOGLE_CLOUD_PROJECT: op://env/dev/gcp/GCP_PROJECT_ID
+          GOOGLE_APPLICATION_CREDENTIALS: infra/gcp/secrets/gcp-service-account.json
+          # for trade app
+          # SPANNER_EMULATOR_HOST: 0.0.0.0:9010
+      - name: Create GCP service account key file
         run: |
-          echo "${ENV_FILE}" >> .env
           echo "${GCP_SA_KEY}" >> infra/gcp/secrets/gcp-service-account.json
       - name: Run docker compose based system integration tests
         run: docker compose up --build --abort-on-container-exit
