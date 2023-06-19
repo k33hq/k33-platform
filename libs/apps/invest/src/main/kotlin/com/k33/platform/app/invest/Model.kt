@@ -291,7 +291,7 @@ enum class ISO3CountyCode(
 
 fun main() {
     Locale.getISOCountries().forEach { iso2CountryCode ->
-        val locale = Locale("", iso2CountryCode)
+        val locale = Locale.of("", iso2CountryCode)
         println("""${locale.isO3Country}("${locale.displayName}"),""")
     }
 }

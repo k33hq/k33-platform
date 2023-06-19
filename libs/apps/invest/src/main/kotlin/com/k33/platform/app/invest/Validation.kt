@@ -53,7 +53,7 @@ fun main() {
     val countryList = phoneNumberUtil
         .supportedRegions
         .map { iso2CountryCode ->
-            val locale = Locale("", iso2CountryCode)
+            val locale = Locale.of("", iso2CountryCode)
             Country(
                 isO2CountyCode = iso2CountryCode,
                 isO3CountyCode = try { locale.isO3Country } catch (e: Exception) {""},
