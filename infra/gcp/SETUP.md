@@ -465,6 +465,11 @@ gcloud compute backend-services create web-backend-service \
   --custom-response-header='Cache-ID: {cdn_cache_id}' \
   --global
 
+gcloud compute backend-services update web-backend-service \
+  --default-ttl=3600 \
+  --client-ttl=3600 \
+  --global
+
 gcloud compute backend-services add-backend web-backend-service \
   --global \
   --network-endpoint-group=cloud-run-neg \

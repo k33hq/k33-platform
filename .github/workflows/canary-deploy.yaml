@@ -20,7 +20,7 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "19.0.2"
-#          cache: "gradle"
+          cache: "gradle"
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Load secrets
