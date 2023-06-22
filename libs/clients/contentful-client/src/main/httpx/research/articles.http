@@ -1,0 +1,127 @@
+### fetch articles using section
+
+GRAPHQL https://graphql.contentful.com/content/v1/spaces/{{space_id}}
+Content-Type: application/graphql
+Authorization: Bearer {{token}}
+
+query {
+    articleWebCollection(where: { section: { name: "section" } }, order: [publishedDate_DESC], limit: 100) {
+        items {
+            title
+            articleSlug
+            publishedDate
+        }
+    }
+}
+
+### fetch article ids
+
+GRAPHQL https://graphql.contentful.com/content/v1/spaces/{{space_id}}
+Content-Type: application/graphql
+Authorization: Bearer {{token}}
+
+query {
+    articleCollection(limit: 11000) {
+        items {
+            sys {
+                id
+                publishedAt
+            }
+        }
+    }
+}
+
+### fetch all articles
+
+GRAPHQL https://graphql.contentful.com/content/v1/spaces/{{space_id}}
+Content-Type: application/graphql
+Authorization: Bearer {{token}}
+
+query {
+    articleCollection(limit: 916) {
+        items {
+            title
+            subtitle
+            body {
+                json
+            }
+            authorsCollection(limit: 4) {
+                items {
+                    name
+                }
+            }
+            summary {
+                json
+            }
+            keyPoints
+            tagsCollection(limit: 5) {
+                items {
+                    title
+                }
+            }
+            publishedDate
+            sys {
+                id
+                publishedAt
+            }
+            linkedFrom {
+                articleWebCollection(limit: 1) {
+                    items {
+                        articleSlug
+                        section {
+                            name
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+### fetch article by id
+
+GRAPHQL https://graphql.contentful.com/content/v1/spaces/{{space_id}}
+Content-Type: application/graphql
+Authorization: Bearer {{token}}
+
+query {
+    articleCollection(where: { sys: { id: "" } }, limit: 1) {
+        items {
+            title
+            subtitle
+            body {
+                json
+            }
+            authorsCollection(limit: 4) {
+                items {
+                    title
+                    description
+                }
+            }
+            summary {
+                json
+            }
+            keyPoints
+            tagsCollection(limit: 5) {
+                items {
+                    title
+                }
+            }
+            publishedDate
+            sys {
+                id
+                publishedAt
+            }
+            linkedFrom {
+                articleWebCollection(limit: 1) {
+                    items {
+                        articleSlug
+                        section {
+                            name
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

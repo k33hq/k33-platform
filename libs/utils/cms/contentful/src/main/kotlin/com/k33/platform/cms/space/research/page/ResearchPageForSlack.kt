@@ -36,7 +36,7 @@ class ResearchPageForSlack(
         }
     }
 
-    private val query by lazyResourceWithoutWhitespace("/research/page/queryOneForSlack.graphql")
+    private val query by lazyResourceWithoutWhitespace("/research/legacy/page/queryOneForSlack.graphql")
 
     private val json by lazy {
         Json {

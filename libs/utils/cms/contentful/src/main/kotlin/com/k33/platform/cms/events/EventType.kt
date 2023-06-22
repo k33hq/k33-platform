@@ -4,7 +4,6 @@ package com.k33.platform.cms.events
 
 enum class Resource {
     page,
-    report,
 }
 
 enum class Action {

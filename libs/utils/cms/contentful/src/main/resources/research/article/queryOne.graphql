@@ -1,0 +1,40 @@
+query($articleId: String!) {
+    articleCollection(where: { sys: { id: $articleId } }, limit: 1) {
+        items {
+            title
+            subtitle
+            body {
+                json
+            }
+            authorsCollection(limit: 4) {
+                items {
+                    name
+                }
+            }
+            summary {
+                json
+            }
+            keyPoints
+            tagsCollection(limit: 5) {
+                items {
+                    title
+                }
+            }
+            publishedDate
+            sys {
+                id
+                publishedAt
+            }
+            linkedFrom {
+                articleWebCollection(limit: 1) {
+                    items {
+                        articleSlug
+                        section {
+                            name
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

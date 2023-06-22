@@ -18,7 +18,7 @@ fun MapNeat.forEachInArrayAt(
 }
 
 fun JsonPathQuery.richToPlainText(expression: String) {
-    this.expression = expression
+    this.expression = "$expression.json"
     processor = ::richToPlainTextProcessor
 }
 

@@ -74,7 +74,6 @@ class ContentfulToAlgolia(
             EventHub.subscribe(eventPattern = EventPattern()) { eventType: EventType, entityId: String ->
                 val syncId = when (eventType.resource) {
                     Resource.page -> "researchArticles"
-                    Resource.report -> "researchReports"
                 }
                 val entityContentType = eventType.resource.name
                 val contentfulToAlgolia = ContentfulToAlgolia(syncId)
@@ -102,9 +101,5 @@ fun main() {
 //        ContentfulToAlgolia("researchArticles").upsertAll()
 //        ContentfulToAlgolia("researchArticles").upsert("")
 //        ContentfulToAlgolia("researchArticles").delete("")
-
-//        ContentfulToAlgolia("researchReports").upsertAll()
-//        ContentfulToAlgolia("researchReports").upsert("")
-//        ContentfulToAlgolia("researchReports").delete("")
     }
 }

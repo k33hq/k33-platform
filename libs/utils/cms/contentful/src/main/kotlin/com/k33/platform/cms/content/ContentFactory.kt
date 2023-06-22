@@ -1,8 +1,7 @@
 package com.k33.platform.cms.content
 
 import com.k33.platform.cms.ContentfulConfig
-import com.k33.platform.cms.space.research.page.ResearchPage
-import com.k33.platform.cms.space.research.report.ResearchReport
+import com.k33.platform.cms.space.research.article.ResearchArticle
 import com.k33.platform.utils.config.loadConfig
 
 object ContentFactory {
@@ -13,13 +12,7 @@ object ContentFactory {
         )
         return when (syncId) {
             "researchArticles" -> with(contentfulConfig) {
-                ResearchPage(
-                    spaceId = spaceId,
-                    token = token,
-                )
-            }
-            "researchReports" -> with(contentfulConfig) {
-                ResearchReport(
+                ResearchArticle(
                     spaceId = spaceId,
                     token = token,
                 )

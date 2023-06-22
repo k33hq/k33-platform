@@ -17,10 +17,10 @@ object Diff {
             name = "contentful",
             path = "contentfulAlgoliaSync.$syncId.algolia"
         )
-        val researchPagesMetadata = ContentFactory.getContent(syncId = syncId)
-        val pageIdMap = researchPagesMetadata
+        val contentfulCollectionMetadata = ContentFactory.getContent(syncId = syncId)
+        val entryIdMap = contentfulCollectionMetadata
             .fetchIdToModifiedMap()
-        logger.info("Found in contentful: ${pageIdMap.size}")
+        logger.info("Found in contentful: ${entryIdMap.size}")
 
         val algoliaClient = with(algoliaConfig) {
             AlgoliaClient(
@@ -33,15 +33,15 @@ object Diff {
         val indices = algoliaClient.getAllIds()
         logger.info("Found in algolia: ${indices.size}")
 
-        val newInContentful = pageIdMap.keys - indices.keys
+        val newInContentful = entryIdMap.keys - indices.keys
         newInContentful.logAsErrorIfNotEmpty("New in contentful: ${newInContentful.size}")
 
-        val onlyInAlgolia = indices.keys - pageIdMap.keys
+        val onlyInAlgolia = indices.keys - entryIdMap.keys
         onlyInAlgolia.logAsErrorIfNotEmpty("Only in algolia: ${onlyInAlgolia.size}")
 
-        val common = pageIdMap.keys.intersect(indices.keys)
+        val common = entryIdMap.keys.intersect(indices.keys)
         val updatedInContentful = common.filter { id ->
-            pageIdMap[id]!! > indices[id]!!
+            entryIdMap[id]!! > indices[id]!!
         }
         updatedInContentful.logAsErrorIfNotEmpty("Updated in contentful: ${updatedInContentful.size}")
 
@@ -62,6 +62,5 @@ object Diff {
 fun main() {
     runBlocking {
         Diff.records(syncId = "researchArticles")
-        Diff.records(syncId = "researchReports")
     }
 }
