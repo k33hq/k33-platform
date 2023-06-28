@@ -5,7 +5,13 @@ Content-Type: application/graphql
 Authorization: Bearer {{token}}
 
 query {
-    articleWebCollection(where: { section: { name: "section" } }, order: [publishedDate_DESC], limit: 100) {
+    articleWebCollection(
+        where: {
+            sections: { name: "token-valuation/indices/kvq" }
+        },
+        order: [publishedDate_DESC],
+        limit: 100
+    ) {
         items {
             title
             articleSlug
@@ -121,6 +127,57 @@ query {
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+### fetch slugs
+
+GRAPHQL https://graphql.contentful.com/content/v1/spaces/{{space_id}}
+Content-Type: application/graphql
+Authorization: Bearer {{token}}
+
+query {
+    articleWebCollection(limit: 3666) {
+        items {
+            category {
+                categorySlug
+            }
+            product {
+                productSlug
+            }
+            articleSlug
+        }
+    }
+}
+
+### fetch images
+
+GRAPHQL https://graphql.contentful.com/content/v1/spaces/{{space_id}}
+Content-Type: application/graphql
+Authorization: Bearer {{token}}
+
+query {
+    articleCollection(limit: 2750) {
+        items {
+            image {
+                height
+                width
+                contentType
+                fileName
+            }
+            thumbnail {
+                height
+                width
+                contentType
+                fileName
+            }
+            coverPicture {
+                height
+                width
+                contentType
+                fileName
             }
         }
     }

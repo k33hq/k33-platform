@@ -1,0 +1,10 @@
+query {
+    articleWebCollection(limit: 11000) {
+        items {
+            sys {
+                id
+                publishedAt
+            }
+        }
+    }
+}

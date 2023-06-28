@@ -1,10 +1,14 @@
 query {
-    articleCollection(limit: 916) {
+    articleCollection(limit: 846) {
         items {
             title
             subtitle
             body {
                 json
+            }
+            image {
+                title
+                url
             }
             authorsCollection(limit: 4) {
                 items {

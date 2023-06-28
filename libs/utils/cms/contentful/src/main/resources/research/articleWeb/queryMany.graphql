@@ -1,0 +1,16 @@
+query {
+    articleWebCollection(limit: 3666) {
+        items {
+            articleSlug
+            product {
+                productSlug
+            }
+            category {
+                categorySlug
+            }
+            sys {
+                id
+            }
+        }
+    }
+}

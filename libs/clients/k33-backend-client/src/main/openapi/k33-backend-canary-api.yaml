@@ -142,7 +142,7 @@ paths:
         - firebase: [ ]
 
 
-  "/contentful-events":
+  "/webhooks/contentful":
     post:
       description: Webhook callbacks on Contentful events
       consumes:
@@ -198,14 +198,14 @@ paths:
           description: "Internal Error"
       security:
         - firebase: [ ]
-  "/payment/subscribed-products/{product-id}":
+  "/payment/subscribed-products/{product_id}":
     get:
       description: Get customer's subscribed product in Stripe.
       operationId: getSubscribedPaymentProduct
       produces:
         - application/json
       parameters:
-        - name: "product-id"
+        - name: "product_id"
           in: path
           required: true
           type: string
@@ -276,12 +276,12 @@ paths:
       security:
         - firebase: [ ]
 
-  "/apps/invest/funds/{fund-id}":
+  "/apps/invest/funds/{fund_id}":
     get:
       description: Get fund info access status
       operationId: "getFundInfoAccessStatus"
       parameters:
-        - name: "fund-id"
+        - name: "fund_id"
           in: path
           required: true
           type: string
@@ -304,7 +304,7 @@ paths:
         - application/json
       operationId: "submitFundInfoRequest"
       parameters:
-        - name: "fund-id"
+        - name: "fund_id"
           in: path
           required: true
           type: string

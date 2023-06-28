@@ -2,6 +2,7 @@ package com.k33.platform.cms.space.research.page
 
 import com.k33.platform.cms.clients.ContentfulGraphql
 import com.k33.platform.cms.content.Content
+import com.k33.platform.cms.objectIDString
 import com.k33.platform.cms.sync.Algolia
 import com.k33.platform.cms.utils.optional
 import com.k33.platform.cms.utils.richToPlainText
@@ -43,7 +44,7 @@ class ResearchPage(
         return client.fetch(queryOne, "pageId" to entityId)
             .singleOrNull()
             ?.let { jsonObject ->
-                if (ids.contains(jsonObject.objectIDString())) {
+                if (ids.contains(jsonObject.objectIDString)) {
                     jsonObject
                 } else {
                     null
@@ -56,7 +57,7 @@ class ResearchPage(
     override suspend fun fetchAll(): Collection<JsonObject> {
         val ids = fetchIdToModifiedMap().keys
         return client.fetch(queryMany)
-            .filter { ids.contains(it.objectIDString()) }
+            .filter { ids.contains(it.objectIDString) }
     }
 
     private val queryManyForSitemap by lazyResourceWithoutWhitespace("/research/legacy/page/queryManyForSitemap.graphql")
@@ -64,7 +65,7 @@ class ResearchPage(
     suspend fun fetchSitemap(): Map<String, String> {
         val ids = fetchIdToModifiedMap().keys
         return client.fetch(queryManyForSitemap)
-            .filter { ids.contains(it.objectIDString()) }
+            .filter { ids.contains(it.objectIDString) }
             .mapNotNull {
                 (it["slug"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null) to
                         (it["publishedAt"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null)
@@ -86,6 +87,12 @@ class ResearchPage(
 
     private val queryIds by lazyResourceWithoutWhitespace("/research/legacy/page/article/queryIds.graphql")
 
+    override suspend fun fetchIds(): List<String> {
+        return clientForIds
+            .fetch(queryIds)
+            .mapNotNull { it[Algolia.Key.ObjectID]?.jsonArray?.getOrNull(0)?.jsonPrimitive?.contentOrNull }
+    }
+
     override suspend fun fetchIdToModifiedMap(): Map<String, String> {
         return clientForIds
             .fetch(queryIds)
@@ -95,6 +102,4 @@ class ResearchPage(
             }
             .toMap()
     }
-
-    private fun JsonObject.objectIDString(): String = getValue(Algolia.Key.ObjectID).jsonPrimitive.content
 }

@@ -1,6 +1,5 @@
 package com.k33.platform.cms.sync
 
-import com.algolia.search.helper.toObjectID
 import com.algolia.search.model.APIKey
 import com.algolia.search.model.ApplicationID
 import com.algolia.search.model.IndexName
@@ -11,11 +10,10 @@ import com.k33.platform.cms.events.EventHub
 import com.k33.platform.cms.events.EventPattern
 import com.k33.platform.cms.events.EventType
 import com.k33.platform.cms.events.Resource
+import com.k33.platform.cms.objectID
 import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.getLogger
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
 class ContentfulToAlgolia(
     private val syncId: String
@@ -30,7 +28,7 @@ class ContentfulToAlgolia(
 
     private val algoliaClient by lazy {
         with(algoliaConfig) {
-            AlgoliaClient(
+            AlgoliaSearchClient(
                 ApplicationID(applicationId),
                 APIKey(apiKey),
                 IndexName(indexName)
@@ -43,17 +41,21 @@ class ContentfulToAlgolia(
     suspend fun upsert(entryId: String) {
         val record = content.fetch(entityId = entryId) ?: return
         logger.info("Exporting record with objectID: ${record.objectID} to algolia")
-        algoliaClient.upsert(
-            objectID = record.objectID,
-            record = record
-        )
+        record.objectID?.let { objectId ->
+            algoliaClient.upsert(
+                objectID = objectId,
+                record = record
+            )
+        }
     }
 
     suspend fun upsertAll() {
         val records = content
             .fetchAll()
-            .map {
-                it.objectID to it
+            .mapNotNull { jsonObject ->
+                jsonObject.objectID?.let {
+                    objectID -> objectID to jsonObject
+                }
             }
         logger.info("Exporting ${records.size} records from contentful to algolia for syncId: $syncId")
         algoliaClient.batchUpsert(records)
@@ -65,15 +67,13 @@ class ContentfulToAlgolia(
         algoliaClient.delete(objectID)
     }
 
-    private val JsonObject.objectID get() = getValue(Algolia.Key.ObjectID).jsonPrimitive.content.toObjectID()
-
     companion object {
         private val logger by getLogger()
 
         init {
             EventHub.subscribe(eventPattern = EventPattern()) { eventType: EventType, entityId: String ->
                 val syncId = when (eventType.resource) {
-                    Resource.page -> "researchArticles"
+                    Resource.article -> "researchArticles"
                 }
                 val entityContentType = eventType.resource.name
                 val contentfulToAlgolia = ContentfulToAlgolia(syncId)
@@ -86,6 +86,7 @@ class ContentfulToAlgolia(
                             logger.error("Exporting $entityContentType: $entityId from contentful to algolia failed", e)
                         }
                     }
+
                     Action.unpublish -> {
                         logger.warn("Removing $entityContentType: $entityId from algolia")
                         contentfulToAlgolia.delete(entityId)

@@ -10,7 +10,7 @@ import com.algolia.search.model.ObjectID
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-class AlgoliaClient(
+class AlgoliaSearchClient(
     applicationId: ApplicationID,
     apiKey: APIKey,
     indexName: IndexName,

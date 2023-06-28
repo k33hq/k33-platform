@@ -12,11 +12,11 @@ import java.time.ZonedDateTime
 
 object SlackNotification {
 
-    init {
-        EventHub.subscribe(eventPattern = EventPattern(Resource.page, Action.publish)) { _, pageId ->
-            notifySlack(pageId = pageId)
-        }
-    }
+//    init {
+//        EventHub.subscribe(eventPattern = EventPattern(Resource.page, Action.publish)) { _, pageId ->
+//            notifySlack(pageId = pageId)
+//        }
+//    }
 
     private val contentfulConfig by loadConfig<ContentfulConfig>(
         "contentful",
@@ -44,7 +44,7 @@ object SlackNotification {
 
     suspend fun notifySlack(pageId: String) {
         val page = researchPageForSlack.fetch(pageId) ?: return
-        val url = "https://k33.com/research/${page.slug}"
+        val url = "https://k33.com/research/archive/articles/${page.slug}"
         val firstTimePublish = page.publishedAt == page.firstPublishedAt
         val slackChannel = if (firstTimePublish) {
             slackAlertsChannel

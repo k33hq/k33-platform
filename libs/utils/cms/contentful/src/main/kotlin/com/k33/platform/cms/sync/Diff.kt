@@ -23,7 +23,7 @@ object Diff {
         logger.info("Found in contentful: ${entryIdMap.size}")
 
         val algoliaClient = with(algoliaConfig) {
-            AlgoliaClient(
+            AlgoliaSearchClient(
                 ApplicationID(applicationId),
                 APIKey(apiKey),
                 IndexName(indexName),

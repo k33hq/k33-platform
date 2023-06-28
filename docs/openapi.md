@@ -16,7 +16,7 @@
   * `info/*`
   * `host`
   * `x-google-backend/*`
-  * `paths/contentfulEvents/post/security`
+  * `paths/webhooks/contentful/post/security`
   * `securityDefinitions/`
 * Deploy updated canary spec and test using feature toggle in website.
 ```shell

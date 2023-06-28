@@ -18,17 +18,17 @@ object ResearchPageValidation {
 
     private val logger by getLogger()
 
-    init {
-        EventHub.subscribe(EventPattern(Resource.page, Action.publish)) { _, pageId ->
-            val errors = validate(pageId = pageId)
-            if (errors.isNotEmpty()) {
-                logger.warn(
-                    NotifySlack.ALERTS,
-                    "Validation failed for page[$pageId]: ${errors.map { it.description }}"
-                )
-            }
-        }
-    }
+//    init {
+//        EventHub.subscribe(EventPattern(Resource.page, Action.publish)) { _, pageId ->
+//            val errors = validate(pageId = pageId)
+//            if (errors.isNotEmpty()) {
+//                logger.warn(
+//                    NotifySlack.ALERTS,
+//                    "Validation failed for page[$pageId]: ${errors.map { it.description }}"
+//                )
+//            }
+//        }
+//    }
 
     private val contentfulConfig by loadConfig<ContentfulConfig>(
         "contentful",

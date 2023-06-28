@@ -1,6 +1,5 @@
 package com.k33.platform.cms.events
 
-import com.k33.platform.cms.space.research.page.ResearchPageValidation
 import com.k33.platform.cms.sync.ContentfulToAlgolia
 import com.k33.platform.utils.logging.getLogger
 import com.k33.platform.utils.logging.logWithMDC
@@ -15,12 +14,12 @@ fun Application.module() {
     val logger by getLogger()
 
     // trigger init to subscribe to EventHub
-    SlackNotification
-    ResearchPageValidation
+    // SlackNotification
+    // ResearchPageValidation
     ContentfulToAlgolia
 
     routing {
-        post("contentfulEvents") {
+        post("/webhooks/contentful") {
             val topic = call.request.header("X-Contentful-Topic")!!
             val entityContentType = call.request.header("X-CTFL-Content-Type") ?: return@post
             val entityId = call.request.header("X-CTFL-Entity-ID") ?: return@post

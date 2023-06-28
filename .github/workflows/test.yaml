@@ -52,6 +52,7 @@ jobs:
           LEGAL_SPACE_TOKEN: op://env/dev/contentful/LEGAL_SPACE_TOKEN
           RESEARCH_SPACE_ID: op://env/dev/contentful/RESEARCH_SPACE_ID
           RESEARCH_SPACE_TOKEN: op://env/dev/contentful/RESEARCH_SPACE_TOKEN
+          RESEARCH_SPACE_CMA_TOKEN: op://env/dev/contentful/RESEARCH_SPACE_CMA_TOKEN
           # for testing
           TEST_PAGE_ID: op://env/dev/test/TEST_PAGE_ID
           TEST_REPORT_ID: op://env/dev/test/TEST_REPORT_ID

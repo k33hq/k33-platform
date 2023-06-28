@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":libs:utils:slack"))
 
     implementation("com.contentful.java:java-sdk:_")
+    implementation("com.contentful.java:cma-sdk:_")
     implementation("com.github.contentful.rich-text-renderer-java:html:_")
 
     implementation(Ktor.client.cio)

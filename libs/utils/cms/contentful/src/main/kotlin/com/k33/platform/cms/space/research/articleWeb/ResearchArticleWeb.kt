@@ -1,17 +1,15 @@
-package com.k33.platform.cms.space.research.article
+package com.k33.platform.cms.space.research.articleWeb
 
 import com.k33.platform.cms.clients.ContentfulGraphql
 import com.k33.platform.cms.content.Content
 import com.k33.platform.cms.objectIDString
 import com.k33.platform.cms.sync.Algolia
-import com.k33.platform.cms.utils.optional
-import com.k33.platform.cms.utils.richToPlainText
 import com.k33.platform.utils.config.lazyResourceWithoutWhitespace
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
-class ResearchArticle(
+class ResearchArticleWeb(
     spaceId: String,
     token: String,
 ) : Content {
@@ -19,31 +17,20 @@ class ResearchArticle(
         ContentfulGraphql(
             spaceId = spaceId,
             token = token,
-            type = "article"
+            type = "articleWeb"
         ) {
             Algolia.Key.ObjectID *= "sys.id"
-            "title" *= "title"
-            "subtitle" *= "subtitle"
-            "authors" *= "authorsCollection.items[*].name"
-            "tags" *= "tagsCollection.items[*].title"
-            "publishedDate" *= "publishedDate"
-            "publishedAt" *= "sys.publishedAt"
-            optional {
-                "body" *= { richToPlainText("body") }
-                "image" *= "image"
-                "slug" *= "linkedFrom.articleWebCollection.items[0].articleSlug"
-                "section" *= "linkedFrom.articleWebCollection.items[0].section.name"
-                "summary" *= { richToPlainText("summary") }
-                "keyPoints" *= "keyPoints"
-            }
+            "articleSlug" *= "articleSlug"
+            "productSlug" *= "product.productSlug"
+            "categorySlug" *= "category.categorySlug"
         }
     }
 
-    private val queryOne by lazyResourceWithoutWhitespace("/research/article/queryOne.graphql")
+    private val queryOne by lazyResourceWithoutWhitespace("/research/articleWeb/queryOne.graphql")
 
     override suspend fun fetch(entityId: String): JsonObject? {
         val ids = fetchIdToModifiedMap().keys
-        return client.fetch(queryOne, "articleId" to entityId)
+        return client.fetch(queryOne, "articleWebId" to entityId)
             .singleOrNull()
             ?.let { jsonObject ->
                 if (ids.contains(jsonObject.objectIDString)) {
@@ -54,7 +41,7 @@ class ResearchArticle(
             }
     }
 
-    private val queryMany by lazyResourceWithoutWhitespace("/research/article/queryMany.graphql")
+    private val queryMany by lazyResourceWithoutWhitespace("/research/articleWeb/queryMany.graphql")
 
     override suspend fun fetchAll(): Collection<JsonObject> = client
         .fetch(queryMany)
@@ -71,7 +58,7 @@ class ResearchArticle(
         }
     }
 
-    private val queryIds by lazyResourceWithoutWhitespace("/research/article/queryIds.graphql")
+    private val queryIds by lazyResourceWithoutWhitespace("/research/articleWeb/queryIds.graphql")
 
     override suspend fun fetchIds(): List<String> {
         return clientForIds
@@ -83,11 +70,26 @@ class ResearchArticle(
         return clientForIds
             .fetch(queryIds)
             .mapNotNull {
-                (it.objectIDString ?: return@mapNotNull null) to
+                (it[Algolia.Key.ObjectID]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null) to
                         (it["publishedAt"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null)
             }
             .toMap()
     }
 
-    companion object
+    suspend fun fetchSlugPrefixList(): List<String> {
+        return fetchAll()
+            .mapNotNull {
+                val productSlug = (it["productSlug"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null)
+                val categorySlug = (it["categorySlug"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null)
+                "$categorySlug/$productSlug"
+            }
+            .groupingBy { it }
+            .eachCount()
+            .entries
+            .sortedByDescending { it.value }
+            .onEach { (path, count) ->
+                println("$path: $count")
+            }
+            .map { it.key }
+    }
 }

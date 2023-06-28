@@ -6,6 +6,10 @@ query($articleId: String!) {
             body {
                 json
             }
+            image {
+                title
+                url
+            }
             authorsCollection(limit: 4) {
                 items {
                     name

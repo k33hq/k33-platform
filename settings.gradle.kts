@@ -16,12 +16,12 @@ include(
     "apps:acceptance-tests",
     "apps:k33-backend",
 
+    "apps:contentful-admin-tool",
     "apps:firestore-admin",
+    "apps:stripe-admin-tool",
 
     "apps:oauth2-provider-emulator",
     "apps:oauth2-provider-emulator:oauth2-provider-api",
-
-    "apps:stripe-admin-tool",
 
     // libs
 

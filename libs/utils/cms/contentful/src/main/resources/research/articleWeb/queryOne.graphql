@@ -1,0 +1,16 @@
+query($articleWebId: String!) {
+    articleWebCollection(where: { sys: { id: $articleWebId } }, limit: 1) {
+        items {
+            articleSlug
+            product {
+                productSlug
+            }
+            category {
+                categorySlug
+            }
+            sys {
+                id
+            }
+        }
+    }
+}

@@ -1,5 +1,7 @@
 @startuml
 
+class section
+
 class article
 
 ' class articleMobile
@@ -13,20 +15,14 @@ category <... article : always belong to 1 <
 class articleWeb
 article <|-- articleWeb : always has 1 <
 
+section <... articleWeb : always has 1 to 2 <
+
 productWeb <... articleWeb : always belong to 1 <
 categoryWeb <... articleWeb : always belong to 1 <
-
-authorWeb <... articleWeb : always has 1
 
 subscriptionWeb <... articleWeb : always has 1
 
 class author
-
-class authorWeb
-
-author <|-- authorWeb
-
-class callToAction
 
 class category
 
@@ -44,20 +40,8 @@ class productWeb
 product <|-- productWeb
 categoryWeb <... productWeb : may have 1
 note on link #red: cyclic reference
-productBranding <... productWeb : always has 1
 subscriptionWeb <... productWeb : always has 1
 seoMetadata <... productWeb : always has 1
-
-class productBranding
-
-class promotion
-
-callToAction <.. promotion : always has 1 <
-
-class quote
-
-class researchLandingPageWeb
-productWeb <.. researchLandingPageWeb : has many <
 
 class seoMetadata
 

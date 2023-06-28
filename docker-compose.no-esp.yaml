@@ -3,7 +3,7 @@ version: "3.8"
 services:
   firestore-emulator:
     container_name: firestore-emulator
-    image: google/cloud-sdk:437.0.0-emulators
+    image: google/cloud-sdk:439.0.0-emulators
     platform: linux/amd64
     expose:
       - 5173
@@ -30,6 +30,7 @@ services:
       - LEGAL_SPACE_TOKEN=${LEGAL_SPACE_TOKEN}
       - RESEARCH_SPACE_ID=${RESEARCH_SPACE_ID}
       - RESEARCH_SPACE_TOKEN=${RESEARCH_SPACE_TOKEN}
+      - RESEARCH_SPACE_CMA_TOKEN=${RESEARCH_SPACE_CMA_TOKEN}
       - ALGOLIA_APP_ID=${ALGOLIA_APP_ID}
       - ALGOLIA_API_KEY=${ALGOLIA_API_KEY}
       - SLACK_ALERTS_CHANNEL_ID=${SLACK_ALERTS_CHANNEL_ID}

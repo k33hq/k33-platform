@@ -3,7 +3,7 @@
 package com.k33.platform.cms.events
 
 enum class Resource {
-    page,
+    article,
 }
 
 enum class Action {
