@@ -146,9 +146,6 @@ fun Application.module() {
 
                                             "customer.subscription.updated" -> {
 
-                                                val subscriptionToBeCanceled =
-                                                    event.data.previousAttributes?.get("cancel_at_period_end") == false
-                                                            && subscription.cancelAtPeriodEnd == true
                                                 val subscriptionTrialToActive =
                                                     previousStatus == Status.trialing
                                                             && status == Status.active
@@ -162,11 +159,22 @@ fun Application.module() {
                                                 val subscriptionProToBlocked =
                                                     proStatusSet.contains(previousStatus)
                                                             && blockedStatusSet.contains(status)
-                                                val subscriptionActive =
+
+                                                val subscriptionToBeCanceled =
+                                                    event.data.previousAttributes?.get("cancel_at_period_end") == false
+                                                            && subscription.cancelAtPeriodEnd == true
+                                                val updatedCancellationDetails = setOf("cancellation_details") == event.data.previousAttributes?.keys?.toSet()
+                                                val updatedDefaultPaymentMethod = setOf("default_payment_method") == event.data.previousAttributes?.keys?.toSet()
+                                                val extendedActivePeriod =
                                                     previousStatus == null
-                                                            && proStatusSet.contains(status)
+                                                            && status == Status.active
+                                                            && setOf("latest_invoice", "current_period_end", "current_period_start") == event.data.previousAttributes?.keys?.toSet()
 
                                                 when {
+                                                    extendedActivePeriod -> {
+                                                        notifySlack("$customerEmail has done recurring payment and continued as Pro (active) subscriber of K33 Research Pro")
+                                                    }
+
                                                     subscriptionToBeCanceled -> {
                                                         // subscription is set to be cancelled at the end of billing period
                                                         notifySlack("$customerEmail has scheduled to unsubscribe from K33 Research Pro at the end of billing period")
@@ -192,6 +200,7 @@ fun Application.module() {
                                                         disableProSubscriptionEvent()
                                                     }
 
+                                                    // has to be after subscriptionTrialToActive
                                                     subscriptionNonProToPro -> {
                                                         // updated from non-pro to an active (paid) subscription
                                                         notifySlack("$customerEmail changed from non-Pro ($previousStatus) to Pro ($status) subscriber of K33 Research Pro")
@@ -203,8 +212,21 @@ fun Application.module() {
                                                         )
                                                     }
 
-                                                    subscriptionActive -> {
-                                                        notifySlack("$customerEmail has done recurring payment and continued as Pro ($status) subscriber of K33 Research Pro")
+                                                    // has to be after subscriptionToBeCanceled
+                                                    updatedCancellationDetails -> {
+                                                        logWithMDC(
+                                                            *listOfNotNull(
+                                                                subscription.cancellationDetails?.reason?.let { "cancellation_reason" to it },
+                                                                subscription.cancellationDetails?.feedback?.let { "cancellation_feedback" to it },
+                                                                subscription.cancellationDetails?.comment?.let { "cancellation_comment" to it },
+                                                            ).toTypedArray()
+                                                        ) {
+                                                            notifySlack("$customerEmail entered cancellation details")
+                                                        }
+                                                    }
+
+                                                    updatedDefaultPaymentMethod -> {
+                                                        call.application.log.info("Updated default payment method")
                                                     }
 
                                                     else -> {
@@ -220,7 +242,7 @@ fun Application.module() {
                                                         logWithMDC(
                                                             *listOfNotNull(
                                                                 subscription.cancellationDetails?.reason?.let { "cancellation_reason" to it },
-                                                                subscription.cancellationDetails?.feedback?.let { "cancellation_feedback" to it }
+                                                                subscription.cancellationDetails?.feedback?.let { "cancellation_feedback" to it },
                                                             ).toTypedArray()
                                                         ) {
                                                             notifySlack("$customerEmail has unsubscribed from K33 Research Pro")

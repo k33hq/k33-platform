@@ -1,7 +1,9 @@
 package com.k33.platform.payment.stripe
 
+import com.stripe.model.Event
 import com.stripe.model.Subscription
 import com.stripe.net.RequestOptions
+import com.stripe.param.EventListParams
 import com.stripe.param.SubscriptionListParams
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
@@ -9,7 +11,46 @@ import java.time.temporal.ChronoUnit
 import kotlin.time.Duration.Companion.days
 import kotlin.time.toJavaDuration
 
-fun main() {
+fun explorePreviousAttributes() {
+    val stripeApiKey = ""
+
+    runBlocking {
+        val requestOptions = RequestOptions
+            .builder()
+            .setApiKey(stripeApiKey)
+            .setClientId("k33-stripe-admin-tool")
+            .build()
+
+        val events = mutableListOf<Event>()
+
+        do {
+            val params = EventListParams
+                .builder()
+                .setType("customer.subscription.updated")
+                .setLimit(100)
+                .apply {
+                    if (events.isNotEmpty()) {
+                        this.setStartingAfter(events.last().id)
+                    }
+                }
+                .build()
+
+            val fetchedEvents = Event
+                .list(params, requestOptions)
+                .data
+            events.addAll(fetchedEvents)
+        } while (fetchedEvents.size == 100)
+
+        events
+            .groupBy { it.data.previousAttributes.keys }
+            .mapValues { it.value.size }
+            .forEach { (previousAttributes, size) ->
+                println("$previousAttributes -> $size")
+            }
+    }
+}
+
+fun cancellationReasonAndFeedback() {
     val stripeApiKey = ""
     val priceId = ""
 
@@ -60,7 +101,7 @@ fun main() {
     }
 }
 
-fun main2() {
+fun trialExpiryHistogram() {
 
     val stripeApiKey = ""
     val priceId = ""
