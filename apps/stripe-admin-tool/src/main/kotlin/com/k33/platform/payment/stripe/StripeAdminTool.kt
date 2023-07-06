@@ -1,10 +1,13 @@
 package com.k33.platform.payment.stripe
 
+import com.stripe.model.Customer
 import com.stripe.model.Event
 import com.stripe.model.Subscription
 import com.stripe.net.RequestOptions
 import com.stripe.param.EventListParams
 import com.stripe.param.SubscriptionListParams
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -46,6 +49,53 @@ fun explorePreviousAttributes() {
             .mapValues { it.value.size }
             .forEach { (previousAttributes, size) ->
                 println("$previousAttributes -> $size")
+            }
+    }
+}
+
+fun customerEmailsWithTooExpensiveAsCancelFeedback() {
+    val stripeApiKey = ""
+    val priceId = ""
+
+    runBlocking {
+        val requestOptions = RequestOptions
+            .builder()
+            .setApiKey(stripeApiKey)
+            .setClientId("k33-stripe-admin-tool")
+            .build()
+
+        val subscriptions = mutableListOf<Subscription>()
+
+        do {
+            val params = SubscriptionListParams
+                .builder()
+                .setPrice(priceId)
+                .setStatus(SubscriptionListParams.Status.CANCELED)
+                .setCollectionMethod(SubscriptionListParams.CollectionMethod.CHARGE_AUTOMATICALLY)
+                .setLimit(100)
+                .apply {
+                    if (subscriptions.isNotEmpty()) {
+                        this.setStartingAfter(subscriptions.last().id)
+                    }
+                }
+                .build()
+
+            val fetchedSubscriptions = Subscription
+                .list(params, requestOptions)
+                .data
+            subscriptions.addAll(fetchedSubscriptions)
+        } while (fetchedSubscriptions.size == 100)
+
+        subscriptions
+            .filter { it.cancellationDetails.feedback == "too_expensive" }
+            .map { subscription ->
+                async {
+                    Customer.retrieve(subscription.customer, requestOptions).email to Instant.ofEpochSecond(subscription.cancelAt)
+                }
+            }
+            .awaitAll()
+            .forEach { (email, cancelAt) ->
+                println("$email, $cancelAt")
             }
     }
 }
