@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":libs:services:user:user-service"))
     implementation("com.google.firebase:firebase-admin:_")
 
     implementation(project(":libs:utils:google-coroutine-ktx"))

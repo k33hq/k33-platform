@@ -1,18 +1,26 @@
 package com.k33.platform.analytics
 
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.DeleteUsersResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ListUsersPage
 import com.k33.platform.google.coroutine.ktx.await
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.transform
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.time.Duration.Companion.seconds
 
 @Serializable
 data class User(
+    val userId: String,
     val email: String,
     val idProviders: List<String>,
     val createdOn: String,
@@ -47,6 +55,7 @@ object FirebaseUsersFetcher {
                 for (user in localPage.values) {
                     emit(
                         User(
+                            userId = user.uid,
                             email = user.email,
                             idProviders = user.providerData.map { it.providerId },
                             createdOn = user.userMetadata.creationTimestamp.toDateString(),
@@ -59,5 +68,17 @@ object FirebaseUsersFetcher {
             }
         }
         return users.toList()
+    }
+
+    internal suspend fun deleteUsers(
+        userIdList: List<String>
+    ): List<DeleteUsersResult> {
+        return userIdList
+            .chunked(1000)
+            .asFlow()
+            .map { userIds ->
+                firebaseAuth.deleteUsers(userIds).also { delay(1.seconds) }
+            }
+            .toList()
     }
 }
