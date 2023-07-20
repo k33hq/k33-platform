@@ -1,25 +1,3 @@
-### fetch articles using section
-
-GRAPHQL https://graphql.contentful.com/content/v1/spaces/{{space_id}}
-Content-Type: application/graphql
-Authorization: Bearer {{token}}
-
-query {
-    articleWebCollection(
-        where: {
-            sections: { name: "token-valuation/indices/kvq" }
-        },
-        order: [publishedDate_DESC],
-        limit: 100
-    ) {
-        items {
-            title
-            articleSlug
-            publishedDate
-        }
-    }
-}
-
 ### fetch article ids
 
 GRAPHQL https://graphql.contentful.com/content/v1/spaces/{{space_id}}
@@ -44,14 +22,18 @@ Content-Type: application/graphql
 Authorization: Bearer {{token}}
 
 query {
-    articleCollection(limit: 916) {
+    articleCollection(limit: 785) {
         items {
             title
             subtitle
             body {
                 json
             }
-            authorsCollection(limit: 4) {
+            image {
+                title
+                url
+            }
+            authorsCollection {
                 items {
                     name
                 }
@@ -60,7 +42,7 @@ query {
                 json
             }
             keyPoints
-            tagsCollection(limit: 5) {
+            tagsCollection {
                 items {
                     title
                 }
@@ -74,8 +56,10 @@ query {
                 articleWebCollection(limit: 1) {
                     items {
                         articleSlug
-                        section {
-                            name
+                        sectionsCollection {
+                            items {
+                                name
+                            }
                         }
                     }
                 }
@@ -98,7 +82,11 @@ query {
             body {
                 json
             }
-            authorsCollection(limit: 4) {
+            image {
+                title
+                url
+            }
+            authorsCollection {
                 items {
                     title
                     description
@@ -108,7 +96,7 @@ query {
                 json
             }
             keyPoints
-            tagsCollection(limit: 5) {
+            tagsCollection {
                 items {
                     title
                 }
@@ -122,32 +110,14 @@ query {
                 articleWebCollection(limit: 1) {
                     items {
                         articleSlug
-                        section {
-                            name
+                        sectionsCollection {
+                            items {
+                                name
+                            }
                         }
                     }
                 }
             }
-        }
-    }
-}
-
-### fetch slugs
-
-GRAPHQL https://graphql.contentful.com/content/v1/spaces/{{space_id}}
-Content-Type: application/graphql
-Authorization: Bearer {{token}}
-
-query {
-    articleWebCollection(limit: 3666) {
-        items {
-            category {
-                categorySlug
-            }
-            product {
-                productSlug
-            }
-            articleSlug
         }
     }
 }

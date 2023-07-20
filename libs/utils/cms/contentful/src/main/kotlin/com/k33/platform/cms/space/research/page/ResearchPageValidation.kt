@@ -1,12 +1,6 @@
 package com.k33.platform.cms.space.research.page
 
-import com.k33.platform.cms.ContentfulConfig
-import com.k33.platform.cms.events.Action
-import com.k33.platform.cms.events.EventHub
-import com.k33.platform.cms.events.EventPattern
-import com.k33.platform.cms.events.Resource
-import com.k33.platform.utils.config.loadConfig
-import com.k33.platform.utils.logging.NotifySlack
+import com.k33.platform.cms.config.ContentfulSpace
 import com.k33.platform.utils.logging.getLogger
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -30,23 +24,18 @@ object ResearchPageValidation {
 //        }
 //    }
 
-    private val contentfulConfig by loadConfig<ContentfulConfig>(
-        "contentful",
-        "contentfulAlgoliaSync.researchArticles.contentful"
-    )
-
     private val researchPageForSlack by lazy {
         ResearchPageForSlack(
-            spaceId = contentfulConfig.spaceId,
-            token = contentfulConfig.token,
+            spaceId = ContentfulSpace.research.config.spaceId,
+            token = ContentfulSpace.research.config.token,
         )
     }
 
     suspend fun validateAll() {
 
         val researchPagesMetadata = ResearchPage(
-            spaceId = contentfulConfig.spaceId,
-            token = contentfulConfig.token,
+            spaceId = ContentfulSpace.research.config.spaceId,
+            token = ContentfulSpace.research.config.token,
         )
 
         val flow: Flow<String> = flow {

@@ -1,7 +1,6 @@
 package com.k33.platform.cms.space.research.page
 
-import com.k33.platform.cms.ContentfulConfig
-import com.k33.platform.utils.config.loadConfig
+import com.k33.platform.cms.config.ContentfulSpace
 import com.k33.platform.utils.logging.getLogger
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -10,15 +9,10 @@ object ResearchPageSitemap {
 
     private val logger by getLogger()
 
-    private val contentfulConfig by loadConfig<ContentfulConfig>(
-        "contentful",
-        "contentfulAlgoliaSync.researchArticles.contentful"
-    )
-
     suspend fun exportSitemap() {
         val researchPagesMetadata = ResearchPage(
-            spaceId = contentfulConfig.spaceId,
-            token = contentfulConfig.token,
+            spaceId = ContentfulSpace.research.config.spaceId,
+            token = ContentfulSpace.research.config.token,
         )
 
         val sitemap = buildString {

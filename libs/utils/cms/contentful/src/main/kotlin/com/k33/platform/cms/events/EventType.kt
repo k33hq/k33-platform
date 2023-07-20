@@ -4,8 +4,10 @@ package com.k33.platform.cms.events
 
 enum class Resource {
     article,
+    articleWeb,
 }
 
+@Suppress("SpellCheckingInspection")
 enum class Action {
     publish,
     unpublish,

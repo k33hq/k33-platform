@@ -10,7 +10,7 @@ query($articleId: String!) {
                 title
                 url
             }
-            authorsCollection(limit: 4) {
+            authorsCollection {
                 items {
                     name
                 }
@@ -19,7 +19,7 @@ query($articleId: String!) {
                 json
             }
             keyPoints
-            tagsCollection(limit: 5) {
+            tagsCollection {
                 items {
                     title
                 }
@@ -33,8 +33,10 @@ query($articleId: String!) {
                 articleWebCollection(limit: 1) {
                     items {
                         articleSlug
-                        section {
-                            name
+                        sectionsCollection {
+                            items {
+                                name
+                            }
                         }
                     }
                 }

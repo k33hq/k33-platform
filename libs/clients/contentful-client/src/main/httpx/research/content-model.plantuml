@@ -4,44 +4,17 @@ class section
 
 class article
 
-' class articleMobile
-' article <|-- articleMobile
-
 author <... article : always has many <
-product <... article : always belong to 1 <
 tag <... article : always has 1 to 5 <
-category <... article : always belong to 1 <
 
 class articleWeb
 article <|-- articleWeb : always has 1 <
 
 section <... articleWeb : always has 1 to 2 <
 
-productWeb <... articleWeb : always belong to 1 <
-categoryWeb <... articleWeb : always belong to 1 <
-
 subscriptionWeb <... articleWeb : always has 1
 
 class author
-
-class category
-
-class categoryWeb
-
-category <|-- categoryWeb
-product <... categoryWeb : has many <
-productWeb <... categoryWeb : always highlights upto 2 <
-productWeb <... categoryWeb : may have many <
-
-class product
-
-class productWeb
-
-product <|-- productWeb
-categoryWeb <... productWeb : may have 1
-note on link #red: cyclic reference
-subscriptionWeb <... productWeb : always has 1
-seoMetadata <... productWeb : always has 1
 
 class seoMetadata
 
@@ -57,5 +30,15 @@ subscription <|-- subscriptionWeb
 seoMetadata <... subscriptionWeb : always has 1 <
 
 class tag
+
+class token
+
+class indexToken
+token <.. indexToken : always has 1 <
+
+class index
+indexToken <.. index : always has many <
+
+class news
 
 @enduml

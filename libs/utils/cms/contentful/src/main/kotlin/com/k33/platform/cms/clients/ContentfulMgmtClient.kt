@@ -18,22 +18,27 @@ class ContentfulMgmtClient(
             .build()
     }
 
-    suspend fun updateField(
+    suspend fun <T> updateField(
         entryId: String,
         key: String,
-        value: Any,
-    ) {
-        withContext(Dispatchers.IO) {
-            val entry = try {
-                client
-                    .entries()
-                    .fetchOne(entryId)
-            } catch (e: IllegalArgumentException) {
-                logger.error("Entry not found: $entryId")
-                return@withContext
-            }
+        value: T,
+    ): Boolean = withContext(Dispatchers.IO) {
+        val entry = try {
+            client
+                .entries()
+                .fetchOne(entryId)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Entry not found: $entryId")
+            return@withContext false
+        }
 
-            val locale = "en-US"
+        val locale = "en-US"
+        val existingValue: T = entry.getField(
+            key,
+            locale
+        )
+
+        if (existingValue != value) {
             entry.setField(
                 key,
                 locale,
@@ -47,6 +52,10 @@ class ContentfulMgmtClient(
             client
                 .entries()
                 .publish(updatedEntry)
+            true
+        } else {
+            false
         }
     }
 }
+

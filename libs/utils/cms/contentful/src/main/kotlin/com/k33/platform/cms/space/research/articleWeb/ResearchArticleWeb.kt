@@ -20,9 +20,7 @@ class ResearchArticleWeb(
             type = "articleWeb"
         ) {
             Algolia.Key.ObjectID *= "sys.id"
-            "articleSlug" *= "articleSlug"
-            "productSlug" *= "product.productSlug"
-            "categorySlug" *= "category.categorySlug"
+            "articleId" *= "article.sys.id"
         }
     }
 
@@ -76,20 +74,8 @@ class ResearchArticleWeb(
             .toMap()
     }
 
-    suspend fun fetchSlugPrefixList(): List<String> {
-        return fetchAll()
-            .mapNotNull {
-                val productSlug = (it["productSlug"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null)
-                val categorySlug = (it["categorySlug"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null)
-                "$categorySlug/$productSlug"
-            }
-            .groupingBy { it }
-            .eachCount()
-            .entries
-            .sortedByDescending { it.value }
-            .onEach { (path, count) ->
-                println("$path: $count")
-            }
-            .map { it.key }
-    }
+    suspend fun getArticleId(articleWebId: String): String? = fetch(entityId = articleWebId)
+        ?.get("articleId")
+        ?.jsonPrimitive
+        ?.contentOrNull
 }

@@ -32,7 +32,7 @@ class ResearchArticle(
                 "body" *= { richToPlainText("body") }
                 "image" *= "image"
                 "slug" *= "linkedFrom.articleWebCollection.items[0].articleSlug"
-                "section" *= "linkedFrom.articleWebCollection.items[0].section.name"
+                "sections" *= "linkedFrom.articleWebCollection.items[0].sectionsCollection.items[*].name"
                 "summary" *= { richToPlainText("summary") }
                 "keyPoints" *= "keyPoints"
             }

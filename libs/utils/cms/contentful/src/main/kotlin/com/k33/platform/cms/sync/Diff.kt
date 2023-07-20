@@ -1,10 +1,7 @@
 package com.k33.platform.cms.sync
 
-import com.algolia.search.model.APIKey
-import com.algolia.search.model.ApplicationID
-import com.algolia.search.model.IndexName
+import com.k33.platform.cms.config.Sync
 import com.k33.platform.cms.content.ContentFactory
-import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.getLogger
 import kotlinx.coroutines.runBlocking
 
@@ -12,23 +9,13 @@ object Diff {
 
     private val logger by getLogger()
 
-    suspend fun records(syncId: String) {
-        val algoliaConfig by loadConfig<AlgoliaConfig>(
-            name = "contentful",
-            path = "contentfulAlgoliaSync.$syncId.algolia"
-        )
-        val contentfulCollectionMetadata = ContentFactory.getContent(syncId = syncId)
+    suspend fun records(sync: Sync) {
+        val contentfulCollectionMetadata = ContentFactory.getContent(sync)
         val entryIdMap = contentfulCollectionMetadata
             .fetchIdToModifiedMap()
         logger.info("Found in contentful: ${entryIdMap.size}")
 
-        val algoliaClient = with(algoliaConfig) {
-            AlgoliaSearchClient(
-                ApplicationID(applicationId),
-                APIKey(apiKey),
-                IndexName(indexName),
-            )
-        }
+        val algoliaClient = AlgoliaSearchClient.getInstance(sync)
 
         val indices = algoliaClient.getAllIds()
         logger.info("Found in algolia: ${indices.size}")
@@ -61,6 +48,6 @@ object Diff {
 
 fun main() {
     runBlocking {
-        Diff.records(syncId = "researchArticles")
+        Diff.records(Sync.researchArticles)
     }
 }

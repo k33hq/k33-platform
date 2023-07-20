@@ -1,12 +1,10 @@
 query {
-    articleWebCollection(limit: 3666) {
+    articleWebCollection(limit: 5500) {
         items {
-            articleSlug
-            product {
-                productSlug
-            }
-            category {
-                categorySlug
+            article {
+                sys {
+                    id
+                }
             }
             sys {
                 id

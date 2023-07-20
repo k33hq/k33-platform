@@ -1,9 +1,8 @@
 package com.k33.platform.cms.sync
 
-import com.algolia.search.model.APIKey
-import com.algolia.search.model.ApplicationID
-import com.algolia.search.model.IndexName
 import com.algolia.search.model.ObjectID
+import com.k33.platform.cms.config.ContentfulSpace
+import com.k33.platform.cms.config.Sync
 import com.k33.platform.cms.content.ContentFactory
 import com.k33.platform.cms.events.Action
 import com.k33.platform.cms.events.EventHub
@@ -11,32 +10,21 @@ import com.k33.platform.cms.events.EventPattern
 import com.k33.platform.cms.events.EventType
 import com.k33.platform.cms.events.Resource
 import com.k33.platform.cms.objectID
-import com.k33.platform.utils.config.loadConfig
+import com.k33.platform.cms.space.research.articleWeb.ResearchArticleWeb
 import com.k33.platform.utils.logging.getLogger
 import kotlinx.coroutines.runBlocking
 
 class ContentfulToAlgolia(
-    private val syncId: String
+    private val sync: Sync
 ) {
 
     private val logger by getLogger()
 
-    private val algoliaConfig by loadConfig<AlgoliaConfig>(
-        "contentful",
-        "contentfulAlgoliaSync.$syncId.algolia"
-    )
-
     private val algoliaClient by lazy {
-        with(algoliaConfig) {
-            AlgoliaSearchClient(
-                ApplicationID(applicationId),
-                APIKey(apiKey),
-                IndexName(indexName)
-            )
-        }
+        AlgoliaSearchClient.getInstance(sync)
     }
 
-    private val content by lazy { ContentFactory.getContent(syncId) }
+    private val content by lazy { ContentFactory.getContent(sync) }
 
     suspend fun upsert(entryId: String) {
         val record = content.fetch(entityId = entryId) ?: return
@@ -57,7 +45,7 @@ class ContentfulToAlgolia(
                     objectID -> objectID to jsonObject
                 }
             }
-        logger.info("Exporting ${records.size} records from contentful to algolia for syncId: $syncId")
+        logger.info("Exporting ${records.size} records from contentful to algolia for syncId: ${sync.name}")
         algoliaClient.batchUpsert(records)
     }
 
@@ -70,13 +58,32 @@ class ContentfulToAlgolia(
     companion object {
         private val logger by getLogger()
 
+        private val articleWeb by lazy {
+            ResearchArticleWeb(
+                spaceId = ContentfulSpace.research.config.spaceId,
+                token = ContentfulSpace.research.config.token,
+            )
+        }
+
         init {
-            EventHub.subscribe(eventPattern = EventPattern()) { eventType: EventType, entityId: String ->
-                val syncId = when (eventType.resource) {
-                    Resource.article -> "researchArticles"
+            EventHub.subscribe(
+                eventPattern = EventPattern()
+            ) { eventType: EventType, entityId: String ->
+                val sync = when (eventType.resource) {
+                    Resource.article -> Sync.researchArticles
+                    Resource.articleWeb -> {
+                        val articleId = articleWeb.getArticleId(articleWebId = entityId)
+                        if (articleId != null) {
+                            EventHub.notify(
+                                eventType = EventType(Resource.article, eventType.action),
+                                id = articleId,
+                            )
+                        }
+                        return@subscribe
+                    }
                 }
                 val entityContentType = eventType.resource.name
-                val contentfulToAlgolia = ContentfulToAlgolia(syncId)
+                val contentfulToAlgolia = ContentfulToAlgolia(sync)
                 when (eventType.action) {
                     Action.publish -> {
                         try {
@@ -99,8 +106,8 @@ class ContentfulToAlgolia(
 
 fun main() {
     runBlocking {
-//        ContentfulToAlgolia("researchArticles").upsertAll()
-//        ContentfulToAlgolia("researchArticles").upsert("")
-//        ContentfulToAlgolia("researchArticles").delete("")
+        ContentfulToAlgolia(Sync.researchArticles).upsertAll()
+//        ContentfulToAlgolia(Sync.researchArticles).upsert("")
+//        ContentfulToAlgolia(Sync.researchArticles).delete("")
     }
 }

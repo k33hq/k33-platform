@@ -7,6 +7,8 @@ import com.algolia.search.model.APIKey
 import com.algolia.search.model.ApplicationID
 import com.algolia.search.model.IndexName
 import com.algolia.search.model.ObjectID
+import com.k33.platform.cms.config.Sync
+import com.k33.platform.cms.config.algoliaCconfig
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -60,5 +62,17 @@ class AlgoliaSearchClient(
                 }
             }
             .toMap()
+    }
+
+    companion object {
+        fun getInstance(
+            sync: Sync
+        ): AlgoliaSearchClient {
+            return AlgoliaSearchClient(
+                ApplicationID(algoliaCconfig.applicationId),
+                APIKey(algoliaCconfig.apiKey),
+                IndexName(sync.config.algoliaIndexName.name),
+            )
+        }
     }
 }

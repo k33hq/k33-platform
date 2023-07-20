@@ -1,23 +1,16 @@
 package com.k33.platform.cms.content
 
-import com.k33.platform.cms.ContentfulConfig
+import com.k33.platform.cms.config.Sync
 import com.k33.platform.cms.space.research.article.ResearchArticle
-import com.k33.platform.utils.config.loadConfig
 
 object ContentFactory {
-    fun getContent(syncId: String): Content {
-        val contentfulConfig by loadConfig<ContentfulConfig>(
-            "contentful",
-            "contentfulAlgoliaSync.$syncId.contentful"
-        )
-        return when (syncId) {
-            "researchArticles" -> with(contentfulConfig) {
-                ResearchArticle(
-                    spaceId = spaceId,
-                    token = token,
-                )
-            }
-            else -> throw Exception("Sync ID: $syncId not found in config")
+    fun getContent(sync: Sync): Content {
+        sync.config.contentfulSpace.config.spaceId
+        return when (sync) {
+            Sync.researchArticles -> ResearchArticle(
+                spaceId = sync.config.contentfulSpace.config.spaceId,
+                token = sync.config.contentfulSpace.config.token,
+            )
         }
     }
 }

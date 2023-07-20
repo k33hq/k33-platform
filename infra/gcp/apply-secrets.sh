@@ -15,11 +15,11 @@ fi
 declare -A gcp_secrets
 
 gcp_secrets[0]="SENDGRID_API_KEY"
-gcp_secrets[1]="LEGAL_SPACE_ID"
-gcp_secrets[2]="LEGAL_SPACE_TOKEN"
-gcp_secrets[3]="RESEARCH_SPACE_ID"
-gcp_secrets[4]="RESEARCH_SPACE_TOKEN"
-gcp_secrets[5]="RESEARCH_SPACE_CMA_TOKEN"
+gcp_secrets[1]="CONTENTFUL_LEGAL_SPACE_ID"
+gcp_secrets[2]="CONTENTFUL_LEGAL_SPACE_TOKEN"
+gcp_secrets[3]="CONTENTFUL_RESEARCH_SPACE_ID"
+gcp_secrets[4]="CONTENTFUL_RESEARCH_SPACE_TOKEN"
+gcp_secrets[5]="CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN"
 gcp_secrets[6]="ALGOLIA_APP_ID"
 gcp_secrets[7]="ALGOLIA_API_KEY"
 gcp_secrets[8]="SLACK_TOKEN"
