@@ -71,7 +71,7 @@ sealed class GA4Client {
     }
 }
 
-object GA4ClientForApp : GA4Client() {
+data object GA4ClientForApp : GA4Client() {
 
     override val httpClient = super.httpClient.config {
         defaultRequest {
@@ -86,7 +86,7 @@ object GA4ClientForApp : GA4Client() {
     internal suspend fun submit(request: AppRequest) = super.submit(request)
 }
 
-object GA4ClientForWeb : GA4Client() {
+data object GA4ClientForWeb : GA4Client() {
 
     override val httpClient = super.httpClient.config {
         defaultRequest {

@@ -5,7 +5,9 @@ plugins {
 
 dependencies {
     implementation(project(":libs:services:user:user-service"))
-    implementation("com.google.firebase:firebase-admin:_")
+    implementation("com.google.firebase:firebase-admin:_")  {
+        exclude("com.google.guava", "listenablefuture")
+    }
 
     implementation(project(":libs:utils:google-coroutine-ktx"))
     implementation(project(":libs:utils:file-store"))

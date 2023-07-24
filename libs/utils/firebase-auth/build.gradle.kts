@@ -5,7 +5,9 @@ plugins {
 }
 
 dependencies {
-    implementation("com.google.firebase:firebase-admin:_")
+    implementation("com.google.firebase:firebase-admin:_") {
+        exclude("com.google.guava", "listenablefuture")
+    }
     implementation(project(":libs:utils:google-coroutine-ktx"))
     implementation(KotlinX.coroutines.core)
     implementation(project(":libs:utils:logging"))

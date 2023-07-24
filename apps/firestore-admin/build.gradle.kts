@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("stdlib"))
 
     implementation(project(":libs:utils:firebase-auth"))
     implementation(project(":libs:services:user:user-model"))

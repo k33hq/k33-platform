@@ -466,8 +466,8 @@ gcloud compute backend-services create web-backend-service \
   --global
 
 gcloud compute backend-services update web-backend-service \
-  --default-ttl=3600 \
-  --client-ttl=3600 \
+  --default-ttl=86400 \
+  --client-ttl=86400 \
   --global
 
 gcloud compute backend-services add-backend web-backend-service \

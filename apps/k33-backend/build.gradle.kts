@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(kotlin("stdlib-jdk8"))
+    runtimeOnly(kotlin("stdlib"))
 
     runtimeOnly(project(":libs:services:identity"))
     runtimeOnly(project(":libs:services:user"))

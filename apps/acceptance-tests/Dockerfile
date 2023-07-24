@@ -1,8 +1,5 @@
-FROM eclipse-temurin:20.0.1_9-jre
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    netcat \
- && rm -rf /var/lib/apt/lists/*
+FROM eclipse-temurin:20.0.1_9-jre-alpine
+RUN apk add --no-cache netcat-openbsd
 EXPOSE 8080
 RUN mkdir /app
 COPY ./build/install/acceptance-tests/ /acceptance-tests/

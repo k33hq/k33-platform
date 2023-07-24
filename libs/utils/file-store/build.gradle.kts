@@ -6,7 +6,9 @@ plugins {
 
 dependencies {
     implementation(platform("com.google.cloud:libraries-bom:_"))
-    implementation("com.google.cloud:google-cloud-storage")
+    implementation("com.google.cloud:google-cloud-storage") {
+        exclude("com.google.guava", "listenablefuture")
+    }
 
     implementation(project(":libs:utils:google-coroutine-ktx"))
     implementation(KotlinX.coroutines.core)

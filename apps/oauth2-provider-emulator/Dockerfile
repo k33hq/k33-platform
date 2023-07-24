@@ -1,4 +1,4 @@
-FROM eclipse-temurin:20.0.1_9-jre
+FROM eclipse-temurin:20.0.1_9-jre-alpine
 EXPOSE 8080
 RUN mkdir /app
 COPY ./build/install/oauth2-provider-emulator/ /app/

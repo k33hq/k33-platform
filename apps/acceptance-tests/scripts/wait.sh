@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 echo "Waiting for firestore-emulator to launch on 5173..."
 while ! nc -z firestore-emulator 5173; do

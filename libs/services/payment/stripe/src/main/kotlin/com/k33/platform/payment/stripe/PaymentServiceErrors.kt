@@ -7,7 +7,7 @@ sealed class PaymentServiceError(
     override val message: String,
 ) : Exception(message)
 
-object AlreadySubscribed : PaymentServiceError(
+data object AlreadySubscribed : PaymentServiceError(
     httpStatusCode = HttpStatusCode.Conflict,
     message = "Already subscribed",
 )
@@ -27,17 +27,17 @@ class ServiceUnavailable(message: String) : PaymentServiceError(
     message = message,
 )
 
-object TooManyRequests: PaymentServiceError(
+data object TooManyRequests: PaymentServiceError(
     httpStatusCode = HttpStatusCode.TooManyRequests,
     message = "Too many requests. Please try again after some time.",
 )
 
-object InternalServerError: PaymentServiceError(
+data object InternalServerError: PaymentServiceError(
     httpStatusCode = HttpStatusCode.InternalServerError,
     message = "Internal Server Error",
 )
 
-object NotEligibleForFreeTrial: PaymentServiceError(
+data object NotEligibleForFreeTrial: PaymentServiceError(
     httpStatusCode = HttpStatusCode.Forbidden,
     message = "Not eligible for free trial",
 )
