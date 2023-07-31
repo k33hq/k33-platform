@@ -7,6 +7,7 @@ dependencies {
     api(project(":libs:utils:logging"))
     implementation("org.slf4j:slf4j-api:_")
     implementation("io.micronaut.gcp:micronaut-gcp-logging:_")
+    implementation("io.micronaut.serde:micronaut-serde-jackson:_")
     implementation("ch.qos.logback:logback-classic:_")
     implementation("ch.qos.logback.contrib:logback-json-classic:_")
 
