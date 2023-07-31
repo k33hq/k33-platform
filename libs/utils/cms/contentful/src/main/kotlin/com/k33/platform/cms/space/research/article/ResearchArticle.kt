@@ -28,9 +28,9 @@ class ResearchArticle(
             "tags" *= "tagsCollection.items[*].title"
             "publishedDate" *= "publishedDate"
             "publishedAt" *= "sys.publishedAt"
+            "horizontalThumbnail" *= "horizontalThumbnail"
             optional {
                 "body" *= { richToPlainText("body") }
-                "image" *= "image"
                 "slug" *= "linkedFrom.articleWebCollection.items[0].articleSlug"
                 "sections" *= "linkedFrom.articleWebCollection.items[0].sectionsCollection.items[*].name"
                 "summary" *= { richToPlainText("summary") }

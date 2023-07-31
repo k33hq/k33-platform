@@ -1,0 +1,18 @@
+query {
+    articleWebCollection(
+        limit: 2750
+    ) {
+        items {
+            sectionsCollection {
+                items {
+                    name
+                }
+            }
+            article {
+                sys {
+                    id
+                }
+            }
+        }
+    }
+}
