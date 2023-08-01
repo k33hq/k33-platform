@@ -49,7 +49,7 @@ class ResearchArticleWeb(
         ContentfulGraphql(
             spaceId = spaceId,
             token = token,
-            type = "article"
+            type = "articleWeb"
         ) {
             Algolia.Key.ObjectID *= "sys.id"
             "publishedAt" *= "sys.publishedAt"

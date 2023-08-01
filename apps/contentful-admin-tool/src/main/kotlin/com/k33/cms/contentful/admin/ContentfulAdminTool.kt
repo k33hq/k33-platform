@@ -1,15 +1,11 @@
 package com.k33.cms.contentful.admin
 
 import com.contentful.java.cma.CMAClient
-import com.contentful.java.cma.model.CMAAsset
-import com.contentful.java.cma.model.CMALink
-import com.google.gson.internal.LinkedTreeMap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
-import java.lang.Exception
 
 fun main() {
     val spaceId = System.getenv("CONTENTFUL_RESEARCH_SPACE_ID")
@@ -37,11 +33,13 @@ fun main() {
             .asFlow()
             .map { (entryId, isVerticalThumbnail) ->
                 try {
+                    delay(150)
                     val entry = cmaClient
                         .entries()
                         .fetchOne(entryId)
 
-                    val image: Any = if (isVerticalThumbnail) {
+                    // setting horizontalThumbnail
+                    val horizontalThumbnail: Any = if (isVerticalThumbnail) {
                         entry.getField(
                             "image", // key
                             "en-US", // locale
@@ -52,26 +50,36 @@ fun main() {
                             "en-US", // locale
                         )
                     }
-
                     entry.setField(
                         "horizontalThumbnail", // key
                         "en-US", // locale
-                        image
+                        horizontalThumbnail
                     )
 
-                    delay(150)
+                    // setting verticalThumbnail
+                    if (isVerticalThumbnail) {
+                        val verticalThumbnail: Any = entry.getField(
+                            "thumbnail", // key
+                            "en-US", // locale
+                        )
+                        entry.setField(
+                            "verticalThumbnail", // key
+                            "en-US", // locale
+                            verticalThumbnail
+                        )
+                    }
 
+                    // updating
+                    delay(150)
                     val updatedEntry = cmaClient
                         .entries()
                         .update(entry)
 
                     delay(150)
-
                     cmaClient
                         .entries()
                         .publish(updatedEntry)
 
-                    delay(150)
                     true
                 } catch (e: Exception) {
                     println(e.message)

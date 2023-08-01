@@ -163,6 +163,10 @@ fun Application.module() {
                                                 val subscriptionToBeCanceled =
                                                     event.data.previousAttributes?.get("cancel_at_period_end") == false
                                                             && subscription.cancelAtPeriodEnd == true
+                                                val subscriptionUncanceled =
+                                                    status == Status.active
+                                                            && event.data.previousAttributes?.get("cancel_at_period_end") == true
+                                                            && subscription.cancelAtPeriodEnd == false
                                                 val updatedCancellationDetails = setOf("cancellation_details") == event.data.previousAttributes?.keys?.toSet()
                                                 val updatedDefaultPaymentMethod = setOf("default_payment_method") == event.data.previousAttributes?.keys?.toSet()
                                                 val extendedActivePeriod =
@@ -227,6 +231,10 @@ fun Application.module() {
 
                                                     updatedDefaultPaymentMethod -> {
                                                         call.application.log.info("Updated default payment method")
+                                                    }
+
+                                                    subscriptionUncanceled -> {
+                                                        notifySlack("$customerEmail has uncancelled subscription")
                                                     }
 
                                                     else -> {
