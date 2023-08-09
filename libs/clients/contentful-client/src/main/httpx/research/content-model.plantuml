@@ -7,12 +7,8 @@ class article
 author <... article : always has many <
 tag <... article : always has 1 to 5 <
 
-class articleWeb
-article <|-- articleWeb : always has 1 <
-
-section <... articleWeb : always has 1 to 2 <
-
-subscriptionWeb <... articleWeb : always has 1
+section <... article : always has 1 to 2 <
+seoMetadata <... article : has 1 <
 
 class author
 

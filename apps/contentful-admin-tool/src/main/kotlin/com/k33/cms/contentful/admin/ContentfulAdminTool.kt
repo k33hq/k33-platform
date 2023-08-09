@@ -1,6 +1,8 @@
 package com.k33.cms.contentful.admin
 
 import com.contentful.java.cma.CMAClient
+import com.contentful.java.cma.model.CMALink
+import com.google.gson.internal.LinkedTreeMap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.count
@@ -24,50 +26,36 @@ fun main() {
             token = token,
         )
 
-        val entryIds = contentfulGraphqlClient
-            .fetch()
-            .mapValues { (_, sections) -> sections.any { section -> section.endsWith("reports") || section == "token-valuation/principles" } }
-            .entries
+        val articles = contentfulGraphqlClient.fetch()
 
-        entryIds
+        articles
             .asFlow()
-            .map { (entryId, isVerticalThumbnail) ->
+            .map { article ->
                 try {
                     delay(150)
                     val entry = cmaClient
                         .entries()
-                        .fetchOne(entryId)
+                        .fetchOne(article.id)
 
-                    // setting horizontalThumbnail
-                    val horizontalThumbnail: Any = if (isVerticalThumbnail) {
-                        entry.getField(
-                            "image", // key
-                            "en-US", // locale
-                        )
-                    } else {
-                        entry.getField(
-                            "thumbnail", // key
-                            "en-US", // locale
-                        )
-                    }
                     entry.setField(
-                        "horizontalThumbnail", // key
+                        "articleSlug", // key
                         "en-US", // locale
-                        horizontalThumbnail
+                        article.slug
                     )
 
-                    // setting verticalThumbnail
-                    if (isVerticalThumbnail) {
-                        val verticalThumbnail: Any = entry.getField(
-                            "thumbnail", // key
-                            "en-US", // locale
-                        )
+                    if (article.seoId != null) {
                         entry.setField(
-                            "verticalThumbnail", // key
+                            "seo", // key
                             "en-US", // locale
-                            verticalThumbnail
+                            article.seoId.toEntryLink(),
                         )
                     }
+
+                    entry.setField(
+                        "sections", // key
+                        "en-US", // locale
+                        article.sectionIds.map(String::toEntryLink)
+                    )
 
                     // updating
                     delay(150)
@@ -88,7 +76,15 @@ fun main() {
             }
             .count { it }
             .let { count ->
-                println("Updated $count of ${entryIds.size} articles with horizontalThumbnail")
+                println("Updated $count of ${articles.size} articles")
             }
     }
 }
+
+fun String.toEntryLink() = mapOf(
+    "sys" to mapOf(
+        "type" to "Link",
+        "linkType" to "Entry",
+        "id" to this,
+    )
+)

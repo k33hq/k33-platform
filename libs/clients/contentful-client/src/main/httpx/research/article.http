@@ -52,16 +52,10 @@ query {
                 id
                 publishedAt
             }
-            linkedFrom {
-                articleWebCollection(limit: 1) {
-                    items {
-                        articleSlug
-                        sectionsCollection {
-                            items {
-                                name
-                            }
-                        }
-                    }
+            articleSlug
+            sectionsCollection {
+                items {
+                    name
                 }
             }
         }
@@ -106,16 +100,10 @@ query {
                 id
                 publishedAt
             }
-            linkedFrom {
-                articleWebCollection(limit: 1) {
-                    items {
-                        articleSlug
-                        sectionsCollection {
-                            items {
-                                name
-                            }
-                        }
-                    }
+            articleSlug
+            sectionsCollection {
+                items {
+                    name
                 }
             }
         }
@@ -137,7 +125,13 @@ query {
                 contentType
                 fileName
             }
-            thumbnail {
+            horizontalThumbnail {
+                height
+                width
+                contentType
+                fileName
+            }
+            verticalThumbnail {
                 height
                 width
                 contentType

@@ -1,7 +1,6 @@
 package com.k33.platform.cms.sync
 
 import com.algolia.search.model.ObjectID
-import com.k33.platform.cms.config.ContentfulSpace
 import com.k33.platform.cms.config.Sync
 import com.k33.platform.cms.content.ContentFactory
 import com.k33.platform.cms.events.Action
@@ -10,7 +9,6 @@ import com.k33.platform.cms.events.EventPattern
 import com.k33.platform.cms.events.EventType
 import com.k33.platform.cms.events.Resource
 import com.k33.platform.cms.objectID
-import com.k33.platform.cms.space.research.articleWeb.ResearchArticleWeb
 import com.k33.platform.utils.logging.getLogger
 import kotlinx.coroutines.runBlocking
 
@@ -58,29 +56,12 @@ class ContentfulToAlgolia(
     companion object {
         private val logger by getLogger()
 
-        private val articleWeb by lazy {
-            ResearchArticleWeb(
-                spaceId = ContentfulSpace.research.config.spaceId,
-                token = ContentfulSpace.research.config.token,
-            )
-        }
-
         init {
             EventHub.subscribe(
                 eventPattern = EventPattern()
             ) { eventType: EventType, entityId: String ->
                 val sync = when (eventType.resource) {
                     Resource.article -> Sync.researchArticles
-                    Resource.articleWeb -> {
-                        val articleId = articleWeb.getArticleId(articleWebId = entityId)
-                        if (articleId != null) {
-                            EventHub.notify(
-                                eventType = EventType(Resource.article, eventType.action),
-                                id = articleId,
-                            )
-                        }
-                        return@subscribe
-                    }
                 }
                 val entityContentType = eventType.resource.name
                 val contentfulToAlgolia = ContentfulToAlgolia(sync)

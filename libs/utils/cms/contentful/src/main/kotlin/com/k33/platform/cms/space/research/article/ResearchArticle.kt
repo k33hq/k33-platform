@@ -29,10 +29,10 @@ class ResearchArticle(
             "publishedDate" *= "publishedDate"
             "publishedAt" *= "sys.publishedAt"
             "horizontalThumbnail" *= "horizontalThumbnail"
+            "slug" *= "articleSlug"
+            "sections" *= "sectionsCollection.items[*].name"
             optional {
                 "body" *= { richToPlainText("body") }
-                "slug" *= "linkedFrom.articleWebCollection.items[0].articleSlug"
-                "sections" *= "linkedFrom.articleWebCollection.items[0].sectionsCollection.items[*].name"
                 "summary" *= { richToPlainText("summary") }
                 "keyPoints" *= "keyPoints"
             }

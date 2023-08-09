@@ -7,6 +7,10 @@ type Query {
 
   articleWebCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, where: ArticleWebFilter, order: [ArticleWebOrder]): ArticleWebCollection
 
+  homePage(id: String!, preview: Boolean, locale: String): HomePage
+
+  homePageCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, where: HomePageFilter, order: [HomePageOrder]): HomePageCollection
+
   article(id: String!, preview: Boolean, locale: String): Article
 
   articleCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, where: ArticleFilter, order: [ArticleOrder]): ArticleCollection
@@ -18,10 +22,6 @@ type Query {
   token(id: String!, preview: Boolean, locale: String): Token
 
   tokenCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, where: TokenFilter, order: [TokenOrder]): TokenCollection
-
-  homePage(id: String!, preview: Boolean, locale: String): HomePage
-
-  homePageCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, where: HomePageFilter, order: [HomePageOrder]): HomePageCollection
 
   news(id: String!, preview: Boolean, locale: String): News
 
@@ -379,6 +379,8 @@ type Article implements Entry {
 
   title(locale: String): String
 
+  articleSlug(locale: String): String
+
   subtitle(locale: String): String
 
   image(preview: Boolean, locale: String): Asset
@@ -395,7 +397,9 @@ type Article implements Entry {
 
   tagsCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, where: TagFilter, order: [ArticleTagsCollectionOrder]): ArticleTagsCollection
 
-  thumbnail(preview: Boolean, locale: String): Asset
+  horizontalThumbnail(preview: Boolean, locale: String): Asset
+
+  verticalThumbnail(preview: Boolean, locale: String): Asset
 
   coverPicture(preview: Boolean, locale: String): Asset
 
@@ -405,60 +409,23 @@ type Article implements Entry {
 
   publicSnippet(locale: String): ArticlePublicSnippet
 
+  sectionsCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, where: SectionFilter, order: [ArticleSectionsCollectionOrder]): ArticleSectionsCollection
+
   relatedArticlesCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, where: ArticleFilter, order: [ArticleRelatedArticlesCollectionOrder]): ArticleRelatedArticlesCollection
 
   recommendedArticlesCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, where: ArticleFilter, order: [ArticleRecommendedArticlesCollectionOrder]): ArticleRecommendedArticlesCollection
+
+  seo(preview: Boolean, locale: String, where: SeoMetadataFilter): SeoMetadata
 }
 
 type ArticleLinkingCollections {
   entryCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String): EntryCollection
 
-  articleWebCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [ArticleLinkingCollectionsArticleWebCollectionOrder]): ArticleWebCollection
+  homePageCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [ArticleLinkingCollectionsHomePageCollectionOrder]): HomePageCollection
 
   articleCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [ArticleLinkingCollectionsArticleCollectionOrder]): ArticleCollection
 
   indexCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [ArticleLinkingCollectionsIndexCollectionOrder]): IndexCollection
-}
-
-type ArticleWebCollection {
-  total: Int!
-
-  skip: Int!
-
-  limit: Int!
-
-  items: [ArticleWeb]!
-}
-
-"""
-Assembly - how an Article should be constructed to be presented on the web [See type definition](https://app.contentful.com/spaces/i0qyt2j9snzb/content_types/articleWeb)
-"""
-type ArticleWeb implements Entry {
-  sys: Sys!
-
-  contentfulMetadata: ContentfulMetadata!
-
-  linkedFrom(allowedLocales: [String]): ArticleWebLinkingCollections
-
-  title(locale: String): String
-
-  article(preview: Boolean, locale: String, where: ArticleFilter): Article
-
-  articleSlug(locale: String): String
-
-  publishedDate(locale: String): DateTime
-
-  subscription(preview: Boolean, locale: String, where: SubscriptionWebFilter): SubscriptionWeb
-
-  seo(preview: Boolean, locale: String, where: SeoMetadataFilter): SeoMetadata
-
-  sectionsCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, where: SectionFilter, order: [ArticleWebSectionsCollectionOrder]): ArticleWebSectionsCollection
-}
-
-type ArticleWebLinkingCollections {
-  entryCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String): EntryCollection
-
-  homePageCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [ArticleWebLinkingCollectionsHomePageCollectionOrder]): HomePageCollection
 }
 
 type HomePageCollection {
@@ -481,37 +448,41 @@ type HomePage implements Entry {
 
   linkedFrom(allowedLocales: [String]): HomePageLinkingCollections
 
-  mainArticle(preview: Boolean, locale: String, where: ArticleWebFilter): ArticleWeb
+  mainArticle(preview: Boolean, locale: String, where: ArticleFilter): Article
 
-  subArticle1(preview: Boolean, locale: String, where: ArticleWebFilter): ArticleWeb
+  subArticle1(preview: Boolean, locale: String, where: ArticleFilter): Article
 
-  subArticle2(preview: Boolean, locale: String, where: ArticleWebFilter): ArticleWeb
+  subArticle2(preview: Boolean, locale: String, where: ArticleFilter): Article
 
-  subArticle3(preview: Boolean, locale: String, where: ArticleWebFilter): ArticleWeb
+  subArticle3(preview: Boolean, locale: String, where: ArticleFilter): Article
 
-  subArticle4(preview: Boolean, locale: String, where: ArticleWebFilter): ArticleWeb
+  subArticle4(preview: Boolean, locale: String, where: ArticleFilter): Article
 
   title(locale: String): String
 
   seo(preview: Boolean, locale: String, where: SeoMetadataFilter): SeoMetadata
 
-  coverArticle1(preview: Boolean, locale: String, where: ArticleWebFilter): ArticleWeb
+  coverArticle1(preview: Boolean, locale: String, where: ArticleFilter): Article
 
-  coverArticle2(preview: Boolean, locale: String, where: ArticleWebFilter): ArticleWeb
+  coverArticle2(preview: Boolean, locale: String, where: ArticleFilter): Article
 }
 
 type HomePageLinkingCollections {
   entryCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String): EntryCollection
 }
 
-input ArticleWebFilter {
-  article: cfArticleNestedFilter
+input ArticleFilter {
+  authors: cfAuthorNestedFilter
 
-  subscription: cfSubscriptionWebNestedFilter
-
-  seo: cfSeoMetadataNestedFilter
+  tags: cfTagNestedFilter
 
   sections: cfSectionNestedFilter
+
+  relatedArticles: cfArticleNestedFilter
+
+  recommendedArticles: cfArticleNestedFilter
+
+  seo: cfSeoMetadataNestedFilter
 
   sys: SysFilter
 
@@ -530,8 +501,6 @@ input ArticleWebFilter {
   title_contains: String
 
   title_not_contains: String
-
-  article_exists: Boolean
 
   articleSlug_exists: Boolean
 
@@ -546,54 +515,6 @@ input ArticleWebFilter {
   articleSlug_contains: String
 
   articleSlug_not_contains: String
-
-  publishedDate_exists: Boolean
-
-  publishedDate: DateTime
-
-  publishedDate_not: DateTime
-
-  publishedDate_in: [DateTime]
-
-  publishedDate_not_in: [DateTime]
-
-  publishedDate_gt: DateTime
-
-  publishedDate_gte: DateTime
-
-  publishedDate_lt: DateTime
-
-  publishedDate_lte: DateTime
-
-  subscription_exists: Boolean
-
-  seo_exists: Boolean
-
-  sectionsCollection_exists: Boolean
-
-  OR: [ArticleWebFilter]
-
-  AND: [ArticleWebFilter]
-}
-
-input cfArticleNestedFilter {
-  sys: SysFilter
-
-  contentfulMetadata: ContentfulMetadataFilter
-
-  title_exists: Boolean
-
-  title: String
-
-  title_not: String
-
-  title_in: [String]
-
-  title_not_in: [String]
-
-  title_contains: String
-
-  title_not_contains: String
 
   subtitle_exists: Boolean
 
@@ -637,7 +558,9 @@ input cfArticleNestedFilter {
 
   tagsCollection_exists: Boolean
 
-  thumbnail_exists: Boolean
+  horizontalThumbnail_exists: Boolean
+
+  verticalThumbnail_exists: Boolean
 
   coverPicture_exists: Boolean
 
@@ -667,13 +590,71 @@ input cfArticleNestedFilter {
 
   publicSnippet_not_contains: String
 
+  sectionsCollection_exists: Boolean
+
   relatedArticlesCollection_exists: Boolean
 
   recommendedArticlesCollection_exists: Boolean
 
-  OR: [cfArticleNestedFilter]
+  seo_exists: Boolean
 
-  AND: [cfArticleNestedFilter]
+  OR: [ArticleFilter]
+
+  AND: [ArticleFilter]
+}
+
+input cfAuthorNestedFilter {
+  sys: SysFilter
+
+  contentfulMetadata: ContentfulMetadataFilter
+
+  name_exists: Boolean
+
+  name: String
+
+  name_not: String
+
+  name_in: [String]
+
+  name_not_in: [String]
+
+  name_contains: String
+
+  name_not_contains: String
+
+  title_exists: Boolean
+
+  title: String
+
+  title_not: String
+
+  title_in: [String]
+
+  title_not_in: [String]
+
+  title_contains: String
+
+  title_not_contains: String
+
+  description_exists: Boolean
+
+  description: String
+
+  description_not: String
+
+  description_in: [String]
+
+  description_not_in: [String]
+
+  description_contains: String
+
+  description_not_contains: String
+
+  profilePicture_exists: Boolean
+
+  OR: [cfAuthorNestedFilter]
+
+  AND: [cfAuthorNestedFilter]
 }
 
 input SysFilter {
@@ -765,7 +746,7 @@ input ContentfulMetadataTagsFilter {
   id_contains_none: [String]
 }
 
-input cfSubscriptionWebNestedFilter {
+input cfTagNestedFilter {
   sys: SysFilter
 
   contentfulMetadata: ContentfulMetadataFilter
@@ -784,41 +765,153 @@ input cfSubscriptionWebNestedFilter {
 
   title_not_contains: String
 
-  subscription_exists: Boolean
+  OR: [cfTagNestedFilter]
 
-  subscriptionSlug_exists: Boolean
+  AND: [cfTagNestedFilter]
+}
 
-  subscriptionSlug: String
+input cfSectionNestedFilter {
+  sys: SysFilter
 
-  subscriptionSlug_not: String
+  contentfulMetadata: ContentfulMetadataFilter
 
-  subscriptionSlug_in: [String]
+  name_exists: Boolean
 
-  subscriptionSlug_not_in: [String]
+  name: String
 
-  subscriptionSlug_contains: String
+  name_not: String
 
-  subscriptionSlug_not_contains: String
+  name_in: [String]
 
-  label_exists: Boolean
+  name_not_in: [String]
 
-  label: String
+  name_contains: String
 
-  label_not: String
+  name_not_contains: String
 
-  label_in: [String]
+  OR: [cfSectionNestedFilter]
 
-  label_not_in: [String]
+  AND: [cfSectionNestedFilter]
+}
 
-  label_contains: String
+input cfArticleNestedFilter {
+  sys: SysFilter
 
-  label_not_contains: String
+  contentfulMetadata: ContentfulMetadataFilter
+
+  title_exists: Boolean
+
+  title: String
+
+  title_not: String
+
+  title_in: [String]
+
+  title_not_in: [String]
+
+  title_contains: String
+
+  title_not_contains: String
+
+  articleSlug_exists: Boolean
+
+  articleSlug: String
+
+  articleSlug_not: String
+
+  articleSlug_in: [String]
+
+  articleSlug_not_in: [String]
+
+  articleSlug_contains: String
+
+  articleSlug_not_contains: String
+
+  subtitle_exists: Boolean
+
+  subtitle: String
+
+  subtitle_not: String
+
+  subtitle_in: [String]
+
+  subtitle_not_in: [String]
+
+  subtitle_contains: String
+
+  subtitle_not_contains: String
+
+  image_exists: Boolean
+
+  body_exists: Boolean
+
+  body_contains: String
+
+  body_not_contains: String
+
+  authorsCollection_exists: Boolean
+
+  summary_exists: Boolean
+
+  summary_contains: String
+
+  summary_not_contains: String
+
+  keyPoints_exists: Boolean
+
+  keyPoints_contains_all: [String]
+
+  keyPoints_contains_some: [String]
+
+  keyPoints_contains_none: [String]
+
+  reportDocument_exists: Boolean
+
+  tagsCollection_exists: Boolean
+
+  horizontalThumbnail_exists: Boolean
+
+  verticalThumbnail_exists: Boolean
+
+  coverPicture_exists: Boolean
+
+  video_exists: Boolean
+
+  publishedDate_exists: Boolean
+
+  publishedDate: DateTime
+
+  publishedDate_not: DateTime
+
+  publishedDate_in: [DateTime]
+
+  publishedDate_not_in: [DateTime]
+
+  publishedDate_gt: DateTime
+
+  publishedDate_gte: DateTime
+
+  publishedDate_lt: DateTime
+
+  publishedDate_lte: DateTime
+
+  publicSnippet_exists: Boolean
+
+  publicSnippet_contains: String
+
+  publicSnippet_not_contains: String
+
+  sectionsCollection_exists: Boolean
+
+  relatedArticlesCollection_exists: Boolean
+
+  recommendedArticlesCollection_exists: Boolean
 
   seo_exists: Boolean
 
-  OR: [cfSubscriptionWebNestedFilter]
+  OR: [cfArticleNestedFilter]
 
-  AND: [cfSubscriptionWebNestedFilter]
+  AND: [cfArticleNestedFilter]
 }
 
 input cfSeoMetadataNestedFilter {
@@ -861,30 +954,6 @@ input cfSeoMetadataNestedFilter {
   AND: [cfSeoMetadataNestedFilter]
 }
 
-input cfSectionNestedFilter {
-  sys: SysFilter
-
-  contentfulMetadata: ContentfulMetadataFilter
-
-  name_exists: Boolean
-
-  name: String
-
-  name_not: String
-
-  name_in: [String]
-
-  name_not_in: [String]
-
-  name_contains: String
-
-  name_not_contains: String
-
-  OR: [cfSectionNestedFilter]
-
-  AND: [cfSectionNestedFilter]
-}
-
 """
 Seo Metadata Content type that would be added to various assemblies [See type definition](https://app.contentful.com/spaces/i0qyt2j9snzb/content_types/seoMetadata)
 """
@@ -905,25 +974,17 @@ type SeoMetadata implements Entry {
 type SeoMetadataLinkingCollections {
   entryCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String): EntryCollection
 
-  articleWebCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [SeoMetadataLinkingCollectionsArticleWebCollectionOrder]): ArticleWebCollection
-
   homePageCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [SeoMetadataLinkingCollectionsHomePageCollectionOrder]): HomePageCollection
+
+  articleCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [SeoMetadataLinkingCollectionsArticleCollectionOrder]): ArticleCollection
 
   subscriptionWebCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [SeoMetadataLinkingCollectionsSubscriptionWebCollectionOrder]): SubscriptionWebCollection
 }
 
-enum SeoMetadataLinkingCollectionsArticleWebCollectionOrder {
+enum SeoMetadataLinkingCollectionsHomePageCollectionOrder {
   title_ASC
 
   title_DESC
-
-  articleSlug_ASC
-
-  articleSlug_DESC
-
-  publishedDate_ASC
-
-  publishedDate_DESC
 
   sys_id_ASC
 
@@ -942,10 +1003,22 @@ enum SeoMetadataLinkingCollectionsArticleWebCollectionOrder {
   sys_publishedVersion_DESC
 }
 
-enum SeoMetadataLinkingCollectionsHomePageCollectionOrder {
+enum SeoMetadataLinkingCollectionsArticleCollectionOrder {
   title_ASC
 
   title_DESC
+
+  articleSlug_ASC
+
+  articleSlug_DESC
+
+  subtitle_ASC
+
+  subtitle_DESC
+
+  publishedDate_ASC
+
+  publishedDate_DESC
 
   sys_id_ASC
 
@@ -997,38 +1070,6 @@ type SubscriptionWeb implements Entry {
 
 type SubscriptionWebLinkingCollections {
   entryCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String): EntryCollection
-
-  articleWebCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [SubscriptionWebLinkingCollectionsArticleWebCollectionOrder]): ArticleWebCollection
-}
-
-enum SubscriptionWebLinkingCollectionsArticleWebCollectionOrder {
-  title_ASC
-
-  title_DESC
-
-  articleSlug_ASC
-
-  articleSlug_DESC
-
-  publishedDate_ASC
-
-  publishedDate_DESC
-
-  sys_id_ASC
-
-  sys_id_DESC
-
-  sys_publishedAt_ASC
-
-  sys_publishedAt_DESC
-
-  sys_firstPublishedAt_ASC
-
-  sys_firstPublishedAt_DESC
-
-  sys_publishedVersion_ASC
-
-  sys_publishedVersion_DESC
 }
 
 """
@@ -1343,471 +1384,10 @@ enum SeoMetadataLinkingCollectionsSubscriptionWebCollectionOrder {
   sys_publishedVersion_DESC
 }
 
-enum ArticleWebLinkingCollectionsHomePageCollectionOrder {
+enum ArticleLinkingCollectionsHomePageCollectionOrder {
   title_ASC
 
   title_DESC
-
-  sys_id_ASC
-
-  sys_id_DESC
-
-  sys_publishedAt_ASC
-
-  sys_publishedAt_DESC
-
-  sys_firstPublishedAt_ASC
-
-  sys_firstPublishedAt_DESC
-
-  sys_publishedVersion_ASC
-
-  sys_publishedVersion_DESC
-}
-
-input ArticleFilter {
-  authors: cfAuthorNestedFilter
-
-  tags: cfTagNestedFilter
-
-  relatedArticles: cfArticleNestedFilter
-
-  recommendedArticles: cfArticleNestedFilter
-
-  sys: SysFilter
-
-  contentfulMetadata: ContentfulMetadataFilter
-
-  title_exists: Boolean
-
-  title: String
-
-  title_not: String
-
-  title_in: [String]
-
-  title_not_in: [String]
-
-  title_contains: String
-
-  title_not_contains: String
-
-  subtitle_exists: Boolean
-
-  subtitle: String
-
-  subtitle_not: String
-
-  subtitle_in: [String]
-
-  subtitle_not_in: [String]
-
-  subtitle_contains: String
-
-  subtitle_not_contains: String
-
-  image_exists: Boolean
-
-  body_exists: Boolean
-
-  body_contains: String
-
-  body_not_contains: String
-
-  authorsCollection_exists: Boolean
-
-  summary_exists: Boolean
-
-  summary_contains: String
-
-  summary_not_contains: String
-
-  keyPoints_exists: Boolean
-
-  keyPoints_contains_all: [String]
-
-  keyPoints_contains_some: [String]
-
-  keyPoints_contains_none: [String]
-
-  reportDocument_exists: Boolean
-
-  tagsCollection_exists: Boolean
-
-  thumbnail_exists: Boolean
-
-  coverPicture_exists: Boolean
-
-  video_exists: Boolean
-
-  publishedDate_exists: Boolean
-
-  publishedDate: DateTime
-
-  publishedDate_not: DateTime
-
-  publishedDate_in: [DateTime]
-
-  publishedDate_not_in: [DateTime]
-
-  publishedDate_gt: DateTime
-
-  publishedDate_gte: DateTime
-
-  publishedDate_lt: DateTime
-
-  publishedDate_lte: DateTime
-
-  publicSnippet_exists: Boolean
-
-  publicSnippet_contains: String
-
-  publicSnippet_not_contains: String
-
-  relatedArticlesCollection_exists: Boolean
-
-  recommendedArticlesCollection_exists: Boolean
-
-  OR: [ArticleFilter]
-
-  AND: [ArticleFilter]
-}
-
-input cfAuthorNestedFilter {
-  sys: SysFilter
-
-  contentfulMetadata: ContentfulMetadataFilter
-
-  name_exists: Boolean
-
-  name: String
-
-  name_not: String
-
-  name_in: [String]
-
-  name_not_in: [String]
-
-  name_contains: String
-
-  name_not_contains: String
-
-  title_exists: Boolean
-
-  title: String
-
-  title_not: String
-
-  title_in: [String]
-
-  title_not_in: [String]
-
-  title_contains: String
-
-  title_not_contains: String
-
-  description_exists: Boolean
-
-  description: String
-
-  description_not: String
-
-  description_in: [String]
-
-  description_not_in: [String]
-
-  description_contains: String
-
-  description_not_contains: String
-
-  profilePicture_exists: Boolean
-
-  OR: [cfAuthorNestedFilter]
-
-  AND: [cfAuthorNestedFilter]
-}
-
-input cfTagNestedFilter {
-  sys: SysFilter
-
-  contentfulMetadata: ContentfulMetadataFilter
-
-  title_exists: Boolean
-
-  title: String
-
-  title_not: String
-
-  title_in: [String]
-
-  title_not_in: [String]
-
-  title_contains: String
-
-  title_not_contains: String
-
-  OR: [cfTagNestedFilter]
-
-  AND: [cfTagNestedFilter]
-}
-
-input SubscriptionWebFilter {
-  subscription: cfSubscriptionNestedFilter
-
-  seo: cfSeoMetadataNestedFilter
-
-  sys: SysFilter
-
-  contentfulMetadata: ContentfulMetadataFilter
-
-  title_exists: Boolean
-
-  title: String
-
-  title_not: String
-
-  title_in: [String]
-
-  title_not_in: [String]
-
-  title_contains: String
-
-  title_not_contains: String
-
-  subscription_exists: Boolean
-
-  subscriptionSlug_exists: Boolean
-
-  subscriptionSlug: String
-
-  subscriptionSlug_not: String
-
-  subscriptionSlug_in: [String]
-
-  subscriptionSlug_not_in: [String]
-
-  subscriptionSlug_contains: String
-
-  subscriptionSlug_not_contains: String
-
-  label_exists: Boolean
-
-  label: String
-
-  label_not: String
-
-  label_in: [String]
-
-  label_not_in: [String]
-
-  label_contains: String
-
-  label_not_contains: String
-
-  seo_exists: Boolean
-
-  OR: [SubscriptionWebFilter]
-
-  AND: [SubscriptionWebFilter]
-}
-
-input cfSubscriptionNestedFilter {
-  sys: SysFilter
-
-  contentfulMetadata: ContentfulMetadataFilter
-
-  stripeProductId_exists: Boolean
-
-  stripeProductId: String
-
-  stripeProductId_not: String
-
-  stripeProductId_in: [String]
-
-  stripeProductId_not_in: [String]
-
-  stripeProductId_contains: String
-
-  stripeProductId_not_contains: String
-
-  name_exists: Boolean
-
-  name: String
-
-  name_not: String
-
-  name_in: [String]
-
-  name_not_in: [String]
-
-  name_contains: String
-
-  name_not_contains: String
-
-  image_exists: Boolean
-
-  description_exists: Boolean
-
-  description: String
-
-  description_not: String
-
-  description_in: [String]
-
-  description_not_in: [String]
-
-  description_contains: String
-
-  description_not_contains: String
-
-  features_exists: Boolean
-
-  features_contains_all: [String]
-
-  features_contains_some: [String]
-
-  features_contains_none: [String]
-
-  importance_exists: Boolean
-
-  importance: Int
-
-  importance_not: Int
-
-  importance_in: [Int]
-
-  importance_not_in: [Int]
-
-  importance_gt: Int
-
-  importance_gte: Int
-
-  importance_lt: Int
-
-  importance_lte: Int
-
-  OR: [cfSubscriptionNestedFilter]
-
-  AND: [cfSubscriptionNestedFilter]
-}
-
-type ArticleWebSectionsCollection {
-  total: Int!
-
-  skip: Int!
-
-  limit: Int!
-
-  items: [Section]!
-}
-
-"""
-Path of sections in web expressed as section/sub-section [See type definition](https://app.contentful.com/spaces/i0qyt2j9snzb/content_types/section)
-"""
-type Section implements Entry {
-  sys: Sys!
-
-  contentfulMetadata: ContentfulMetadata!
-
-  linkedFrom(allowedLocales: [String]): SectionLinkingCollections
-
-  name(locale: String): String
-}
-
-type SectionLinkingCollections {
-  entryCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String): EntryCollection
-
-  articleWebCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [SectionLinkingCollectionsArticleWebCollectionOrder]): ArticleWebCollection
-}
-
-enum SectionLinkingCollectionsArticleWebCollectionOrder {
-  title_ASC
-
-  title_DESC
-
-  articleSlug_ASC
-
-  articleSlug_DESC
-
-  publishedDate_ASC
-
-  publishedDate_DESC
-
-  sys_id_ASC
-
-  sys_id_DESC
-
-  sys_publishedAt_ASC
-
-  sys_publishedAt_DESC
-
-  sys_firstPublishedAt_ASC
-
-  sys_firstPublishedAt_DESC
-
-  sys_publishedVersion_ASC
-
-  sys_publishedVersion_DESC
-}
-
-input SectionFilter {
-  sys: SysFilter
-
-  contentfulMetadata: ContentfulMetadataFilter
-
-  name_exists: Boolean
-
-  name: String
-
-  name_not: String
-
-  name_in: [String]
-
-  name_not_in: [String]
-
-  name_contains: String
-
-  name_not_contains: String
-
-  OR: [SectionFilter]
-
-  AND: [SectionFilter]
-}
-
-enum ArticleWebSectionsCollectionOrder {
-  name_ASC
-
-  name_DESC
-
-  sys_id_ASC
-
-  sys_id_DESC
-
-  sys_publishedAt_ASC
-
-  sys_publishedAt_DESC
-
-  sys_firstPublishedAt_ASC
-
-  sys_firstPublishedAt_DESC
-
-  sys_publishedVersion_ASC
-
-  sys_publishedVersion_DESC
-}
-
-enum ArticleLinkingCollectionsArticleWebCollectionOrder {
-  title_ASC
-
-  title_DESC
-
-  articleSlug_ASC
-
-  articleSlug_DESC
-
-  publishedDate_ASC
-
-  publishedDate_DESC
 
   sys_id_ASC
 
@@ -1830,6 +1410,10 @@ enum ArticleLinkingCollectionsArticleCollectionOrder {
   title_ASC
 
   title_DESC
+
+  articleSlug_ASC
+
+  articleSlug_DESC
 
   subtitle_ASC
 
@@ -2312,6 +1896,10 @@ enum AuthorLinkingCollectionsArticleCollectionOrder {
 
   title_DESC
 
+  articleSlug_ASC
+
+  articleSlug_DESC
+
   subtitle_ASC
 
   subtitle_DESC
@@ -2483,6 +2071,10 @@ enum TagLinkingCollectionsArticleCollectionOrder {
 
   title_DESC
 
+  articleSlug_ASC
+
+  articleSlug_DESC
+
   subtitle_ASC
 
   subtitle_DESC
@@ -2586,6 +2178,115 @@ type ArticlePublicSnippetResources {
   block: [ResourceLink!]!
 }
 
+type ArticleSectionsCollection {
+  total: Int!
+
+  skip: Int!
+
+  limit: Int!
+
+  items: [Section]!
+}
+
+"""
+Path of sections in web expressed as section/sub-section [See type definition](https://app.contentful.com/spaces/i0qyt2j9snzb/content_types/section)
+"""
+type Section implements Entry {
+  sys: Sys!
+
+  contentfulMetadata: ContentfulMetadata!
+
+  linkedFrom(allowedLocales: [String]): SectionLinkingCollections
+
+  name(locale: String): String
+}
+
+type SectionLinkingCollections {
+  entryCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String): EntryCollection
+
+  articleCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String, order: [SectionLinkingCollectionsArticleCollectionOrder]): ArticleCollection
+}
+
+enum SectionLinkingCollectionsArticleCollectionOrder {
+  title_ASC
+
+  title_DESC
+
+  articleSlug_ASC
+
+  articleSlug_DESC
+
+  subtitle_ASC
+
+  subtitle_DESC
+
+  publishedDate_ASC
+
+  publishedDate_DESC
+
+  sys_id_ASC
+
+  sys_id_DESC
+
+  sys_publishedAt_ASC
+
+  sys_publishedAt_DESC
+
+  sys_firstPublishedAt_ASC
+
+  sys_firstPublishedAt_DESC
+
+  sys_publishedVersion_ASC
+
+  sys_publishedVersion_DESC
+}
+
+input SectionFilter {
+  sys: SysFilter
+
+  contentfulMetadata: ContentfulMetadataFilter
+
+  name_exists: Boolean
+
+  name: String
+
+  name_not: String
+
+  name_in: [String]
+
+  name_not_in: [String]
+
+  name_contains: String
+
+  name_not_contains: String
+
+  OR: [SectionFilter]
+
+  AND: [SectionFilter]
+}
+
+enum ArticleSectionsCollectionOrder {
+  name_ASC
+
+  name_DESC
+
+  sys_id_ASC
+
+  sys_id_DESC
+
+  sys_publishedAt_ASC
+
+  sys_publishedAt_DESC
+
+  sys_firstPublishedAt_ASC
+
+  sys_firstPublishedAt_DESC
+
+  sys_publishedVersion_ASC
+
+  sys_publishedVersion_DESC
+}
+
 type ArticleRelatedArticlesCollection {
   total: Int!
 
@@ -2600,6 +2301,10 @@ enum ArticleRelatedArticlesCollectionOrder {
   title_ASC
 
   title_DESC
+
+  articleSlug_ASC
+
+  articleSlug_DESC
 
   subtitle_ASC
 
@@ -2641,6 +2346,10 @@ enum ArticleRecommendedArticlesCollectionOrder {
 
   title_DESC
 
+  articleSlug_ASC
+
+  articleSlug_DESC
+
   subtitle_ASC
 
   subtitle_DESC
@@ -2670,6 +2379,10 @@ enum AssetLinkingCollectionsArticleCollectionOrder {
   title_ASC
 
   title_DESC
+
+  articleSlug_ASC
+
+  articleSlug_DESC
 
   subtitle_ASC
 
@@ -3060,18 +2773,139 @@ enum AssetOrder {
   sys_publishedVersion_DESC
 }
 
+"""
+Assembly - how an Article should be constructed to be presented on the web [See type definition](https://app.contentful.com/spaces/i0qyt2j9snzb/content_types/articleWeb)
+"""
+type ArticleWeb implements Entry {
+  sys: Sys!
+
+  contentfulMetadata: ContentfulMetadata!
+
+  linkedFrom(allowedLocales: [String]): ArticleWebLinkingCollections
+
+  title(locale: String): String
+}
+
+type ArticleWebLinkingCollections {
+  entryCollection(skip: Int = 0, limit: Int = 100, preview: Boolean, locale: String): EntryCollection
+}
+
+type ArticleWebCollection {
+  total: Int!
+
+  skip: Int!
+
+  limit: Int!
+
+  items: [ArticleWeb]!
+}
+
+input ArticleWebFilter {
+  sys: SysFilter
+
+  contentfulMetadata: ContentfulMetadataFilter
+
+  title_exists: Boolean
+
+  title: String
+
+  title_not: String
+
+  title_in: [String]
+
+  title_not_in: [String]
+
+  title_contains: String
+
+  title_not_contains: String
+
+  OR: [ArticleWebFilter]
+
+  AND: [ArticleWebFilter]
+}
+
 enum ArticleWebOrder {
   title_ASC
 
   title_DESC
 
-  articleSlug_ASC
+  sys_id_ASC
 
-  articleSlug_DESC
+  sys_id_DESC
 
-  publishedDate_ASC
+  sys_publishedAt_ASC
 
-  publishedDate_DESC
+  sys_publishedAt_DESC
+
+  sys_firstPublishedAt_ASC
+
+  sys_firstPublishedAt_DESC
+
+  sys_publishedVersion_ASC
+
+  sys_publishedVersion_DESC
+}
+
+input HomePageFilter {
+  mainArticle: cfArticleNestedFilter
+
+  subArticle1: cfArticleNestedFilter
+
+  subArticle2: cfArticleNestedFilter
+
+  subArticle3: cfArticleNestedFilter
+
+  subArticle4: cfArticleNestedFilter
+
+  seo: cfSeoMetadataNestedFilter
+
+  coverArticle1: cfArticleNestedFilter
+
+  coverArticle2: cfArticleNestedFilter
+
+  sys: SysFilter
+
+  contentfulMetadata: ContentfulMetadataFilter
+
+  mainArticle_exists: Boolean
+
+  subArticle1_exists: Boolean
+
+  subArticle2_exists: Boolean
+
+  subArticle3_exists: Boolean
+
+  subArticle4_exists: Boolean
+
+  title_exists: Boolean
+
+  title: String
+
+  title_not: String
+
+  title_in: [String]
+
+  title_not_in: [String]
+
+  title_contains: String
+
+  title_not_contains: String
+
+  seo_exists: Boolean
+
+  coverArticle1_exists: Boolean
+
+  coverArticle2_exists: Boolean
+
+  OR: [HomePageFilter]
+
+  AND: [HomePageFilter]
+}
+
+enum HomePageOrder {
+  title_ASC
+
+  title_DESC
 
   sys_id_ASC
 
@@ -3094,6 +2928,10 @@ enum ArticleOrder {
   title_ASC
 
   title_DESC
+
+  articleSlug_ASC
+
+  articleSlug_DESC
 
   subtitle_ASC
 
@@ -3296,148 +3134,6 @@ enum TokenOrder {
   name_ASC
 
   name_DESC
-
-  sys_id_ASC
-
-  sys_id_DESC
-
-  sys_publishedAt_ASC
-
-  sys_publishedAt_DESC
-
-  sys_firstPublishedAt_ASC
-
-  sys_firstPublishedAt_DESC
-
-  sys_publishedVersion_ASC
-
-  sys_publishedVersion_DESC
-}
-
-input HomePageFilter {
-  mainArticle: cfArticleWebNestedFilter
-
-  subArticle1: cfArticleWebNestedFilter
-
-  subArticle2: cfArticleWebNestedFilter
-
-  subArticle3: cfArticleWebNestedFilter
-
-  subArticle4: cfArticleWebNestedFilter
-
-  seo: cfSeoMetadataNestedFilter
-
-  coverArticle1: cfArticleWebNestedFilter
-
-  coverArticle2: cfArticleWebNestedFilter
-
-  sys: SysFilter
-
-  contentfulMetadata: ContentfulMetadataFilter
-
-  mainArticle_exists: Boolean
-
-  subArticle1_exists: Boolean
-
-  subArticle2_exists: Boolean
-
-  subArticle3_exists: Boolean
-
-  subArticle4_exists: Boolean
-
-  title_exists: Boolean
-
-  title: String
-
-  title_not: String
-
-  title_in: [String]
-
-  title_not_in: [String]
-
-  title_contains: String
-
-  title_not_contains: String
-
-  seo_exists: Boolean
-
-  coverArticle1_exists: Boolean
-
-  coverArticle2_exists: Boolean
-
-  OR: [HomePageFilter]
-
-  AND: [HomePageFilter]
-}
-
-input cfArticleWebNestedFilter {
-  sys: SysFilter
-
-  contentfulMetadata: ContentfulMetadataFilter
-
-  title_exists: Boolean
-
-  title: String
-
-  title_not: String
-
-  title_in: [String]
-
-  title_not_in: [String]
-
-  title_contains: String
-
-  title_not_contains: String
-
-  article_exists: Boolean
-
-  articleSlug_exists: Boolean
-
-  articleSlug: String
-
-  articleSlug_not: String
-
-  articleSlug_in: [String]
-
-  articleSlug_not_in: [String]
-
-  articleSlug_contains: String
-
-  articleSlug_not_contains: String
-
-  publishedDate_exists: Boolean
-
-  publishedDate: DateTime
-
-  publishedDate_not: DateTime
-
-  publishedDate_in: [DateTime]
-
-  publishedDate_not_in: [DateTime]
-
-  publishedDate_gt: DateTime
-
-  publishedDate_gte: DateTime
-
-  publishedDate_lt: DateTime
-
-  publishedDate_lte: DateTime
-
-  subscription_exists: Boolean
-
-  seo_exists: Boolean
-
-  sectionsCollection_exists: Boolean
-
-  OR: [cfArticleWebNestedFilter]
-
-  AND: [cfArticleWebNestedFilter]
-}
-
-enum HomePageOrder {
-  title_ASC
-
-  title_DESC
 
   sys_id_ASC
 
@@ -3693,6 +3389,86 @@ input SubscriptionProductFilter {
   AND: [SubscriptionProductFilter]
 }
 
+input cfSubscriptionNestedFilter {
+  sys: SysFilter
+
+  contentfulMetadata: ContentfulMetadataFilter
+
+  stripeProductId_exists: Boolean
+
+  stripeProductId: String
+
+  stripeProductId_not: String
+
+  stripeProductId_in: [String]
+
+  stripeProductId_not_in: [String]
+
+  stripeProductId_contains: String
+
+  stripeProductId_not_contains: String
+
+  name_exists: Boolean
+
+  name: String
+
+  name_not: String
+
+  name_in: [String]
+
+  name_not_in: [String]
+
+  name_contains: String
+
+  name_not_contains: String
+
+  image_exists: Boolean
+
+  description_exists: Boolean
+
+  description: String
+
+  description_not: String
+
+  description_in: [String]
+
+  description_not_in: [String]
+
+  description_contains: String
+
+  description_not_contains: String
+
+  features_exists: Boolean
+
+  features_contains_all: [String]
+
+  features_contains_some: [String]
+
+  features_contains_none: [String]
+
+  importance_exists: Boolean
+
+  importance: Int
+
+  importance_not: Int
+
+  importance_in: [Int]
+
+  importance_not_in: [Int]
+
+  importance_gt: Int
+
+  importance_gte: Int
+
+  importance_lt: Int
+
+  importance_lte: Int
+
+  OR: [cfSubscriptionNestedFilter]
+
+  AND: [cfSubscriptionNestedFilter]
+}
+
 enum SubscriptionProductOrder {
   title_ASC
 
@@ -3739,6 +3515,66 @@ enum SeoMetadataOrder {
   sys_publishedVersion_ASC
 
   sys_publishedVersion_DESC
+}
+
+input SubscriptionWebFilter {
+  subscription: cfSubscriptionNestedFilter
+
+  seo: cfSeoMetadataNestedFilter
+
+  sys: SysFilter
+
+  contentfulMetadata: ContentfulMetadataFilter
+
+  title_exists: Boolean
+
+  title: String
+
+  title_not: String
+
+  title_in: [String]
+
+  title_not_in: [String]
+
+  title_contains: String
+
+  title_not_contains: String
+
+  subscription_exists: Boolean
+
+  subscriptionSlug_exists: Boolean
+
+  subscriptionSlug: String
+
+  subscriptionSlug_not: String
+
+  subscriptionSlug_in: [String]
+
+  subscriptionSlug_not_in: [String]
+
+  subscriptionSlug_contains: String
+
+  subscriptionSlug_not_contains: String
+
+  label_exists: Boolean
+
+  label: String
+
+  label_not: String
+
+  label_in: [String]
+
+  label_not_in: [String]
+
+  label_contains: String
+
+  label_not_contains: String
+
+  seo_exists: Boolean
+
+  OR: [SubscriptionWebFilter]
+
+  AND: [SubscriptionWebFilter]
 }
 
 enum SubscriptionWebOrder {

@@ -29,16 +29,10 @@ query($articleId: String!) {
                 id
                 publishedAt
             }
-            linkedFrom {
-                articleWebCollection(limit: 1) {
-                    items {
-                        articleSlug
-                        sectionsCollection {
-                            items {
-                                name
-                            }
-                        }
-                    }
+            articleSlug
+            sectionsCollection {
+                items {
+                    name
                 }
             }
         }

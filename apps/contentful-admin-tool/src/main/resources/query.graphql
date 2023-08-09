@@ -1,14 +1,20 @@
 query {
-    articleWebCollection(
-        limit: 2750
-    ) {
+    articleWebCollection(limit: 1833) {
         items {
-            sectionsCollection {
-                items {
-                    name
+            article {
+                sys {
+                    id
                 }
             }
-            article {
+            articleSlug
+            sectionsCollection {
+                items {
+                    sys {
+                        id
+                    }
+                }
+            }
+            seo {
                 sys {
                     id
                 }
