@@ -4,5 +4,5 @@ plugins {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-auth:_")
+    implementation(Ktor.server.auth)
 }

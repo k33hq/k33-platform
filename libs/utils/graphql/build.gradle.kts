@@ -17,7 +17,7 @@ dependencies {
     api(KotlinX.coroutines.core)
     api(KotlinX.coroutines.jdk8)
     implementation(KotlinX.serialization.core)
-    implementation("io.ktor:ktor-server-auth:_")
+    implementation(Ktor.server.auth)
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:_")
 

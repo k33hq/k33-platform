@@ -9,7 +9,7 @@ dependencies {
     implementation(Ktor.client.core)
     implementation(Ktor.client.cio)
     implementation(Ktor.client.logging)
-    implementation("io.ktor:ktor-client-content-negotiation:_")
+    implementation(Ktor.client.contentNegotiation)
     implementation("io.ktor:ktor-serialization-jackson:_")
 
     // test

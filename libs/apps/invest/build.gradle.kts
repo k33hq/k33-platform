@@ -10,7 +10,7 @@ dependencies {
     implementation(project(":libs:utils:slack"))
 
     implementation(Ktor.server.core)
-    implementation("io.ktor:ktor-server-auth:_")
+    implementation(Ktor.server.auth)
 
     implementation(project(":libs:services:identity"))
     implementation(project(":libs:services:user:user-model"))

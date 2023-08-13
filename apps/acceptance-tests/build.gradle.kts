@@ -13,7 +13,7 @@ dependencies {
     implementation(Ktor.client.cio)
     implementation(Ktor.client.logging)
     implementation(Ktor.client.serialization)
-    implementation("io.ktor:ktor-client-content-negotiation:_")
+    implementation(Ktor.client.contentNegotiation)
     implementation("io.ktor:ktor-serialization-kotlinx-json:_")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:_")
     implementation("io.kotest:kotest-runner-junit5-jvm:_")

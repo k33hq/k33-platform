@@ -12,5 +12,5 @@ dependencies {
     implementation(project(":libs:utils:logging"))
 
     implementation(Ktor.server.core)
-    implementation("io.ktor:ktor-server-auth:_")
+    implementation(Ktor.server.auth)
 }

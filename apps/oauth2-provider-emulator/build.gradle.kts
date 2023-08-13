@@ -11,8 +11,8 @@ dependencies {
     implementation(project(":libs:utils:logging"))
 
     implementation(Ktor.server.core)
-    implementation("io.ktor:ktor-server-auth:_")
-    implementation("io.ktor:ktor-server-content-negotiation:_")
+    implementation(Ktor.server.auth)
+    implementation(Ktor.server.contentNegotiation)
     implementation("io.ktor:ktor-serialization-kotlinx-json:_")
     runtimeOnly(Ktor.server.netty)
 
