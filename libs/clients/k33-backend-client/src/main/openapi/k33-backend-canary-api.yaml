@@ -276,12 +276,12 @@ paths:
       security:
         - firebase: [ ]
 
-  "/apps/invest/funds/{fund_id}":
+  "/apps/invest/funds/{fundId}":
     get:
       description: Get fund info access status
       operationId: "getFundInfoAccessStatus"
       parameters:
-        - name: "fund_id"
+        - name: "fundId"
           in: path
           required: true
           type: string
@@ -304,7 +304,7 @@ paths:
         - application/json
       operationId: "submitFundInfoRequest"
       parameters:
-        - name: "fund_id"
+        - name: "fundId"
           in: path
           required: true
           type: string
@@ -374,7 +374,7 @@ definitions:
   SubscribedPaymentProduct:
     type: object
     properties:
-      product_id:
+      productId:
         type: string
       state:
         type: string
@@ -383,7 +383,7 @@ definitions:
           - blocked
           - ended
     required:
-      - product_id
+      - productId
       - state
   SubscribedPaymentProducts:
     type: object
@@ -397,53 +397,53 @@ definitions:
   CheckoutSessionRequest:
     type: object
     properties:
-      price_id:
+      priceId:
         type: string
-      success_url:
+      successUrl:
         type: string
-      cancel_url:
+      cancelUrl:
         type: string
     required:
-      - price_id
-      - success_url
-      - cancel_url
+      - priceId
+      - successUrl
+      - cancelUrl
   CheckoutSessionResponse:
     type: object
     properties:
       url:
         type: string
-      expires_at:
+      expiresAt:
         type: string
         format: datetime
-      price_id:
+      priceId:
         type: string
-      success_url:
+      successUrl:
         type: string
-      cancel_url:
+      cancelUrl:
         type: string
     required:
       - url
-      - expires_at
-      - price_id
-      - success_url
-      - cancel_url
+      - expiresAt
+      - priceId
+      - successUrl
+      - cancelUrl
   CustomerPortalSessionRequest:
     type: object
     properties:
-      return_url:
+      returnUrl:
         type: string
     required:
-      - return_url
+      - returnUrl
   CustomerPortalSessionResponse:
     type: object
     properties:
       url:
         type: string
-      return_url:
+      returnUrl:
         type: string
     required:
       - url
-      - return_url
+      - returnUrl
 
 
   FundInfoRequest:

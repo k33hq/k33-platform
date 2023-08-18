@@ -157,33 +157,33 @@ data class SubscribedProducts(
 
 @Serializable
 data class SubscribedProduct(
-    @SerialName("product_id") val productId: String,
+    val productId: String,
     val status: StripeClient.ProductSubscriptionStatus
 )
 
 @Serializable
 data class CheckoutSessionRequest(
-    @SerialName("price_id") val priceId: String,
-    @SerialName("success_url") val successUrl: String,
-    @SerialName("cancel_url") val cancelUrl: String,
+    val priceId: String,
+    val successUrl: String,
+    val cancelUrl: String,
 )
 
 @Serializable
 data class CheckoutSessionResponse(
     val url: String,
-    @SerialName("expires_at") val expiresAt: String,
-    @SerialName("price_id") val priceId: String,
-    @SerialName("success_url") val successUrl: String,
-    @SerialName("cancel_url") val cancelUrl: String,
+    val expiresAt: String,
+    val priceId: String,
+    val successUrl: String,
+    val cancelUrl: String,
 )
 
 @Serializable
 data class CustomerPortalSessionRequest(
-    @SerialName("return_url") val returnUrl: String,
+    val returnUrl: String,
 )
 
 @Serializable
 data class CustomerPortalSessionResponse(
     val url: String,
-    @SerialName("return_url") val returnUrl: String,
+    val returnUrl: String,
 )

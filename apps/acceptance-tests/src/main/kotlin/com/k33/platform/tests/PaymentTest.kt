@@ -232,7 +232,7 @@ class PaymentTest : BehaviorSpec({
 
 @Serializable
 data class SubscribedProduct(
-    @SerialName("product_id") val productId: String,
+    val productId: String,
     val status: ProductSubscriptionStatus
 )
 
@@ -249,27 +249,27 @@ data class SubscribedProducts(
 
 @Serializable
 data class CheckoutSessionRequest(
-    @SerialName("price_id") val priceId: String,
-    @SerialName("success_url") val successUrl: String = SETTINGS_URL,
-    @SerialName("cancel_url") val cancelUrl: String = SETTINGS_URL,
+    val priceId: String,
+    val successUrl: String = SETTINGS_URL,
+    val cancelUrl: String = SETTINGS_URL,
 )
 
 @Serializable
 data class CheckoutSession(
     val url: String,
-    @SerialName("expires_at") val expiresAt: String,
-    @SerialName("price_id") val priceId: String,
-    @SerialName("success_url") val successUrl: String,
-    @SerialName("cancel_url") val cancelUrl: String,
+    val expiresAt: String,
+    val priceId: String,
+    val successUrl: String,
+    val cancelUrl: String,
 )
 
 @Serializable
 data class CustomerPortalSessionRequest(
-    @SerialName("return_url") val returnUrl: String = SETTINGS_URL,
+    val returnUrl: String = SETTINGS_URL,
 )
 
 @Serializable
 data class CustomerPortalSession(
     val url: String,
-    @SerialName("return_url") val returnUrl: String = SETTINGS_URL,
+    val returnUrl: String = SETTINGS_URL,
 )
