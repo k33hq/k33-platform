@@ -60,7 +60,7 @@ fun Application.module() {
                         val subscription = stripeObject as Subscription
                         val customerEmail = StripeClient.getCustomerEmail(subscription.customer)
                         if (customerEmail != null) {
-                            logWithMDC("customer_email" to customerEmail) {
+                            logWithMDC("customerEmail" to customerEmail) {
                                 val products = subscription.items.data.map { subscriptionItem ->
                                     subscriptionItem.plan.product
                                 }.toSet()
@@ -154,17 +154,17 @@ fun Application.module() {
                                                             && status == Status.incomplete_expired
                                                 val subscriptionNonProToPro =
                                                     previousStatus != null
-                                                            && !proStatusSet.contains(previousStatus)
-                                                            && proStatusSet.contains(status)
+                                                            && previousStatus.productSubscriptionStatus != StripeClient.ProductSubscriptionStatus.active
+                                                            && status.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
                                                 val subscriptionProToBlocked =
-                                                    proStatusSet.contains(previousStatus)
-                                                            && blockedStatusSet.contains(status)
+                                                    previousStatus?.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
+                                                            && status.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
 
                                                 val subscriptionToBeCanceled =
                                                     event.data.previousAttributes?.get("cancel_at_period_end") == false
                                                             && subscription.cancelAtPeriodEnd == true
                                                 val subscriptionUncanceled =
-                                                    status == Status.active
+                                                    status.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
                                                             && event.data.previousAttributes?.get("cancel_at_period_end") == true
                                                             && subscription.cancelAtPeriodEnd == false
                                                 val updatedCancellationDetails = setOf("cancellation_details") == event.data.previousAttributes?.keys?.toSet()

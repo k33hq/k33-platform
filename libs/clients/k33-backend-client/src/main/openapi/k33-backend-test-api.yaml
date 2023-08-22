@@ -174,23 +174,6 @@ paths:
           description: "Success"
 
 
-  "/payment/subscribed-products":
-    get:
-      description: Get list of subscribed products in Stripe.
-      operationId: getSubscribedPaymentProducts
-      produces:
-        - application/json
-      responses:
-        200:
-          description: List of subscribed products
-          schema:
-            $ref: "#/definitions/SubscribedPaymentProducts"
-        404:
-          description: "Not found"
-        500:
-          description: "Internal Error"
-      security:
-        - firebase: [ ]
   "/payment/subscribed-products/{productId}":
     get:
       description: Get customer's subscribed product in Stripe.
@@ -375,16 +358,12 @@ definitions:
           - active
           - blocked
           - ended
+      priceId:
+        type: string
     required:
       - productId
       - state
-  SubscribedPaymentProducts:
-    type: object
-    properties:
-      subscribedProducts:
-        type: array
-        items:
-          type: string
+      - priceId
 
 
   CheckoutSessionRequest:

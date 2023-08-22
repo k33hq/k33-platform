@@ -12,7 +12,6 @@ import com.stripe.exception.RateLimitException
 import com.stripe.exception.StripeException
 import com.stripe.model.Customer
 import com.stripe.model.Price
-import com.stripe.model.Subscription
 import com.stripe.net.RequestOptions
 import com.stripe.param.CustomerCreateParams
 import com.stripe.param.CustomerSearchParams
@@ -29,6 +28,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.time.Instant
+import com.stripe.model.Subscription as StripeSubscription
 import com.stripe.model.billingportal.Session as StripeCustomerPortalSession
 import com.stripe.model.checkout.Session as StripeCheckoutSession
 import com.stripe.param.billingportal.SessionCreateParams as CustomerPortalSessionCreateParams
@@ -234,18 +234,6 @@ object StripeClient {
         )
     }
 
-    suspend fun getCurrentSubscribedProducts(
-        customerEmail: String,
-    ): Collection<String>? {
-        val customerInfo = getCustomersByEmail(customerEmail = customerEmail)
-        if (customerInfo.customers.isEmpty()) {
-            return null
-        }
-        return getSubscriptionInfo(customerInfo = customerInfo)
-            .getCurrentSubscribedProducts()
-
-    }
-
     @Suppress("EnumEntryName")
     enum class ProductSubscriptionStatus {
         active,
@@ -253,83 +241,70 @@ object StripeClient {
         ended,
     }
 
-    suspend fun getSubscriptionStatus(
+    suspend fun getSubscription(
         customerEmail: String,
         productId: String,
-    ): ProductSubscriptionStatus? {
+    ): ProductSubscription? {
         val customerInfo = getCustomersByEmail(customerEmail = customerEmail)
         if (customerInfo.customers.isEmpty()) {
             return null
         }
         return getSubscriptionInfo(customerInfo = customerInfo)
-            .getSubscriptionStatus(productId = productId)
-
+            .getProductSubscription(productId = productId)
     }
 
-    data class SubscriptionInfo(
-        private val productToStatusListMap: Map<String, List<Status>>,
+    data class ProductSubscription(
+        val productId: String,
+        val status: ProductSubscriptionStatus,
+        val priceId: String,
+    )
+
+    data class Subscription(
+        val productId: String,
+        val status: Status,
+        val priceId: String,
+    )
+
+    data class SubscriptionContext(
+        private val productIdToSubscriptionMap: Map<String, List<Subscription>>,
     ) {
-        fun getCurrentSubscribedProducts(): Collection<String> {
-            return productToStatusListMap
-                .mapValues { it.value.toSet() }
-                .filter { (_, statusSet) -> statusSet.intersect(setOf(Status.active, Status.trialing)).isNotEmpty() }
-                .keys
-        }
 
         fun isCurrentlySubscribedTo(
             productId: String,
         ): Boolean = setOf(
             ProductSubscriptionStatus.active,
             ProductSubscriptionStatus.blocked,
-        ).contains(getSubscriptionStatus(productId))
+        ).contains(getProductSubscription(productId)?.status)
 
-        fun getSubscriptionStatus(
+        fun getProductSubscription(
             productId: String,
-        ): ProductSubscriptionStatus? {
-            val statusList = productToStatusListMap[productId]
-            return when {
-                // new user
-                statusList == null -> null
-
-                // Pro group:
-                // - active
-                // - trialing
-                statusList.intersect(proStatusSet).isNotEmpty() -> ProductSubscriptionStatus.active
-
-                // Blocked group:
-                // - past_due
-                // - incomplete
-                statusList.intersect(blockedStatusSet).isNotEmpty() -> ProductSubscriptionStatus.blocked
-
-                // canceled
-                // incomplete_expired
-                // unpaid
-                // paused
-                statusList.intersect(endedStatusSet).isNotEmpty() -> ProductSubscriptionStatus.ended
-                else -> {
-                    logger.error("Unknown status list: $statusList. Defaulting to ended status.")
-                    ProductSubscriptionStatus.ended
-                }
+        ): ProductSubscription? = productIdToSubscriptionMap[productId]
+            ?.minByOrNull { it.status.productSubscriptionStatus }
+            ?.let { subscription ->
+                ProductSubscription(
+                    productId = productId,
+                    status = subscription.status.productSubscriptionStatus,
+                    priceId = subscription.priceId,
+                )
             }
-        }
 
         fun hasCurrentOrPriorSubscription(
             productId: String,
-        ) = productToStatusListMap
+        ) = productIdToSubscriptionMap
             .keys
             .contains(productId)
     }
 
     private suspend fun getSubscriptionInfo(
         customerInfo: CustomerInfo,
-    ): SubscriptionInfo = coroutineScope {
-        SubscriptionInfo(
+    ): SubscriptionContext = coroutineScope {
+        SubscriptionContext(
             customerInfo
                 .customers
                 .map { customer ->
                     async {
                         stripeCall {
-                            Subscription.list(
+                            StripeSubscription.list(
                                 SubscriptionListParams.builder()
                                     .setCustomer(customer.id)
                                     .setStatus(SubscriptionListParams.Status.ALL)
@@ -343,7 +318,11 @@ object StripeClient {
                                     .items
                                     .data
                                     .map { subscriptionItem ->
-                                        subscriptionItem.price.product to Status.valueOf(subscription.status)
+                                        subscriptionItem.price.product to Subscription(
+                                            productId = subscriptionItem.price.product,
+                                            status = Status.valueOf(subscription.status),
+                                            priceId = subscriptionItem.price.id,
+                                        )
                                     }
                             }
                     }
@@ -466,7 +445,7 @@ object StripeClient {
             }
             .build()
         val subscription = stripeCall {
-            Subscription.create(params, requestOptions)
+            StripeSubscription.create(params, requestOptions)
         } ?: throw ServiceUnavailable("Failed to create Stripe subscription")
         logger.info("subscription.status: ${subscription.status}")
         if (subscription.trialStart != null) {
@@ -474,6 +453,25 @@ object StripeClient {
         }
         if (subscription.trialEnd != null) {
             logger.info("subscription.trialStart: ${Instant.ofEpochSecond(subscription.trialEnd)}")
+        }
+    }
+
+    private suspend fun updateSubscriptionPrice(
+        customerEmail: String,
+        priceId: String,
+    ) {
+        val price = stripeCall {
+            Price.retrieve(priceId, requestOptions)
+        } ?: throw NotFound("price: [$priceId] not found")
+        val productId = price.product
+        val customerInfo = getCustomersByEmail(customerEmail = customerEmail)
+        if (customerInfo.customers.isEmpty()) {
+            throw NotFound("Customer does not have active subscription")
+        }
+        val subscriptionInfo = getSubscriptionInfo(customerInfo = customerInfo)
+        if (subscriptionInfo.isCurrentlySubscribedTo(productId = productId)) {
+            logger.warn("Already subscribed")
+            throw AlreadySubscribed
         }
     }
 

@@ -7,7 +7,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 import kotlin.random.nextUInt
@@ -77,19 +76,14 @@ class PaymentTest : BehaviorSpec({
 
     given("a user does not exist in stripe") {
         val email = "delete-me-${Random.nextUInt()}@k33.com"
-        `when`("GET /payment/subscribed-products") {
-            then("response is 404 NOT FOUND") {
-                getSubscribedProducts(email = email).status shouldBe HttpStatusCode.NotFound
-            }
-        }
-        `when`("GET /payment/subscribed-products/{product_id}") {
+        `when`("GET /payment/subscribed-products/{productId}") {
             then("response is 404 NOT FOUND") {
                 getSubscribedProduct(email = email).status shouldBe HttpStatusCode.NotFound
             }
         }
         `when`("POST /payment/checkout-sessions") {
             val response = createOrFetchCheckoutSession(email = email)
-            then("response is checkout session url with expires_at") {
+            then("response is checkout session url with expiresAt") {
                 response.status shouldBe HttpStatusCode.OK
                 val checkoutSession = response.body<CheckoutSession>()
                 checkoutSession.priceId shouldBe priceId
@@ -117,19 +111,14 @@ class PaymentTest : BehaviorSpec({
     given("user exists in stripe") {
         and("a user is NOT subscribed in stripe") {
             val email = "test.not_subscribed@k33.com"
-            `when`("GET /payment/subscribed-products") {
-                then("response is 404 NOT FOUND") {
-                    getSubscribedProducts(email = email).status shouldBe HttpStatusCode.NotFound
-                }
-            }
-            `when`("GET /payment/subscribed-products/{product_id}") {
+            `when`("GET /payment/subscribed-products/{productId}") {
                 then("response is 404 NOT FOUND") {
                     getSubscribedProduct(email = email).status shouldBe HttpStatusCode.NotFound
                 }
             }
             `when`("POST /payment/checkout-sessions") {
                 val response = createOrFetchCheckoutSession(email = email)
-                then("response is checkout session url with expires_at") {
+                then("response is checkout session url with expiresAt") {
                     response.status shouldBe HttpStatusCode.OK
                     val checkoutSession = response.body<CheckoutSession>()
                     checkoutSession.priceId shouldBe priceId
@@ -154,20 +143,14 @@ class PaymentTest : BehaviorSpec({
         }
         and("a user is subscribed in stripe") {
             val email = "test.subscribed@k33.com"
-            `when`("GET /payment/subscribed-products") {
-                val response = getSubscribedProducts(email = email)
-                then("response is subscribed product id") {
-                    response.status shouldBe HttpStatusCode.OK
-                    response.body<SubscribedProducts>().subscribedProducts shouldBe listOf(productId)
-                }
-            }
-            `when`("GET /payment/subscribed-products/{product_id}") {
+            `when`("GET /payment/subscribed-products/{productId}") {
                 val response = getSubscribedProduct(email = email)
                 then("response is subscribed product with active status") {
                     response.status shouldBe HttpStatusCode.OK
                     response.body<SubscribedProduct>() shouldBe SubscribedProduct(
                         productId = productId,
                         status = ProductSubscriptionStatus.active,
+                        priceId = priceId,
                     )
                 }
             }
@@ -186,24 +169,20 @@ class PaymentTest : BehaviorSpec({
         }
         and("a user is unsubscribed in stripe") {
             val email = "test.unsubscribed@k33.com"
-            `when`("GET /payment/subscribed-products") {
-                then("response is 404 NOT FOUND") {
-                    getSubscribedProducts(email = email).status shouldBe HttpStatusCode.NotFound
-                }
-            }
-            `when`("GET /payment/subscribed-products/{product_id}") {
+            `when`("GET /payment/subscribed-products/{productId}") {
                 val response = getSubscribedProduct(email = email)
                 then("response is Subscribed Product with ended status") {
                     response.status shouldBe HttpStatusCode.OK
                     response.body<SubscribedProduct>() shouldBe SubscribedProduct(
                         productId = productId,
                         status = ProductSubscriptionStatus.ended,
+                        priceId = priceId,
                     )
                 }
             }
             `when`("POST /payment/checkout-sessions") {
                 val response = createOrFetchCheckoutSession(email = email)
-                then("response is checkout session url with expires_at") {
+                then("response is checkout session url with expiresAt") {
                     response.status shouldBe HttpStatusCode.OK
                     val checkoutSession = response.body<CheckoutSession>()
                     checkoutSession.priceId shouldBe priceId
@@ -233,7 +212,8 @@ class PaymentTest : BehaviorSpec({
 @Serializable
 data class SubscribedProduct(
     val productId: String,
-    val status: ProductSubscriptionStatus
+    val status: ProductSubscriptionStatus,
+    val priceId: String,
 )
 
 @Suppress("EnumEntryName")

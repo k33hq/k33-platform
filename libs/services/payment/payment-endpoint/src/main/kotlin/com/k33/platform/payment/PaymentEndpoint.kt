@@ -15,56 +15,34 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.util.UUID
+import java.util.*
 
 fun Application.module() {
 
     routing {
         authenticate("esp-v2-header") {
             route("/payment") {
-                route("/subscribed-products") {
+                route("/subscribed-products/{productId}") {
                     get {
                         val userId = UserId(call.principal<UserInfo>()!!.userId)
                         logWithMDC("userId" to userId.value) {
-                            try {
-                                val userEmail = call.principal<UserInfo>()!!.email
-                                val subscribedProducts = StripeClient.getCurrentSubscribedProducts(
-                                    customerEmail = userEmail,
-                                )
-                                if (subscribedProducts.isNullOrEmpty()) {
-                                    call.respond(HttpStatusCode.NotFound)
-                                } else {
-                                    call.respond(SubscribedProducts(subscribedProducts = subscribedProducts))
-                                }
-                            } catch (e: PaymentServiceError) {
-                                call.application.log.error("Payment service error in fetching subscribed products", e)
-                                call.respond(e.httpStatusCode, e.message)
-                            } catch (e: Exception) {
-                                call.application.log.error("Exception in fetching subscribed products", e)
-                                call.respond(HttpStatusCode.InternalServerError)
-                            }
-                        }
-                    }
-                    get("{product-id}") {
-                        val userId = UserId(call.principal<UserInfo>()!!.userId)
-                        logWithMDC("userId" to userId.value) {
-                            val productId: String = call.parameters["product-id"]
+                            val productId: String = call.parameters["productId"]
                                 ?: throw BadRequest("Path param: product-id is mandatory")
                             try {
                                 val userEmail = call.principal<UserInfo>()!!.email
-                                val status = StripeClient.getSubscriptionStatus(
+                                val productSubscription = StripeClient.getSubscription(
                                     customerEmail = userEmail,
                                     productId = productId,
                                 )
-                                if (status == null) {
+                                if (productSubscription == null) {
                                     call.respond(HttpStatusCode.NotFound)
                                 } else {
                                     call.respond(
                                         SubscribedProduct(
-                                            productId = productId,
-                                            status = status,
+                                            productId = productSubscription.productId,
+                                            status = productSubscription.status,
+                                            priceId = productSubscription.priceId,
                                         )
                                     )
                                 }
@@ -158,7 +136,8 @@ data class SubscribedProducts(
 @Serializable
 data class SubscribedProduct(
     val productId: String,
-    val status: StripeClient.ProductSubscriptionStatus
+    val priceId: String,
+    val status: StripeClient.ProductSubscriptionStatus,
 )
 
 @Serializable

@@ -23,42 +23,40 @@ package com.k33.platform.payment.stripe
  *
  */
 @Suppress("EnumEntryName")
-enum class Status {
-    trialing,
+enum class Status(
+    val productSubscriptionStatus: StripeClient.ProductSubscriptionStatus,
+) {
+    trialing(StripeClient.ProductSubscriptionStatus.active),
 
     /**
      * For `collection_method=charge_automatically` a subscription moves into `incomplete` if the initial payment attempt fails.
      */
-    incomplete,
+    incomplete(StripeClient.ProductSubscriptionStatus.blocked),
 
     /**
      * In `incomplete` state, if the first invoice is not paid within 23 hours, the subscription transitions to `incomplete_expired`.
      * This is a terminal state, the open invoice will be voided and no further invoices will be generated.
      */
-    incomplete_expired,
+    incomplete_expired(StripeClient.ProductSubscriptionStatus.ended),
 
     /**
      * Once the first invoice is paid, the subscription moves into an `active` state.
      */
-    active,
+    active(StripeClient.ProductSubscriptionStatus.active),
 
     /**
      * For `collection_method=charge_automatically` a subscription moves `past_due` when payment to renew it fails.
      * If it is still not paid by an additional deadline after that, a subscription moves `canceled` or `unpaid`.
      */
-    past_due,
-    unpaid,
-    paused,
+    past_due(StripeClient.ProductSubscriptionStatus.blocked),
+    unpaid(StripeClient.ProductSubscriptionStatus.ended),
+    paused(StripeClient.ProductSubscriptionStatus.ended),
 
-    canceled,
+    canceled(StripeClient.ProductSubscriptionStatus.ended),
 
     /**
      * This is never returned in Stripe's response.
      * This status is only used in request filter.
      */
-    ended,
+    ended(StripeClient.ProductSubscriptionStatus.ended),
 }
-
-val proStatusSet = setOf(Status.active, Status.trialing)
-val blockedStatusSet = setOf(Status.past_due, Status.incomplete)
-val endedStatusSet = setOf(Status.canceled, Status.incomplete_expired, Status.unpaid, Status.paused)
