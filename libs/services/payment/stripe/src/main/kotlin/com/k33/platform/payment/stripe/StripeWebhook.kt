@@ -158,7 +158,7 @@ fun Application.module() {
                                                             && status.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
                                                 val subscriptionProToBlocked =
                                                     previousStatus?.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
-                                                            && status.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
+                                                            && status.productSubscriptionStatus != StripeClient.ProductSubscriptionStatus.active
 
                                                 val subscriptionToBeCanceled =
                                                     event.data.previousAttributes?.get("cancel_at_period_end") == false
