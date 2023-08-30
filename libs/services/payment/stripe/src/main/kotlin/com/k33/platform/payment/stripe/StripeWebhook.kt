@@ -173,6 +173,10 @@ fun Application.module() {
                                                     previousStatus == null
                                                             && status == Status.active
                                                             && setOf("latest_invoice", "current_period_end", "current_period_start") == event.data.previousAttributes?.keys?.toSet()
+                                                val usedDiscount =
+                                                    previousStatus == null
+                                                            && status == Status.active
+                                                            && event.data.previousAttributes?.keys?.contains("discount") == true
 
                                                 when {
                                                     extendedActivePeriod -> {
@@ -235,6 +239,10 @@ fun Application.module() {
 
                                                     subscriptionUncanceled -> {
                                                         notifySlack("$customerEmail has uncancelled subscription")
+                                                    }
+
+                                                    usedDiscount -> {
+                                                        call.application.log.info("$customerEmail has updated discount coupon")
                                                     }
 
                                                     else -> {
