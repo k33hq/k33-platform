@@ -39,7 +39,7 @@ object SendgridContactsSync {
             .filter { !excludeUsersEmailList.contains(base64Encoder.encodeToString(messageDigest.digest(it.toByteArray()))) }
         message += "\nSend list count: ${sendList.size}"
 
-        val success = emailService.upsertMarketingContacts(
+        val success = emailService.upsertToMarketingContactLists(
             contactEmails = sendList.toList(),
             contactListIds = listOf(contactListId),
         )

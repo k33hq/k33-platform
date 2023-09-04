@@ -23,7 +23,6 @@ import kotlinx.html.stream.appendHTML
 import kotlinx.html.style
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -124,7 +123,7 @@ object SendGridService : EmailService {
                     Request().apply {
                         method = Method.POST
                         endpoint = "mail/send"
-                        this.body = sendgridMail.build()
+                        body = sendgridMail.build()
                     }
                 )
             }
@@ -136,7 +135,8 @@ object SendGridService : EmailService {
         }
     }
 
-    override suspend fun upsertMarketingContacts(
+    // https://docs.sendgrid.com/api-reference/contacts/add-or-update-a-contact
+    override suspend fun upsertToMarketingContactLists(
         contactEmails: List<String>,
         contactListIds: List<String>,
     ): Boolean {
@@ -155,7 +155,6 @@ object SendGridService : EmailService {
         return coroutineScope {
             val sendGrid = SendGrid(sendGridConfig.apiKey)
             contactEmails
-                // https://docs.sendgrid.com/api-reference/contacts/add-or-update-a-contact
                 // max limit of 30k contacts in email request
                 .chunked(30_000)
                 .map { emailStringList ->
@@ -169,7 +168,7 @@ object SendGridService : EmailService {
                             val request = Request().apply {
                                 method = Method.PUT
                                 endpoint = "/marketing/contacts"
-                                this.body = jsonBody
+                                body = jsonBody
                             }
                             val response = withContext(Dispatchers.IO) {
                                 sendGrid.api(request)
@@ -192,7 +191,8 @@ object SendGridService : EmailService {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    override suspend fun unlistMarketingContacts(
+    // https://docs.sendgrid.com/api-reference/lists/remove-contacts-from-a-list
+    override suspend fun removeFromMarketingContactLists(
         contactEmails: List<String>,
         contactListId: String,
     ): Boolean {
@@ -248,7 +248,7 @@ object SendGridService : EmailService {
                 val request = Request().apply {
                     method = Method.POST
                     endpoint = "/marketing/contacts/search/emails"
-                    this.body = jsonBody
+                    body = jsonBody
                 }
                 val response = withContext(Dispatchers.IO) {
                     sendGrid.api(request)
@@ -263,6 +263,135 @@ object SendGridService : EmailService {
                 logger.error("Failed to search contacts by email", e)
                 null
             }
+        }
+    }
+
+    // https://docs.sendgrid.com/api-reference/suppressions-suppressions/retrieve-all-suppression-groups-for-an-email-address
+    override suspend fun getSuppressionGroups(
+        userEmail: String,
+    ) : List<SuppressionGroup>? {
+
+        @Serializable
+        data class Suppression(
+            val id: Long,
+            val name: String,
+            val description: String,
+            @SerialName("is_default") val isDefault: Boolean,
+            val suppressed: Boolean,
+        )
+
+        @Serializable
+        data class SuppressionList(
+            val suppressions: List<Suppression>
+        )
+
+        val sendGrid = SendGrid(sendGridConfig.apiKey)
+        return try {
+            val request = Request().apply {
+                method = Method.GET
+                endpoint = "/asm/suppressions/$userEmail"
+            }
+            val response = withContext(Dispatchers.IO) {
+                sendGrid.api(request)
+            }
+            if (response.statusCode !in 200..299) {
+                logger.warn(
+                    "Received error response from Sendgrid, status code: {}, body: {}",
+                    response.statusCode,
+                    response.body
+                )
+                return if (response.statusCode == 404)
+                    null
+                else
+                    emptyList()
+            }
+            val suppressionList: SuppressionList = json.decodeFromString(response.body)
+            suppressionList
+                .suppressions
+                .map {
+                    SuppressionGroup(
+                        id = it.id,
+                        name = it.name,
+                        suppressed = it.suppressed,
+                    )
+                }
+        } catch (e: Exception) {
+            logger.error("Failed to un-list contacts", e)
+            null
+        }
+    }
+
+    // https://docs.sendgrid.com/api-reference/suppressions-suppressions/add-suppressions-to-a-suppression-group
+    override suspend fun upsertIntoSuppressionGroup(
+        userEmail: String,
+        suppressionGroupId: Long,
+    ): Boolean? {
+
+        @Serializable
+        data class Emails(
+            @SerialName("recipient_emails") val recipientEmails: List<String>
+        )
+
+        val sendGrid = SendGrid(sendGridConfig.apiKey)
+        return try {
+            val jsonBody = json.encodeToString(Emails(listOf(userEmail)))
+            val request = Request().apply {
+                method = Method.POST
+                endpoint = "/asm/groups/${suppressionGroupId}/suppressions"
+                body = jsonBody
+            }
+            val response = withContext(Dispatchers.IO) {
+                sendGrid.api(request)
+            }
+            if (response.statusCode !in 200..299) {
+                logger.error(
+                    "Received error response from Sendgrid, status code: {}, body: {}",
+                    response.statusCode,
+                    response.body
+                )
+                return if (response.statusCode == 404)
+                    null
+                else
+                    false
+            }
+            val responseEmails: Emails = json.decodeFromString(response.body)
+            responseEmails.recipientEmails.contains(userEmail)
+        } catch (e: Exception) {
+            logger.error("Failed to upsert to suppression group", e)
+            false
+        }
+    }
+
+    // https://docs.sendgrid.com/api-reference/suppressions-suppressions/delete-a-suppression-from-a-suppression-group
+    override suspend fun removeFromSuppressionGroup(
+        userEmail: String,
+        suppressionGroupId: Long,
+    ): Boolean? {
+
+        val sendGrid = SendGrid(sendGridConfig.apiKey)
+        return try {
+            val request = Request().apply {
+                method = Method.DELETE
+                endpoint = "/asm/groups/${suppressionGroupId}/suppressions/${userEmail}"
+            }
+            val response = withContext(Dispatchers.IO) {
+                sendGrid.api(request)
+            }
+            if (response.statusCode !in 200..299) {
+                logger.error(
+                    "Received error response from Sendgrid, status code: {}, body: {}",
+                    response.statusCode,
+                    response.body
+                )
+                return if (response.statusCode == 404)
+                    null
+                else
+                    false
+            }
+            response.statusCode in 200..299
+        } catch (e: Exception) {
+            logger.error("Failed to remove from suppression group", e)
+            false
         }
     }
 }

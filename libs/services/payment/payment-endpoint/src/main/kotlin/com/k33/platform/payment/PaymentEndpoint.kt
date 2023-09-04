@@ -28,7 +28,7 @@ fun Application.module() {
                         val userId = UserId(call.principal<UserInfo>()!!.userId)
                         logWithMDC("userId" to userId.value) {
                             val productId: String = call.parameters["productId"]
-                                ?: throw BadRequest("Path param: product-id is mandatory")
+                                ?: throw BadRequest("Path param: productId is mandatory")
                             try {
                                 val userEmail = call.principal<UserInfo>()!!.email
                                 val productSubscription = StripeClient.getSubscription(

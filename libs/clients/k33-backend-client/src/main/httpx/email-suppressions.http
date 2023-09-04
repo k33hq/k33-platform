@@ -1,0 +1,14 @@
+### get all suppression groups
+
+GET https://api.k33.com/suppression-groups
+Authorization: Bearer {{firebase_id_token}}
+
+### upsert into a suppression group
+
+PUT https://api.k33.com/suppression-groups/{{suppression_group_id}}
+Authorization: Bearer {{firebase_id_token}}
+
+### remove from a suppression group
+
+DELETE https://api.k33.com/suppression-groups/{{suppression_group_id}}
+Authorization: Bearer {{firebase_id_token}}

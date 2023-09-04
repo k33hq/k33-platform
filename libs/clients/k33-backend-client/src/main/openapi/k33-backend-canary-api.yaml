@@ -247,6 +247,46 @@ paths:
         - firebase: [ ]
 
 
+  "/suppression-groups":
+    get:
+      description: Get all suppression groups
+      operationId: "getSuppressionGroups"
+      responses:
+        200:
+          description: "List of all the suppression groups"
+          schema:
+            $ref: "#/definitions/SuppressionGroups"
+      security:
+        - firebase: [ ]
+  "/suppression-groups/{suppressionGroupId}":
+    put:
+      description: Upsert into a suppression group
+      operationId: "upsertIntoSuppressionGroup"
+      parameters:
+        - name: suppressionGroupId
+          type: number
+          in: path
+          required: true
+      responses:
+        200:
+          description: "Success"
+      security:
+        - firebase: [ ]
+    delete:
+      description: Remove from a suppression group
+      operationId: "removeFromSuppressionGroup"
+      parameters:
+        - name: suppressionGroupId
+          type: number
+          in: path
+          required: true
+      responses:
+        200:
+          description: "Success"
+      security:
+        - firebase: [ ]
+
+
   "/apps/invest/funds":
     get:
       description: Get all fund info access status
@@ -423,6 +463,25 @@ definitions:
     required:
       - url
       - returnUrl
+
+
+  SuppressionGroups:
+    type: array
+    items:
+      $ref: '#/definitions/SuppressionGroup'
+  SuppressionGroup:
+    type: object
+    properties:
+      id:
+        type: number
+      name:
+        type: string
+      suppressed:
+        type: boolean
+    required:
+      - id
+      - name
+      - suppressed
 
 
   FundInfoRequest:

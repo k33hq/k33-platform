@@ -10,15 +10,29 @@ interface EmailService {
         unsubscribeSettings: UnsubscribeSettings? = null,
     ): Boolean
 
-    suspend fun upsertMarketingContacts(
+    suspend fun upsertToMarketingContactLists(
         contactEmails: List<String>,
         contactListIds: List<String>,
     ): Boolean
 
-    suspend fun unlistMarketingContacts(
+    suspend fun removeFromMarketingContactLists(
         contactEmails: List<String>,
         contactListId: String,
     ): Boolean
+
+    suspend fun getSuppressionGroups(
+        userEmail: String
+    ): List<SuppressionGroup>?
+
+    suspend fun upsertIntoSuppressionGroup(
+        userEmail: String,
+        suppressionGroupId: Long,
+    ): Boolean?
+
+    suspend fun removeFromSuppressionGroup(
+        userEmail: String,
+        suppressionGroupId: Long,
+    ): Boolean?
 }
 
 sealed class Mail
@@ -45,3 +59,9 @@ data class Email(
 ) {
     override fun toString() = "$label <$address>"
 }
+
+data class SuppressionGroup(
+    val id: Long,
+    val name: String,
+    val suppressed: Boolean,
+)

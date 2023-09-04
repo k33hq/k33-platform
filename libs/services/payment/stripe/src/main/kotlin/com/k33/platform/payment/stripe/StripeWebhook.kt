@@ -68,7 +68,7 @@ fun Application.module() {
                                     coroutineScope {
                                         suspend fun proSubscriptionEvent() {
                                             launch {
-                                                emailService.upsertMarketingContacts(
+                                                emailService.upsertToMarketingContactLists(
                                                     contactEmails = listOf(customerEmail),
                                                     contactListIds = listOf(contactListId),
                                                 )
@@ -88,7 +88,7 @@ fun Application.module() {
 
                                         suspend fun disableProSubscriptionEvent() {
                                             launch {
-                                                emailService.unlistMarketingContacts(
+                                                emailService.removeFromMarketingContactLists(
                                                     contactEmails = listOf(customerEmail),
                                                     contactListId = contactListId,
                                                 )

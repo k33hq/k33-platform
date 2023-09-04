@@ -16,6 +16,6 @@ while ! nc -z "$BACKEND_HOST" 8080; do
 done
 
 # https://junit.org/junit5/docs/current/user-guide/#running-tests-console-launcher-options
-# ./acceptance-tests --select-class=com.k33.platform.tests.PaymentTest
+# ./acceptance-tests --select-class=com.k33.platform.tests.EmailSuppressionTest
 
 ./acceptance-tests --select-package=com.k33.platform.tests
