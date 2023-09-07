@@ -7,6 +7,8 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.UserRecord
 import com.k33.platform.google.coroutine.ktx.await
 import com.k33.platform.utils.logging.getLogger
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object FirebaseAuthService {
 
@@ -45,25 +47,29 @@ object FirebaseAuthService {
         uid: String,
         email: String,
     ): String {
-        return firebaseAuth.createCustomTokenAsync(
-            uid,
-            mapOf(
-                "user_id" to uid,
-                "email" to email,
-                "email_verified" to true,
-            )
-        ).await()
+        return withContext(Dispatchers.IO) {
+            firebaseAuth.createCustomTokenAsync(
+                uid,
+                mapOf(
+                    "user_id" to uid,
+                    "email" to email,
+                    "email_verified" to true,
+                )
+            ).await()
+        }
     }
 
     suspend fun findUserId(
         email: String
     ): String {
-        return firebaseAuth.getUserByEmailAsync(email)
-            .await()
-            .uid
-            .also {
-                logger.info("Found user.")
-            }
+        return withContext(Dispatchers.IO) {
+            firebaseAuth.getUserByEmailAsync(email)
+                .await()
+                .uid
+                .also {
+                    logger.info("Found user.")
+                }
+        }
     }
 
     suspend fun findUserIdOrNull(
@@ -91,9 +97,11 @@ object FirebaseAuthService {
             .setEmailVerified(true)
             .setDisplayName(displayName)
 
-        return firebaseAuth
-            .createUserAsync(createRequest)
-            .await()
-            .uid
+        return withContext(Dispatchers.IO) {
+            firebaseAuth
+                .createUserAsync(createRequest)
+                .await()
+                .uid
+        }
     }
 }

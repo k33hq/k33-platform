@@ -4,7 +4,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":libs:services:user:user-model"))
+    implementation(project(":libs:services:user:user-service"))
+    implementation(project(":libs:utils:firebase-auth"))
     implementation(project(":libs:services:email"))
     implementation(project(":libs:utils:analytics"))
     implementation(project(":libs:utils:logging"))

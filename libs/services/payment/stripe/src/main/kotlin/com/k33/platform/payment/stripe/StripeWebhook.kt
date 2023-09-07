@@ -5,6 +5,9 @@ import com.k33.platform.email.Email
 import com.k33.platform.email.EmailTemplateConfig
 import com.k33.platform.email.MailTemplate
 import com.k33.platform.email.getEmailService
+import com.k33.platform.identity.auth.gcp.FirebaseAuthService
+import com.k33.platform.user.UserId
+import com.k33.platform.user.UserService.fetchUser
 import com.k33.platform.utils.analytics.Log
 import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.NotifySlack
@@ -20,7 +23,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import java.util.UUID
+import java.util.*
 
 fun Application.module() {
 
@@ -31,6 +34,8 @@ fun Application.module() {
         "researchApp",
         "apps.research.researchProWelcomeEmail"
     )
+
+    val authService by lazy { FirebaseAuthService }
     val emailService by getEmailService()
 
     routing {
@@ -61,11 +66,17 @@ fun Application.module() {
                         val customerEmail = StripeClient.getCustomerEmail(subscription.customer)
                         if (customerEmail != null) {
                             logWithMDC("customerEmail" to customerEmail) {
-                                val products = subscription.items.data.map { subscriptionItem ->
-                                    subscriptionItem.plan.product
-                                }.toSet()
-                                if (products.contains(product)) {
-                                    coroutineScope {
+                                coroutineScope {
+                                    val userId = try {
+                                        authService.findUserId(customerEmail)
+                                    } catch (e: Exception) {
+                                        null
+                                    }?.let(::UserId)
+                                    val userAnalyticsId = userId?.fetchUser()?.analyticsId
+                                    val products = subscription.items.data.map { subscriptionItem ->
+                                        subscriptionItem.plan.product
+                                    }.toSet()
+                                    if (products.contains(product)) {
                                         suspend fun proSubscriptionEvent() {
                                             launch {
                                                 emailService.upsertToMarketingContactLists(
@@ -113,7 +124,7 @@ fun Application.module() {
                                                         proSubscriptionEvent()
                                                         Log.beginSubscriptionTrial(
                                                             webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
-                                                            userAnalyticsId = null,
+                                                            userAnalyticsId = userAnalyticsId,
                                                             productId = product,
                                                         )
                                                     }
@@ -133,7 +144,7 @@ fun Application.module() {
                                                         proSubscriptionEvent()
                                                         Log.beginSubscription(
                                                             webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
-                                                            userAnalyticsId = null,
+                                                            userAnalyticsId = userAnalyticsId,
                                                             productId = product,
                                                         )
                                                     }
@@ -193,7 +204,7 @@ fun Application.module() {
                                                         notifySlack("$customerEmail upgraded from trial to active subscriber of K33 Research Pro")
                                                         Log.beginSubscription(
                                                             webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
-                                                            userAnalyticsId = null,
+                                                            userAnalyticsId = userAnalyticsId,
                                                             productId = product,
                                                         )
                                                     }
@@ -215,7 +226,7 @@ fun Application.module() {
                                                         proSubscriptionEvent()
                                                         Log.beginSubscription(
                                                             webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
-                                                            userAnalyticsId = null,
+                                                            userAnalyticsId = userAnalyticsId,
                                                             productId = product,
                                                         )
                                                     }
@@ -266,7 +277,7 @@ fun Application.module() {
                                                         disableProSubscriptionEvent()
                                                         Log.endSubscription(
                                                             webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
-                                                            userAnalyticsId = null,
+                                                            userAnalyticsId = userAnalyticsId,
                                                             productId = product,
                                                         )
                                                     }
