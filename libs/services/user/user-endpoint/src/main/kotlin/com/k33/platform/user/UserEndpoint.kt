@@ -4,13 +4,21 @@ import com.k33.platform.identity.auth.gcp.UserInfo
 import com.k33.platform.user.UserService.createUser
 import com.k33.platform.user.UserService.fetchUser
 import com.k33.platform.utils.logging.logWithMDC
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import java.util.UUID
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.application.log
+import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.principal
+import io.ktor.server.request.header
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
+import java.time.Instant
+import kotlin.random.Random
+import kotlin.random.nextUInt
 
 fun Application.module() {
 
@@ -37,7 +45,7 @@ fun Application.module() {
                     logWithMDC("userId" to userId.value) {
                         call.application.log.info("Creating user")
                         val webClientId = call.request.header("x-client-id")
-                            ?: UUID.randomUUID().toString()
+                            ?: "GA1.1.${Random.nextUInt(from = 1_000_000_000u, until = UInt.MAX_VALUE)}.${Instant.now().epochSecond}"
                         val idProvider = call.request.queryParameters["id-provider"]
                         val user = userId.createUser(
                             email = userInfo.email,
