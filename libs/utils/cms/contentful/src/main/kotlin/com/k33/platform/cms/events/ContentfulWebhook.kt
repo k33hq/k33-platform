@@ -3,11 +3,13 @@ package com.k33.platform.cms.events
 import com.k33.platform.cms.sync.ContentfulToAlgolia
 import com.k33.platform.utils.logging.getLogger
 import com.k33.platform.utils.logging.logWithMDC
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.request.header
+import io.ktor.server.response.respond
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
 
 fun Application.module() {
 

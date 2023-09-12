@@ -5,7 +5,7 @@ import com.k33.platform.utils.logging.getLogger
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.*
+import java.util.Locale
 
 fun FundInfoRequest.validate(): List<String> {
     val errors = mutableListOf<String>()

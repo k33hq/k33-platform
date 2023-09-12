@@ -7,7 +7,7 @@ import com.k33.platform.utils.logging.getLogger
 import java.io.File
 import java.io.FileWriter
 import java.security.MessageDigest
-import java.util.*
+import java.util.Base64
 
 object SendgridContactsSync {
 

@@ -3,7 +3,7 @@ package com.k33.platform.app.invest
 import com.k33.platform.user.UserId
 import com.k33.platform.user.users
 import io.firestore4k.typed.div
-import io.ktor.server.plugins.*
+import io.ktor.server.plugins.NotFoundException
 import kotlinx.serialization.Serializable
 
 data class AppId(val value: String) {

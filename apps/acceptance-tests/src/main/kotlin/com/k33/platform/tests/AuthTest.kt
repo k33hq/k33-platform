@@ -4,11 +4,12 @@ import com.k33.platform.identity.auth.FirebaseIdTokenPayload
 import com.k33.platform.identity.auth.gcp.FirebaseAuthService
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import java.util.*
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.path
+import java.util.UUID
 
 
 class AuthTest : StringSpec({

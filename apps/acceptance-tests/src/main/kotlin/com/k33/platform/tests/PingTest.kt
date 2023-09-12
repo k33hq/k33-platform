@@ -4,8 +4,11 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.date.shouldBeBefore
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import io.ktor.client.request.url
+import io.ktor.client.statement.bodyAsText
 import java.time.Instant
 
 class PingTest : StringSpec({

@@ -1,7 +1,7 @@
 package com.k33.platform.utils.analytics.google
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import java.util.*
+import java.util.Currency
 
 sealed class Event(
     val name: String,

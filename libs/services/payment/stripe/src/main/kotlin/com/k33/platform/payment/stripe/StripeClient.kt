@@ -20,7 +20,7 @@ import com.stripe.param.SubscriptionListParams
 import com.stripe.param.checkout.SessionCreateParams
 import com.stripe.param.checkout.SessionListLineItemsParams
 import com.stripe.param.checkout.SessionListParams
-import io.ktor.util.*
+import io.ktor.util.encodeBase64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -28,6 +28,26 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.time.Instant
+import kotlin.collections.Collection
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.contains
+import kotlin.collections.emptyList
+import kotlin.collections.filter
+import kotlin.collections.filterNotNull
+import kotlin.collections.first
+import kotlin.collections.firstOrNull
+import kotlin.collections.flatMap
+import kotlin.collections.flatten
+import kotlin.collections.groupBy
+import kotlin.collections.isNotEmpty
+import kotlin.collections.map
+import kotlin.collections.maxBy
+import kotlin.collections.minByOrNull
+import kotlin.collections.setOf
+import kotlin.collections.single
+import kotlin.collections.singleOrNull
+import kotlin.collections.sortedByDescending
 import com.stripe.model.Subscription as StripeSubscription
 import com.stripe.model.billingportal.Session as StripeCustomerPortalSession
 import com.stripe.model.checkout.Session as StripeCheckoutSession

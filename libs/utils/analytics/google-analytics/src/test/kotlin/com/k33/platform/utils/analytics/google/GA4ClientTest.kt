@@ -4,7 +4,9 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.launch
 import java.time.Instant
-import java.util.*
+import java.util.Currency
+import java.util.HexFormat
+import java.util.UUID
 import kotlin.random.Random
 
 class GA4ClientTest : BehaviorSpec({

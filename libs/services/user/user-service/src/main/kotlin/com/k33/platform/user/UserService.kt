@@ -3,7 +3,7 @@ package com.k33.platform.user
 import com.k33.platform.utils.analytics.Log
 import io.firestore4k.typed.FirestoreClient
 import io.firestore4k.typed.div
-import java.util.*
+import java.util.UUID
 
 object UserService {
 

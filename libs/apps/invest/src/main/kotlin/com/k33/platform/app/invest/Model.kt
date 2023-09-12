@@ -1,7 +1,7 @@
 package com.k33.platform.app.invest
 
 import kotlinx.serialization.Serializable
-import java.util.*
+import java.util.Locale
 
 enum class InvestorType(
     val label: String,

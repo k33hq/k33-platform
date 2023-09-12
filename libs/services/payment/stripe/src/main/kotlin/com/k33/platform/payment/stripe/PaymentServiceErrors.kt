@@ -1,6 +1,6 @@
 package com.k33.platform.payment.stripe
 
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 
 sealed class PaymentServiceError(
     val httpStatusCode: HttpStatusCode,

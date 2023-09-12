@@ -9,7 +9,7 @@ import com.k33.platform.utils.analytics.google.Login
 import com.k33.platform.utils.analytics.google.Purchase
 import com.k33.platform.utils.analytics.google.SignUp
 import com.k33.platform.utils.analytics.google.WebRequest
-import java.util.*
+import java.util.Currency
 
 
 object Log {
