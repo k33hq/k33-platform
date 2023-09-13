@@ -11,7 +11,7 @@ object UserService {
 
     suspend fun UserId.createUser(
         email: String,
-        webClientId: String,
+        webClientId: String?,
         idProvider: String?,
     ): User? {
         suspend fun createUser(): User? {

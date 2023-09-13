@@ -28,7 +28,6 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 fun Application.module() {
 
@@ -128,7 +127,7 @@ fun Application.module() {
                                                         notifySlack("$customerEmail has become a trial subscriber of K33 Research Pro")
                                                         proSubscriptionEvent()
                                                         Log.beginSubscriptionTrial(
-                                                            webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
+                                                            webClientId = subscription.metadata["web-client-id"],
                                                             userAnalyticsId = userAnalyticsId,
                                                             productId = product,
                                                         )
@@ -148,7 +147,7 @@ fun Application.module() {
                                                         notifySlack("$customerEmail has become an active subscriber of K33 Research Pro")
                                                         proSubscriptionEvent()
                                                         Log.beginSubscription(
-                                                            webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
+                                                            webClientId = subscription.metadata["web-client-id"],
                                                             userAnalyticsId = userAnalyticsId,
                                                             productId = product,
                                                         )
@@ -208,7 +207,7 @@ fun Application.module() {
                                                         // changed trial subscription to active (paid) subscription
                                                         notifySlack("$customerEmail upgraded from trial to active subscriber of K33 Research Pro")
                                                         Log.beginSubscription(
-                                                            webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
+                                                            webClientId = subscription.metadata["web-client-id"],
                                                             userAnalyticsId = userAnalyticsId,
                                                             productId = product,
                                                         )
@@ -230,7 +229,7 @@ fun Application.module() {
                                                         notifySlack("$customerEmail changed from non-Pro ($previousStatus) to Pro ($status) subscriber of K33 Research Pro")
                                                         proSubscriptionEvent()
                                                         Log.beginSubscription(
-                                                            webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
+                                                            webClientId = subscription.metadata["web-client-id"],
                                                             userAnalyticsId = userAnalyticsId,
                                                             productId = product,
                                                         )
@@ -281,7 +280,7 @@ fun Application.module() {
                                                         }
                                                         disableProSubscriptionEvent()
                                                         Log.endSubscription(
-                                                            webClientId = subscription.metadata["web-client-id"] ?: UUID.randomUUID().toString(),
+                                                            webClientId = subscription.metadata["web-client-id"],
                                                             userAnalyticsId = userAnalyticsId,
                                                             productId = product,
                                                         )

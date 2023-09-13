@@ -26,7 +26,7 @@ object UserEventHandler {
     suspend fun onNewUserCreated(
         email: String,
         userAnalyticsId: String,
-        webClientId: String,
+        webClientId: String?,
         idProvider: String?,
     ) {
         coroutineScope {

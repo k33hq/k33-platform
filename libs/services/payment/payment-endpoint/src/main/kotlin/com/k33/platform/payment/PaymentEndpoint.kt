@@ -23,10 +23,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
-import java.time.Instant
 import java.util.UUID
-import kotlin.random.Random
-import kotlin.random.nextUInt
 
 fun Application.module() {
 
@@ -74,7 +71,6 @@ fun Application.module() {
                                 ?.analyticsId
                                 ?: UUID.randomUUID().toString()
                             val webClientId = call.request.header("x-client-id")
-                                ?: "GA1.1.${Random.nextUInt(from = 1_000_000_000u, until = UInt.MAX_VALUE)}.${Instant.now().epochSecond}"
                             val userEmail = call.principal<UserInfo>()!!.email
                             val request = call.receive<CheckoutSessionRequest>()
                             val checkoutSession = StripeClient.createOrFetchCheckoutSession(

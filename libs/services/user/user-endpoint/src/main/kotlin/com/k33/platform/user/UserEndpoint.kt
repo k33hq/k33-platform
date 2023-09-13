@@ -16,9 +16,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import java.time.Instant
-import kotlin.random.Random
-import kotlin.random.nextUInt
 
 fun Application.module() {
 
@@ -45,7 +42,6 @@ fun Application.module() {
                     logWithMDC("userId" to userId.value) {
                         call.application.log.info("Creating user")
                         val webClientId = call.request.header("x-client-id")
-                            ?: "GA1.1.${Random.nextUInt(from = 1_000_000_000u, until = UInt.MAX_VALUE)}.${Instant.now().epochSecond}"
                         val idProvider = call.request.queryParameters["id-provider"]
                         val user = userId.createUser(
                             email = userInfo.email,

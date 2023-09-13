@@ -9,19 +9,22 @@ import com.k33.platform.utils.analytics.google.Login
 import com.k33.platform.utils.analytics.google.Purchase
 import com.k33.platform.utils.analytics.google.SignUp
 import com.k33.platform.utils.analytics.google.WebRequest
+import java.time.Instant
 import java.util.Currency
+import kotlin.random.Random
+import kotlin.random.nextULong
 
 
 object Log {
 
     suspend fun signUp(
-        webClientId: String,
+        webClientId: String?,
         userAnalyticsId: String?,
         idProvider: String?,
     ) {
         GA4ClientForWeb.submit(
             WebRequest(
-                webClientId = webClientId,
+                webClientId = webClientId ?: createWebClientId(),
                 userAnalyticsId = userAnalyticsId,
                 events = listOf(SignUp(method = idProvider?.lowercase()))
             )
@@ -29,13 +32,13 @@ object Log {
     }
 
     suspend fun login(
-        webClientId: String,
+        webClientId: String?,
         userAnalyticsId: String?,
         idProvider: String?,
     ) {
         GA4ClientForWeb.submit(
             WebRequest(
-                webClientId = webClientId,
+                webClientId = webClientId ?: createWebClientId(),
                 userAnalyticsId = userAnalyticsId,
                 events = listOf(Login(method = idProvider?.lowercase()))
             )
@@ -43,7 +46,7 @@ object Log {
     }
 
     suspend fun beginCheckout(
-        webClientId: String,
+        webClientId: String?,
         userAnalyticsId: String?,
         value: Float,
         currency: String,
@@ -51,7 +54,7 @@ object Log {
     ) {
         GA4ClientForWeb.submit(
             WebRequest(
-                webClientId = webClientId,
+                webClientId = webClientId ?: createWebClientId(),
                 userAnalyticsId = userAnalyticsId,
                 events = listOf(
                     BeginCheckout(
@@ -65,13 +68,13 @@ object Log {
     }
 
     suspend fun beginSubscriptionTrial(
-        webClientId: String,
+        webClientId: String?,
         userAnalyticsId: String?,
         productId: String,
     ) {
         GA4ClientForWeb.submit(
             WebRequest(
-                webClientId = webClientId,
+                webClientId = webClientId ?: createWebClientId(),
                 userAnalyticsId = userAnalyticsId,
                 events = listOf(
                     BeginSubscriptionTrial(
@@ -83,7 +86,7 @@ object Log {
     }
 
     suspend fun purchase(
-        webClientId: String,
+        webClientId: String?,
         userAnalyticsId: String?,
         transactionId: String,
         value: Float,
@@ -92,7 +95,7 @@ object Log {
     ) {
         GA4ClientForWeb.submit(
             WebRequest(
-                webClientId = webClientId,
+                webClientId = webClientId ?: createWebClientId(),
                 userAnalyticsId = userAnalyticsId,
                 events = listOf(
                     Purchase(
@@ -107,13 +110,13 @@ object Log {
     }
 
     suspend fun beginSubscription(
-        webClientId: String,
+        webClientId: String?,
         userAnalyticsId: String?,
         productId: String,
     ) {
         GA4ClientForWeb.submit(
             WebRequest(
-                webClientId = webClientId,
+                webClientId = webClientId ?: createWebClientId(),
                 userAnalyticsId = userAnalyticsId,
                 events = listOf(
                     BeginSubscription(
@@ -125,13 +128,13 @@ object Log {
     }
 
     suspend fun endSubscription(
-        webClientId: String,
+        webClientId: String?,
         userAnalyticsId: String?,
         productId: String,
     ) {
         GA4ClientForWeb.submit(
             WebRequest(
-                webClientId = webClientId,
+                webClientId = webClientId ?: createWebClientId(),
                 userAnalyticsId = userAnalyticsId,
                 events = listOf(
                     EndSubscription(
@@ -141,4 +144,6 @@ object Log {
             )
         )
     }
+
+    private fun createWebClientId() = "GA1.1.${Random.nextULong(from = 1_000_000_000u, until = 9_999_999_999u)}.${Instant.now().epochSecond}"
 }
