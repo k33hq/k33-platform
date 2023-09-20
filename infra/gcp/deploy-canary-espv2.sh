@@ -88,18 +88,18 @@ espCloudRun["image"]="europe-docker.pkg.dev/${GCP_PROJECT_ID}/backend/endpoints-
 echo "espCloudRun[image]: ${espCloudRun["image"]}"
 
 ## build and push ESP docker image
-./apps/esp-v2/build_docker_image.sh \
+./apps/esp-v2/gcloud_build_image.sh \
   -s "${espCloudRun["endpoint_service"]}" \
   -c "${espCloudRun["service_config"]}" \
-  -p "$GCP_PROJECT_ID" \
-  -v "$ESP_FULL_VERSION" \
-  -g europe-docker.pkg.dev/"$GCP_PROJECT_ID"/backend
+  -p "${GCP_PROJECT_ID}" \
+  -v "${ESP_FULL_VERSION}" \
+  -g europe-docker.pkg.dev/"$GCP_PROJECT_ID"/backend \
+  -r "${CORS_REGEX}"
 
 # Deploy ESP to GCP Cloud Run
 gcloud run deploy "${espCloudRun["service"]}" \
   --region europe-west1 \
   --image "${espCloudRun["image"]}" \
-  --set-env-vars=ESPv2_ARGS=^++^--cors_preset=cors_with_regex++--cors_allow_origin_regex="${CORS_REGEX}"++--cors_max_age=5m \
   --cpu=1 \
   --memory=512Mi \
   --min-instances=1 \

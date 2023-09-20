@@ -34,7 +34,7 @@ function error_exit() {
 # IMAGE_REPOSITORY as following:
 #   'LOCATION-docker.pkg.dev/PROJECT-ID/REPOSITORY'
 
-while getopts :c:s:p:v:z:g:i: arg; do
+while getopts :c:s:p:v:z:g:r:i: arg; do
   case ${arg} in
     c) CONFIG_ID="${OPTARG}";;
     s) SERVICE="${OPTARG}";;
@@ -42,6 +42,7 @@ while getopts :c:s:p:v:z:g:i: arg; do
     v) ESP_TAG="${OPTARG}";;
     z) ZONE="${OPTARG}";;
     g) IMAGE_REPOSITORY="${OPTARG}";;
+    r) CORS_REGEX="${OPTARG}";;
     i)
       BASE_IMAGE="${OPTARG}"
       ESP_FULL_VERSION="custom"
@@ -53,6 +54,7 @@ done
 [[ -n "${PROJECT}" ]] || error_exit "Missing required PROJECT"
 [[ -n "${SERVICE}" ]] || error_exit "Missing required SERVICE"
 [[ -n "${CONFIG_ID}" ]] || error_exit "Missing required CONFIG_ID"
+[[ -n "${CORS_REGEX}" ]] || error_exit "Missing required CORS_REGEX"
 
 # If user did not pass in custom image, then form the fully-qualified base image.
 if [ -z "${BASE_IMAGE}" ]; then
@@ -92,12 +94,15 @@ if [ -z "${ESP_FULL_VERSION}" ]; then
 fi
 echo "Building image for ESP version: ${ESP_FULL_VERSION}"
 
-cd "$(mktemp -d /tmp/docker.XXXX)"
+tempdir="$(mktemp -d /tmp/docker.XXXX)"
+cd "${tempdir}"
 
 # Be careful about exposing the access token.
-curl --fail -o "service.json" -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-  "https://servicemanagement.googleapis.com/v1/services/${SERVICE}/configs/${CONFIG_ID}?view=FULL" \
-  || error_exit "Failed to download service config"
+access_token="$(gcloud auth print-access-token)"
+curl --fail -o "service.json" -H @- \
+  "https://servicemanagement.googleapis.com/v1/services/${SERVICE}/configs/${CONFIG_ID}?view=FULL" <<EOF || error_exit "Failed to download service config"
+Authorization: Bearer ${access_token}
+EOF
 
 (
 set -x
@@ -108,6 +113,7 @@ FROM ${BASE_IMAGE}
 USER root
 ENV ENDPOINTS_SERVICE_PATH /etc/endpoints/service.json
 COPY service.json \${ENDPOINTS_SERVICE_PATH}
+ENV ESPv2_ARGS ^++^--cors_preset=cors_with_regex++--cors_allow_origin_regex="${CORS_REGEX}"++--cors_allow_headers="X-Client-Id,DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"++--cors_max_age=5m
 RUN chown -R envoy:envoy \${ENDPOINTS_SERVICE_PATH} && chmod -R 755 \${ENDPOINTS_SERVICE_PATH}
 USER envoy
 
