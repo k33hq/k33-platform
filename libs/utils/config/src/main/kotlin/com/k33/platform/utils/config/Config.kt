@@ -12,7 +12,12 @@ fun getConfig(
     name: String,
     path: String? = null,
 ): Lazy<Config> = lazy {
-    getConfigEager(name, path)
+    val config = getConfigEager(name)
+    if (!path.isNullOrBlank()) {
+        config.getConfig(path)
+    } else {
+        config
+    }
 }
 
 inline fun <reified CONFIG : Any> loadConfig(
@@ -25,20 +30,22 @@ inline fun <reified CONFIG : Any> loadConfig(
 inline fun <reified CONFIG : Any> loadConfigEager(
     name: String,
     path: String? = null,
-): CONFIG = getConfigEager(name, path).extract()
+): CONFIG {
+    val config = getConfigEager(name)
+    return if (!path.isNullOrBlank()) {
+        config.extract<CONFIG>(path)
+    } else {
+        config.extract<CONFIG>()
+    }
+}
 
 fun getConfigEager(
     name: String,
-    path: String? = null,
 ): Config {
     val configFile = ConfigAsResourceFile("/$name.conf")
     if (configFile.exists()) {
         logger.info("Loading config: $configFile")
-        var config = ConfigFactory.parseString(configFile.readText())
-        if (!path.isNullOrBlank()) {
-            config = config.resolve().getConfig(path)
-        }
-        return config
+        return ConfigFactory.parseString(configFile.readText()).resolve()
     }
     throw FileNotFoundException("Config file not found - $configFile")
 }
