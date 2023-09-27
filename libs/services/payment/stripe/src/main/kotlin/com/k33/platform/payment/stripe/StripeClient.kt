@@ -1,6 +1,7 @@
 package com.k33.platform.payment.stripe
 
 import com.k33.platform.utils.analytics.Log
+import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.getLogger
 import com.stripe.exception.ApiConnectionException
@@ -62,6 +63,13 @@ object StripeClient {
         val cancelUrl: String,
     )
 
+    private val isProd by lazy { System.getenv("GCP_PROJECT_ID").endsWith("prod", ignoreCase = true) }
+
+    val productMap: Map<String, ProductConfig> by loadConfig(
+        "researchApp",
+        "apps.research.products",
+    )
+
     /**
      * [Stripe API - Create Checkout Session](https://stripe.com/docs/api/checkout/sessions/create)
      */
@@ -114,7 +122,10 @@ object StripeClient {
             .setCustomer(customerId)
             .setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.IF_REQUIRED)
             .apply {
-                if (customerEmail.endsWith("@k33.com", ignoreCase = true)) {
+                if (isProd
+                    && customerEmail.endsWith("@k33.com", ignoreCase = true)
+                    && productMap["pro"]?.stripeProductId == productId
+                ) {
                     addDiscount(
                         CheckoutSessionCreateParams
                             .Discount

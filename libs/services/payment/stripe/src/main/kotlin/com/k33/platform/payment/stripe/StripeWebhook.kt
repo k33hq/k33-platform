@@ -8,7 +8,7 @@ import com.k33.platform.identity.auth.gcp.FirebaseAuthService
 import com.k33.platform.user.UserId
 import com.k33.platform.user.UserService.fetchUser
 import com.k33.platform.utils.analytics.Log
-import com.k33.platform.utils.config.loadConfig
+import com.k33.platform.utils.config.loadConfigEager
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.logWithMDC
 import com.stripe.exception.SignatureVerificationException
@@ -32,10 +32,12 @@ fun Application.module() {
 
     val endpointSecret by lazy { System.getenv("STRIPE_WEBHOOK_ENDPOINT_SECRET") }
 
-    val productMap by loadConfig<Map<String, ProductConfig>>(
-        "researchApp",
-        "apps.research.products",
-    )
+    val productMap: Map<String, ProductConfig> by lazy {
+        loadConfigEager<Map<String, ProductConfig>>(
+            "researchApp",
+            "apps.research.products",
+        ).values.associateBy { it.stripeProductId }
+    }
 
     val authService by lazy { FirebaseAuthService }
     val emailService by getEmailService()
