@@ -120,12 +120,14 @@ object StripeClient {
             .setLocale(CheckoutSessionCreateParams.Locale.AUTO)
             // in case of duplicates we give priority to one created later
             .setCustomer(customerId)
-            .setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.IF_REQUIRED)
+            // https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-payment_method_collection
+            .setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.ALWAYS)
             .apply {
                 if (isProd
                     && customerEmail.endsWith("@k33.com", ignoreCase = true)
                     && productMap["pro"]?.stripeProductId == productId
                 ) {
+                    // https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-discounts
                     addDiscount(
                         CheckoutSessionCreateParams
                             .Discount
@@ -137,6 +139,7 @@ object StripeClient {
                     if (!hasCurrentOrPriorSubscription) {
                         setSubscriptionData(
                             CheckoutSessionCreateParams.SubscriptionData.builder()
+                                // https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-subscription_data-trial_period_days
                                 .setTrialPeriodDays(TRIAL_PERIOD_DAYS.toLong())
                                 .setTrialSettings(
                                     SessionCreateParams.SubscriptionData.TrialSettings
@@ -144,6 +147,7 @@ object StripeClient {
                                         .setEndBehavior(
                                             SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior
                                                 .builder()
+                                                // https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-subscription_data-trial_settings-end_behavior-missing_payment_method
                                                 .setMissingPaymentMethod(
                                                     SessionCreateParams.SubscriptionData.TrialSettings
                                                         .EndBehavior.MissingPaymentMethod.CANCEL
