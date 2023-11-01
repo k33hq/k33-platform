@@ -36,7 +36,7 @@ fun Application.module() {
         loadConfigEager<Map<String, ProductConfig>>(
             "researchApp",
             "apps.research.products",
-        ).values.associateBy { it.stripeProductId }
+        ).values.associateBy { it.stripeProduct.id }
     }
 
     val authService by lazy { FirebaseAuthService }

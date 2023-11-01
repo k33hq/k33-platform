@@ -6,8 +6,13 @@ const val TRIAL_PERIOD_DAYS = 30
 
 data class ProductConfig(
     val name: String,
-    val stripeProductId: String,
+    val stripeProduct: StripeProduct,
     val sendgridContactListId: String,
     val welcomeEmailForTrial: EmailTemplateConfig,
     val welcomeEmail: EmailTemplateConfig,
+)
+
+data class StripeProduct(
+    val id: String,
+    val enableTrial: Boolean,
 )

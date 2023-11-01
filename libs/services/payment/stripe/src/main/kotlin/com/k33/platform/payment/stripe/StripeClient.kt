@@ -125,7 +125,7 @@ object StripeClient {
             .apply {
                 if (isProd
                     && customerEmail.endsWith("@k33.com", ignoreCase = true)
-                    && productMap["pro"]?.stripeProductId == productId
+                    && productMap["pro"]?.stripeProduct?.id == productId
                 ) {
                     // https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-discounts
                     addDiscount(
@@ -136,7 +136,9 @@ object StripeClient {
                             .build()
                     )
                 } else {
-                    if (!hasCurrentOrPriorSubscription) {
+                    if (productMap[productId]?.stripeProduct?.enableTrial == true
+                        && !hasCurrentOrPriorSubscription
+                    ) {
                         setSubscriptionData(
                             CheckoutSessionCreateParams.SubscriptionData.builder()
                                 // https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-subscription_data-trial_period_days
