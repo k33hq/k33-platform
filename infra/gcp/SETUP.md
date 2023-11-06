@@ -530,3 +530,27 @@ gcloud compute backend-services update web-backend-service \
   --global \
   --custom-response-header='Strict-Transport-Security:max-age=31536000; includeSubDomains; preload'
 ```
+
+### Deny access to `/markets/*` for UK region
+
+```shell
+gcloud compute security-policies create web-security-policy \
+  --description="policy for web backend service" \
+  --type=CLOUD_ARMOR \
+  --global
+
+gcloud compute security-policies rules create 1000 \
+  --description="deny /markets for UK" \
+  --security-policy=web-security-policy \
+  --expression="origin.region_code == 'GB' && request.path.startsWith('/markets')" \
+  --action=redirect \
+  --redirect-type="external-302" \
+  --redirect-target="https://k33.com/403"
+
+gcloud compute security-policies rules describe 1000 \
+  --security-policy=web-security-policy
+
+gcloud compute backend-services update web-backend-service \
+  --global \
+  --security-policy=web-security-policy
+```
