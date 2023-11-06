@@ -1,4 +1,4 @@
-FROM eclipse-temurin:20.0.1_9-jre-alpine
+FROM eclipse-temurin:21.0.1_12-jre-alpine
 EXPOSE 8080
 RUN mkdir /app
 COPY ./build/install/k33-backend/ /app/
