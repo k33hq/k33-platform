@@ -65,7 +65,7 @@ object StripeClient {
 
     private val isProd by lazy { System.getenv("GCP_PROJECT_ID").endsWith("prod", ignoreCase = true) }
 
-    val productMap: Map<String, ProductConfig> by loadConfig(
+    private val productMap: Map<String, ProductConfig> by loadConfig(
         "researchApp",
         "apps.research.products",
     )
@@ -136,7 +136,7 @@ object StripeClient {
                             .build()
                     )
                 } else {
-                    if (productMap[productId]?.stripeProduct?.enableTrial == true
+                    if (productMap.values.any { it.stripeProduct.id == productId && it.stripeProduct.enableTrial }
                         && !hasCurrentOrPriorSubscription
                     ) {
                         setSubscriptionData(
