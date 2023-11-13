@@ -14,17 +14,6 @@ class author
 
 class seoMetadata
 
-class subscription
-
-class subscriptionProduct
-
-subscription <.. subscriptionProduct : always prices many <
-
-class subscriptionWeb
-
-subscription <|-- subscriptionWeb
-seoMetadata <... subscriptionWeb : always has 1 <
-
 class tag
 
 class token
