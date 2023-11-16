@@ -236,7 +236,7 @@ object SendGridService : EmailService {
 
         @Serializable
         data class GetContactsResponse(
-            val result: Map<String, OptionalContact>,
+            val result: Map<String, OptionalContact>? = null,
         )
 
         return coroutineScope {
@@ -256,9 +256,9 @@ object SendGridService : EmailService {
                 val getContactsResponse: GetContactsResponse = json.decodeFromString(response.body)
                 getContactsResponse
                     .result
-                    .values
-                    .mapNotNull(OptionalContact::contact)
-                    .map(Contact::id)
+                    ?.values
+                    ?.mapNotNull(OptionalContact::contact)
+                    ?.map(Contact::id)
             } catch (e: Exception) {
                 logger.error("Failed to search contacts by email", e)
                 null
