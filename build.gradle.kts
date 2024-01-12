@@ -33,7 +33,7 @@ allprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
-        environment = env.allVariables
+        environment = env.allVariables()
     }
 }
 
