@@ -162,6 +162,12 @@ object InvestService {
         Country of residence .. ${countryCode?.let { "${it.displayName} (${it.name})" }}
         Name of fund .......... $fundName
 
+        ☑ By ticking the following box you confirm that your request for fund information was made at your own initiative.
+        ☑ By ticking this box I/we confirm having read and understood the above notice;  
+        >> consent to be treated as an investor as defined by the selected box above; 
+        >> confirm that I/we are authorized to sign this document; 
+        >> and confirm having read and agreed to AKJ’s data protection notice: https://www.akj.com/legal 
+          
         Action taken .......... Approved
         """.trimIndent()
 
