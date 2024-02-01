@@ -174,7 +174,11 @@ object StripeClient {
                     .setQuantity(1)
                     .build()
             )
-            // .putMetadata("web-client-id", webClientId)
+            .apply {
+                if (webClientId != null) {
+                    putMetadata("web-client-id", webClientId)
+                }
+            }
             .build()
         val checkoutSession = stripeCall {
             StripeCheckoutSession.create(
