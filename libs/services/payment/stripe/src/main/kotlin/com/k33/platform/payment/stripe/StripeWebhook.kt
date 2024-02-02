@@ -96,15 +96,17 @@ fun Application.module() {
                                                     } else {
                                                         product.welcomeEmail
                                                     }
-                                                    emailService.sendEmail(
-                                                        from = Email(
-                                                            address = welcomeEmail.from.email,
-                                                            label = welcomeEmail.from.label,
-                                                        ),
-                                                        toList = listOf(Email(customerEmail)),
-                                                        mail = MailTemplate(welcomeEmail.sendgridTemplateId),
-                                                        unsubscribeSettings = welcomeEmail.unsubscribeSettings,
-                                                    )
+                                                    if (welcomeEmail != null) {
+                                                        emailService.sendEmail(
+                                                            from = Email(
+                                                                address = welcomeEmail.from.email,
+                                                                label = welcomeEmail.from.label,
+                                                            ),
+                                                            toList = listOf(Email(customerEmail)),
+                                                            mail = MailTemplate(welcomeEmail.sendgridTemplateId),
+                                                            unsubscribeSettings = welcomeEmail.unsubscribeSettings,
+                                                        )
+                                                    }
                                                 }
                                             }
 
@@ -185,6 +187,9 @@ fun Application.module() {
                                                     val subscriptionToBeCanceled =
                                                         event.data.previousAttributes?.get("cancel_at_period_end") == false
                                                                 && subscription.cancelAtPeriodEnd == true
+                                                    val trialSubscriptionToBeCanceled =
+                                                        subscriptionToBeCanceled
+                                                                && status == Status.trialing
                                                     val subscriptionUncanceled =
                                                         status.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
                                                                 && event.data.previousAttributes?.get("cancel_at_period_end") == true
@@ -205,6 +210,24 @@ fun Application.module() {
                                                             notifySlack("$customerEmail has done recurring payment and continued as Pro (active) subscriber of ${product.name}")
                                                         }
 
+                                                        trialSubscriptionToBeCanceled -> {
+                                                            notifySlack("$customerEmail has scheduled to unsubscribe from ${product.name} at the end of trial")
+                                                            launch {
+                                                                product.emailForCancelDuringTrial?.also { emailConfig ->
+                                                                    emailService.sendEmail(
+                                                                        from = Email(
+                                                                            address = emailConfig.from.email,
+                                                                            label = emailConfig.from.label,
+                                                                        ),
+                                                                        toList = listOf(Email(customerEmail)),
+                                                                        mail = MailTemplate(emailConfig.sendgridTemplateId),
+                                                                        unsubscribeSettings = emailConfig.unsubscribeSettings,
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // has to be after trialSubscriptionToBeCanceled
                                                         subscriptionToBeCanceled -> {
                                                             // subscription is set to be cancelled at the end of billing period
                                                             notifySlack("$customerEmail has scheduled to unsubscribe from ${product.name} at the end of billing period")

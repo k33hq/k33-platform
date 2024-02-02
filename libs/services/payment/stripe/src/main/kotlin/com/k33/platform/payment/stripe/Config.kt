@@ -8,8 +8,9 @@ data class ProductConfig(
     val name: String,
     val stripeProduct: StripeProduct,
     val sendgridContactListId: String,
-    val welcomeEmailForTrial: EmailTemplateConfig,
+    val welcomeEmailForTrial: EmailTemplateConfig?,
     val welcomeEmail: EmailTemplateConfig,
+    val emailForCancelDuringTrial: EmailTemplateConfig?,
 )
 
 data class StripeProduct(
