@@ -12,22 +12,26 @@ sealed interface Param
 
 // https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference/events#sign_up
 class SignUp(
-    method: String? = null
+    method: String?,
+    pageUrl: String?,
 ) : Event(
     name = "sign_up",
-    params = method?.let { AuthParam(method = method) }
+    params = AuthParam(method = method, pageUrl = pageUrl),
 )
 
 // https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference/events#login
 class Login(
-    method: String? = null
+    method: String?,
+    pageUrl: String?,
 ) : Event(
     name = "login",
-    params = method?.let { AuthParam(method = method) }
+    params = AuthParam(method = method, pageUrl = pageUrl),
 )
 
 data class AuthParam(
-    val method: String
+    val method: String?,
+    @JsonProperty("page_url")
+    val pageUrl: String?,
 ) : Param
 
 // https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference/events#begin_checkout
@@ -35,6 +39,7 @@ class BeginCheckout(
     currency: Currency,
     value: Float,
     productId: String,
+    pageUrl: String?,
 ) : Event(
     name = "begin_checkout",
     params = BeginCheckoutParam(
@@ -45,7 +50,8 @@ class BeginCheckout(
                 itemId = productId,
                 price = value,
             )
-        )
+        ),
+        pageUrl = pageUrl,
     )
 )
 
@@ -53,6 +59,8 @@ data class BeginCheckoutParam(
     val currency: String,
     val value: Float,
     val items: List<Item>,
+    @JsonProperty("page_url")
+    val pageUrl: String?,
 ) : Param
 
 // custom event

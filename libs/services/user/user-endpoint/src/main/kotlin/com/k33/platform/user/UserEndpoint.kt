@@ -43,10 +43,12 @@ fun Application.module() {
                         call.application.log.info("Creating user")
                         val webClientId = call.request.header("x-client-id")
                         val idProvider = call.request.queryParameters["id-provider"]
+                        val pageUrl = call.request.queryParameters["source-url"]
                         val user = userId.createUser(
                             email = userInfo.email,
                             webClientId = webClientId,
-                            idProvider = idProvider
+                            idProvider = idProvider,
+                            pageUrl = pageUrl,
                         )
                         if (user == null) {
                             call.application.log.error("Failed to create a user")

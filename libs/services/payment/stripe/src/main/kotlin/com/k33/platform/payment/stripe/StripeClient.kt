@@ -195,6 +195,7 @@ object StripeClient {
             value = price.unitAmount / 100.0f,
             currency = price.currency,
             productId = productId,
+            pageUrl = successUrl,
         )
         return CheckoutSession(
             url = checkoutSession.url,

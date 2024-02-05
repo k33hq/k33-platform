@@ -16,15 +16,18 @@ class GA4ClientTest : BehaviorSpec({
 
     val events = listOf(
         SignUp(
-            method = "google"
+            method = "google",
+            pageUrl = null,
         ),
         Login(
-            method = "google"
+            method = "google",
+            pageUrl = null,
         ),
         BeginCheckout(
             currency = Currency.getInstance("USD"),
             value = 50f,
             productId = "k33-research-pro",
+            pageUrl = null,
         ),
         BeginSubscriptionTrial(
             productId = "k33-research-pro",

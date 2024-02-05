@@ -86,6 +86,21 @@ paths:
         Create user using userId from JWT OAuth Identity token in Authentication Bearer header.
         New Analytics ID will be assigned to this user.
       operationId: createUser
+      parameters:
+        - name: "id-provider"
+          in: query
+          type: string
+          enum:
+            - google
+            - apple
+            - microsoft
+            - email
+          required: false
+        - name: "source-url"
+          in: query
+          type: string
+          format: url
+          required: false
       responses:
         200:
           description: "Created User"

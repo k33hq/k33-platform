@@ -13,6 +13,7 @@ object UserService {
         email: String,
         webClientId: String?,
         idProvider: String?,
+        pageUrl: String?,
     ): User? {
         suspend fun createUser(): User? {
             val analyticsId = UUID.randomUUID().toString()
@@ -28,6 +29,7 @@ object UserService {
                 userAnalyticsId = analyticsId,
                 webClientId = webClientId,
                 idProvider = idProvider,
+                pageUrl = pageUrl,
             )
             return fetchUser()
         }
@@ -36,7 +38,8 @@ object UserService {
                 Log.login(
                     webClientId = webClientId,
                     userAnalyticsId = user.analyticsId,
-                    idProvider = idProvider
+                    idProvider = idProvider,
+                    pageUrl = pageUrl,
                 )
             }
             ?: createUser()

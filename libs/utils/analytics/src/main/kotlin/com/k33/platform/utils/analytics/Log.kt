@@ -21,12 +21,18 @@ object Log {
         webClientId: String?,
         userAnalyticsId: String?,
         idProvider: String?,
+        pageUrl: String?,
     ) {
         GA4ClientForWeb.submit(
             WebRequest(
                 webClientId = webClientId ?: createWebClientId(),
                 userAnalyticsId = userAnalyticsId,
-                events = listOf(SignUp(method = idProvider?.lowercase()))
+                events = listOf(
+                    SignUp(
+                        method = idProvider?.lowercase(),
+                        pageUrl = pageUrl,
+                    )
+                )
             )
         )
     }
@@ -35,12 +41,18 @@ object Log {
         webClientId: String?,
         userAnalyticsId: String?,
         idProvider: String?,
+        pageUrl: String?,
     ) {
         GA4ClientForWeb.submit(
             WebRequest(
                 webClientId = webClientId ?: createWebClientId(),
                 userAnalyticsId = userAnalyticsId,
-                events = listOf(Login(method = idProvider?.lowercase()))
+                events = listOf(
+                    Login(
+                        method = idProvider?.lowercase(),
+                        pageUrl = pageUrl,
+                    )
+                )
             )
         )
     }
@@ -51,6 +63,7 @@ object Log {
         value: Float,
         currency: String,
         productId: String,
+        pageUrl: String?,
     ) {
         GA4ClientForWeb.submit(
             WebRequest(
@@ -61,6 +74,7 @@ object Log {
                         currency = Currency.getInstance(currency.uppercase()),
                         value = value,
                         productId = productId,
+                        pageUrl = pageUrl,
                     )
                 )
             )
@@ -145,5 +159,6 @@ object Log {
         )
     }
 
-    private fun createWebClientId() = "${Random.nextULong(from = 1_000_000_000u, until = 9_999_999_999u)}.${Instant.now().epochSecond}"
+    private fun createWebClientId() =
+        "${Random.nextULong(from = 1_000_000_000u, until = 9_999_999_999u)}.${Instant.now().epochSecond}"
 }

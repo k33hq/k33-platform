@@ -28,6 +28,7 @@ object UserEventHandler {
         userAnalyticsId: String,
         webClientId: String?,
         idProvider: String?,
+        pageUrl: String?,
     ) {
         coroutineScope {
             launch {
@@ -57,6 +58,7 @@ object UserEventHandler {
                     webClientId = webClientId,
                     userAnalyticsId = userAnalyticsId,
                     idProvider = idProvider,
+                    pageUrl = pageUrl,
                 )
             }
         }
