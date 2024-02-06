@@ -1,5 +1,9 @@
 package com.k33.platform.payment.stripe
 
+import com.k33.platform.email.Email
+import com.k33.platform.email.EmailTemplateConfig
+import com.k33.platform.email.MailTemplate
+import com.k33.platform.email.getEmailService
 import com.k33.platform.utils.analytics.Log
 import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.NotifySlack
@@ -15,6 +19,7 @@ import com.stripe.model.Customer
 import com.stripe.model.Price
 import com.stripe.net.RequestOptions
 import com.stripe.param.CustomerCreateParams
+import com.stripe.param.CustomerListParams
 import com.stripe.param.CustomerSearchParams
 import com.stripe.param.SubscriptionCreateParams
 import com.stripe.param.SubscriptionListParams
@@ -29,6 +34,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import kotlin.collections.filter
 import kotlin.collections.filterNotNull
 import kotlin.collections.flatMap
@@ -36,6 +42,9 @@ import kotlin.collections.flatten
 import kotlin.collections.groupBy
 import kotlin.collections.map
 import kotlin.collections.sortedByDescending
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.toJavaDuration
 import com.stripe.model.Subscription as StripeSubscription
 import com.stripe.model.billingportal.Session as StripeCustomerPortalSession
 import com.stripe.model.checkout.Session as StripeCheckoutSession
@@ -69,6 +78,13 @@ object StripeClient {
         "researchApp",
         "apps.research.products",
     )
+
+    private val newUserOfferEmail: EmailTemplateConfig by loadConfig(
+        "researchApp",
+        "apps.research.newUserOfferEmail",
+    )
+
+    private val emailService by getEmailService()
 
     /**
      * [Stripe API - Create Checkout Session](https://stripe.com/docs/api/checkout/sessions/create)
@@ -243,12 +259,12 @@ object StripeClient {
     private suspend fun getCustomersByEmail(
         customerEmail: String
     ): CustomerInfo {
-        val searchParams = CustomerSearchParams
+        val listParams = CustomerListParams
             .builder()
-            .setQuery("email:'$customerEmail'")
+            .setEmail(customerEmail)
             .build()
         val customers = stripeCall {
-            Customer.search(searchParams, requestOptions)
+            Customer.list(listParams, requestOptions)
         }
             ?.data
             // in case of duplicates we give priority to one created later
@@ -404,6 +420,103 @@ object StripeClient {
             logger.warn("Found ${sessions.size} checkout sessions")
         }
         sessions
+    }
+
+    suspend fun emailOfferToCustomersWithoutSubscription(): Boolean {
+        val past = 3.days
+        val window = 1.hours
+        val thisHour = Instant.now().truncatedTo(ChronoUnit.HOURS)
+        val createdSince = thisHour.minus((past + window).toJavaDuration())
+        val createdBefore = (createdSince + window.toJavaDuration())
+
+        try {
+            val emailsOfCustomersWithNoSubscription = getCustomersWithoutSubscription(
+                createdSince = createdSince,
+                createdBefore = createdBefore,
+            )
+            if (emailsOfCustomersWithNoSubscription.isEmpty()) {
+                return true
+            }
+            val emailSuccess = emailService.sendEmail(
+                from = Email(
+                    address = newUserOfferEmail.from.email,
+                    label = newUserOfferEmail.from.label,
+                ),
+                toList = emailsOfCustomersWithNoSubscription,
+                mail = MailTemplate(templateId = newUserOfferEmail.sendgridTemplateId),
+                unsubscribeSettings = newUserOfferEmail.unsubscribeSettings,
+            )
+            if (emailSuccess) {
+                logger.info("Offer email sent to ${emailsOfCustomersWithNoSubscription.size} stripe users without subscription and created since: $createdSince and before: $createdBefore")
+            } else {
+                logger.error(
+                    NotifySlack.ALERTS,
+                    "Error sending offer email sent to ${emailsOfCustomersWithNoSubscription.size} stripe users without subscription and created since: $createdSince and before: $createdBefore"
+                )
+            }
+            return emailSuccess
+        } catch (e: Exception) {
+            logger.error(
+                NotifySlack.ALERTS,
+                "Exception in sending offer email to stripe users without subscription and created since: $createdSince and before: $createdBefore",
+                e
+            )
+            return false
+        }
+    }
+
+    internal suspend fun getCustomersWithoutSubscription(
+        createdSince: Instant,
+        createdBefore: Instant,
+    ): List<Email> {
+
+        val createdSinceEpochSeconds = createdSince.epochSecond
+        val createdBeforeEpochSeconds = createdBefore.epochSecond
+
+        logger.info("Fetching stripe users created since: $createdSince and before: $createdBefore")
+        val customers = run {
+            val customers = mutableListOf<Customer>()
+            var page: String? = null
+            do {
+                val result = stripeCall {
+                    Customer.search(
+                        CustomerSearchParams
+                            .builder()
+                            .setQuery("created>=$createdSinceEpochSeconds AND created<$createdBeforeEpochSeconds")
+                            .addExpand("data.subscriptions")
+                            .setLimit(100)
+                            .apply {
+                                if (page != null) {
+                                    setPage(page)
+                                }
+                            }
+                            .build(),
+                        requestOptions,
+                    )
+                }
+                page = result?.nextPage
+                val fetchedCustomers = result
+                    ?.data
+                    ?: emptyList<Customer>()
+                customers.addAll(fetchedCustomers)
+            } while (result?.hasMore == true)
+            customers.toList()
+        }
+
+        logger.info("Found ${customers.size} stripe users created since: $createdSince and before: $createdBefore")
+
+        val emailsOfCustomersWithNoSubscription = customers
+            .sortedBy { it.created }
+            .groupBy { it.email }
+            .filter { (_, customers) -> customers.flatMap { it.subscriptions.data }.isEmpty() }
+            .keys
+            .filterNotNull()
+            .map(::Email)
+            .toList()
+
+        logger.info("Filtered ${emailsOfCustomersWithNoSubscription.size} stripe users without subscription and created since: $createdSince and before: $createdBefore")
+
+        return emailsOfCustomersWithNoSubscription
     }
 
     private suspend fun createTrialSubscription(

@@ -32,17 +32,15 @@ fun explorePreviousAttributes() {
                 .setType("customer.subscription.updated")
                 .setLimit(100)
                 .apply {
-                    if (events.isNotEmpty()) {
-                        this.setStartingAfter(events.last().id)
+                    val last = events.lastOrNull()?.id
+                    if (last != null) {
+                        this.setStartingAfter(last)
                     }
                 }
                 .build()
-
-            val fetchedEvents = Event
-                .list(params, requestOptions)
-                .data
-            events.addAll(fetchedEvents)
-        } while (fetchedEvents.size == 100)
+            val result = Event.list(params, requestOptions)
+            events.addAll(result.data ?: emptyList())
+        } while (result?.hasMore == true)
 
         events
             .groupBy { it.data.previousAttributes.keys }
@@ -74,17 +72,16 @@ fun customerEmailsWithTooExpensiveAsCancelFeedback() {
                 .setCollectionMethod(SubscriptionListParams.CollectionMethod.CHARGE_AUTOMATICALLY)
                 .setLimit(100)
                 .apply {
-                    if (subscriptions.isNotEmpty()) {
-                        this.setStartingAfter(subscriptions.last().id)
+                    val last = subscriptions.lastOrNull()?.id
+                    if (last != null) {
+                        this.setStartingAfter(last)
                     }
                 }
                 .build()
 
-            val fetchedSubscriptions = Subscription
-                .list(params, requestOptions)
-                .data
-            subscriptions.addAll(fetchedSubscriptions)
-        } while (fetchedSubscriptions.size == 100)
+            val result = Subscription.list(params, requestOptions)
+            subscriptions.addAll(result.data ?: emptyList())
+        } while (result?.hasMore == true)
 
         subscriptions
             .filter { it.cancellationDetails.feedback == "too_expensive" }
@@ -121,17 +118,16 @@ fun cancellationReasonAndFeedback() {
                 .setCollectionMethod(SubscriptionListParams.CollectionMethod.CHARGE_AUTOMATICALLY)
                 .setLimit(100)
                 .apply {
-                    if (subscriptions.isNotEmpty()) {
-                        this.setStartingAfter(subscriptions.last().id)
+                    val last = subscriptions.lastOrNull()?.id
+                    if (last != null) {
+                        this.setStartingAfter(last)
                     }
                 }
                 .build()
 
-            val fetchedSubscriptions = Subscription
-                .list(params, requestOptions)
-                .data
-            subscriptions.addAll(fetchedSubscriptions)
-        } while (fetchedSubscriptions.size == 100)
+            val result = Subscription.list(params, requestOptions)
+            subscriptions.addAll(result.data)
+        } while (result?.hasMore == true)
 
         subscriptions
             .groupBy { it.cancellationDetails.reason ?: "unknown" }

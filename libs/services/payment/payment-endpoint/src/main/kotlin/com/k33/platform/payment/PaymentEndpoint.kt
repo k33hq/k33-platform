@@ -130,6 +130,15 @@ fun Application.module() {
                 }
             }
         }
+        route("/admin/jobs") {
+            post("send-offer-to-users-without-subscription") {
+                if(StripeClient.emailOfferToCustomersWithoutSubscription()) {
+                    call.respond(HttpStatusCode.OK)
+                } else {
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
+            }
+        }
     }
 }
 
