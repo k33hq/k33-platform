@@ -27,6 +27,7 @@ include(
 
     // libs / apps
     "libs:apps:invest",
+    "libs:apps:vault",
 
     // libs / clients
     "libs:clients:contentful-client",
@@ -68,6 +69,7 @@ include(
     "libs:utils:config",
     "libs:utils:file-store",
     "libs:utils:firebase-auth",
+    "libs:utils:fireblocks",
     "libs:utils:google-coroutine-ktx",
     "libs:utils:graphql",
 

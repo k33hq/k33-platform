@@ -27,3 +27,21 @@ val apiClient = HttpClient(CIO) {
         port = backend.port
     }
 }
+
+val adminApiClient = HttpClient(CIO) {
+    install(Logging) {
+        logger = Logger.DEFAULT
+        level = LogLevel.INFO
+    }
+    install(UserAgent) {
+        agent = "k33-platform/apps/acceptance-tests"
+    }
+    install(ContentNegotiation) {
+        json()
+    }
+    defaultRequest {
+        host = adminBackend.host
+        port = adminBackend.port
+    }
+}
+

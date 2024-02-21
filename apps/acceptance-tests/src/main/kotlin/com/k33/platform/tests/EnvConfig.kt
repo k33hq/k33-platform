@@ -5,6 +5,11 @@ val backend = Socket(
     port = 8080,
 )
 
+val adminBackend = Socket(
+    host = if(System.getenv("BACKEND_HOST") != null) "k33-backend" else "localhost",
+    port = 8080,
+)
+
 val usingEsp = backend.host != "k33-backend"
 
 val viaIde = backend.host == "localhost"

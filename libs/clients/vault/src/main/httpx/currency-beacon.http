@@ -1,0 +1,9 @@
+# https://currencybeacon.com/api-documentation
+
+### latest
+
+GET https://api.currencybeacon.com/v1/latest
+    ?api_key={{currency_beacon_api_key}}
+    &base=USD
+    &symbols=BTC,ETH,ETHW,X2Y2,SOLANA,SAND,MANA,MATIC,GALA
+

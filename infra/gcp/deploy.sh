@@ -68,13 +68,17 @@ SENDGRID_TEMPLATE_ID_NEW_USER_OFFER_K33_RESEARCH=$(op read op://env/$ENV/sendgri
 # ga
 GOOGLE_ANALYTICS_FIREBASE_APP_ID=$(op read op://env/$ENV/analytics/GOOGLE_ANALYTICS_FIREBASE_APP_ID)
 GOOGLE_ANALYTICS_MEASUREMENT_ID=$(op read op://env/$ENV/analytics/GOOGLE_ANALYTICS_MEASUREMENT_ID)
-# invest
+# for invest app
 INVEST_DENIED_COUNTRY_CODE_LIST=$(op read op://env/$ENV/invest/INVEST_DENIED_COUNTRY_CODE_LIST)
 INVEST_EMAIL_FROM=$(op read op://env/$ENV/invest/INVEST_EMAIL_FROM)
 INVEST_EMAIL_TO_LIST=$(op read op://env/$ENV/invest/INVEST_EMAIL_TO_LIST)
 INVEST_EMAIL_CC_LIST=$(op read op://env/$ENV/invest/INVEST_EMAIL_CC_LIST)
 INVEST_EMAIL_BCC_LIST=$(op read op://env/$ENV/invest/INVEST_EMAIL_BCC_LIST)
-
+# for vault app
+## currency_beacon
+CURRENCY_BEACON_API_KEY=$(op read op://env/$ENV/vault/CURRENCY_BEACON_API_KEY)
+## coin_gecko
+COIN_GECKO_API_KEY=$(op read op://env/$ENV/vault/COIN_GECKO_API_KEY)
 
 declare -A backendCloudRun
 backendCloudRun["service"]="k33-backend"
@@ -137,6 +141,8 @@ gcloud run deploy "${backendCloudRun["service"]}" \
   --set-env-vars=^:^INVEST_EMAIL_TO_LIST="${INVEST_EMAIL_TO_LIST}" \
   --set-env-vars=^:^INVEST_EMAIL_CC_LIST="${INVEST_EMAIL_CC_LIST}" \
   --set-env-vars=^:^INVEST_EMAIL_BCC_LIST="${INVEST_EMAIL_BCC_LIST}" \
+  --set-env-vars=CURRENCY_BEACON_API_KEY="${CURRENCY_BEACON_API_KEY}" \
+  --set-env-vars=COIN_GECKO_API_KEY="${COIN_GECKO_API_KEY}" \
   --service-account "${backendCloudRun["service_account"]}" \
   --no-allow-unauthenticated \
   --port=8080 \

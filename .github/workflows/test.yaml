@@ -117,6 +117,14 @@ jobs:
           # INVEST_EMAIL_CC_LIST:
           # Comma separated nullable or empty (blank) list, with each value of the format - address#label
           # INVEST_EMAIL_BCC_LIST:
+          # for vault app
+          ## fireblocks
+          FIREBLOCKS_API_KEY: op://env/dev/vault/FIREBLOCKS_API_KEY
+          FIREBLOCKS_SECRET_KEY: op://env/dev/vault/FIREBLOCKS_SECRET_KEY
+          ## currency_beacon
+          CURRENCY_BEACON_API_KEY: op://env/dev/vault/CURRENCY_BEACON_API_KEY
+          ## coin_gecko
+          COIN_GECKO_API_KEY: op://env/dev/vault/COIN_GECKO_API_KEY
           # for gcp emulators
           GOOGLE_CLOUD_PROJECT: op://env/dev/gcp/GCP_PROJECT_ID
           GOOGLE_APPLICATION_CREDENTIALS: infra/gcp/secrets/gcp-service-account.json

@@ -71,6 +71,10 @@ services:
       - INVEST_EMAIL_TO_LIST=${INVEST_EMAIL_TO_LIST}
       - INVEST_EMAIL_CC_LIST=${INVEST_EMAIL_CC_LIST}
       - INVEST_EMAIL_BCC_LIST=${INVEST_EMAIL_BCC_LIST}
+      - FIREBLOCKS_API_KEY=${FIREBLOCKS_API_KEY}
+      - FIREBLOCKS_SECRET_KEY=${FIREBLOCKS_SECRET_KEY}
+      - CURRENCY_BEACON_API_KEY=${CURRENCY_BEACON_API_KEY}
+      - COIN_GECKO_API_KEY=${COIN_GECKO_API_KEY}
     volumes:
       - "./infra/gcp/secrets/gcp-service-account.json:/config/gcp-service-account.json:ro"
     expose:

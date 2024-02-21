@@ -1,0 +1,22 @@
+# https://docs.coingecko.com/reference
+
+### Supported currenceis
+# https://docs.coingecko.com/reference/simple-supported-currencies
+
+GET https://pro-api.coingecko.com/api/v3/simple/supported_vs_currencies
+X-CG-PRO-API-KEY: {{coin_gecko_api_key}}
+
+### Supported coins
+# https://docs.coingecko.com/reference/coins-list
+
+GET https://pro-api.coingecko.com/api/v3/coins/list
+X-CG-PRO-API-KEY: {{coin_gecko_api_key}}
+
+### Coin Price by IDs
+# https://docs.coingecko.com/reference/simple-price
+
+GET https://pro-api.coingecko.com/api/v3/simple/price
+    ?ids=bitcoin,ethereum,ethereum-pow-iou,x2y2,solana,the-sandbox,decentraland,matic-network,gala
+    &vs_currencies=usd
+    &include_24hr_change=true
+X-CG-PRO-API-KEY: {{coin_gecko_api_key}}

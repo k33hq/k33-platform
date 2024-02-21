@@ -74,12 +74,17 @@ jobs:
           # ga
           GOOGLE_ANALYTICS_FIREBASE_APP_ID: op://env/prod/analytics/GOOGLE_ANALYTICS_FIREBASE_APP_ID
           GOOGLE_ANALYTICS_MEASUREMENT_ID: op://env/prod/analytics/GOOGLE_ANALYTICS_MEASUREMENT_ID
-          # invest
+          # for invest app
           INVEST_DENIED_COUNTRY_CODE_LIST: op://env/prod/invest/INVEST_DENIED_COUNTRY_CODE_LIST
           INVEST_EMAIL_FROM: op://env/prod/invest/INVEST_EMAIL_FROM
           INVEST_EMAIL_TO_LIST: op://env/prod/invest/INVEST_EMAIL_TO_LIST
           INVEST_EMAIL_CC_LIST: op://env/prod/invest/INVEST_EMAIL_CC_LIST
           INVEST_EMAIL_BCC_LIST: op://env/prod/invest/INVEST_EMAIL_BCC_LIST
+          # for vault app
+          ## currency_beacon
+          CURRENCY_BEACON_API_KEY: op://env/prod/vault/CURRENCY_BEACON_API_KEY
+          ## coin_gecko
+          COIN_GECKO_API_KEY: op://env/dev/vault/COIN_GECKO_API_KEY
           # gcp
           GCP_WORKLOAD_IDENTITY_PROVIDER: op://env/github/gcp/GCP_WORKLOAD_IDENTITY_PROVIDER
           GCP_SERVICE_ACCOUNT: op://env/github/gcp/GCP_SERVICE_ACCOUNT
@@ -150,6 +155,8 @@ jobs:
             --set-env-vars=^:^INVEST_EMAIL_TO_LIST="${INVEST_EMAIL_TO_LIST}" \
             --set-env-vars=^:^INVEST_EMAIL_CC_LIST="${INVEST_EMAIL_CC_LIST}" \
             --set-env-vars=^:^INVEST_EMAIL_BCC_LIST="${INVEST_EMAIL_BCC_LIST}" \
+            --set-env-vars=CURRENCY_BEACON_API_KEY="${CURRENCY_BEACON_API_KEY}" \
+            --set-env-vars=COIN_GECKO_API_KEY="${COIN_GECKO_API_KEY}" \
             --service-account k33-backend@"${GCP_PROJECT_ID}".iam.gserviceaccount.com \
             --no-allow-unauthenticated \
             --port=8080 \

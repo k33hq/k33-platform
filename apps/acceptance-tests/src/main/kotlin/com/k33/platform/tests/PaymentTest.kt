@@ -87,6 +87,11 @@ class PaymentTest : BehaviorSpec({
                 getSubscribedProduct(email = email).status shouldBe HttpStatusCode.NotFound
             }
         }
+        `when`("POST /payment/customer-portal-sessions") {
+            then("response is 404 NOT FOUND") {
+                createCustomerPortalSession(email = email).status shouldBe HttpStatusCode.NotFound
+            }
+        }
         `when`("POST /payment/checkout-sessions") {
             val response = createOrFetchCheckoutSession(email = email)
             then("response is checkout session url with expiresAt") {
@@ -105,11 +110,6 @@ class PaymentTest : BehaviorSpec({
                     secondResponse.body<CheckoutSession>().successUrl shouldBe response.body<CheckoutSession>().successUrl
                     secondResponse.body<CheckoutSession>().cancelUrl shouldBe response.body<CheckoutSession>().cancelUrl
                 }
-            }
-        }
-        `when`("POST /payment/customer-portal-sessions") {
-            then("response is 404 NOT FOUND") {
-                createCustomerPortalSession(email = email).status shouldBe HttpStatusCode.NotFound
             }
         }
     }

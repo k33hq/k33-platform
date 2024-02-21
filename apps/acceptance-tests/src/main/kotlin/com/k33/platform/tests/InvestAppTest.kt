@@ -74,7 +74,6 @@ class InvestAppTest : BehaviorSpec({
         `when`("GET apps/invest/funds/$fundId") {
             then("Status should be 404 NOT FOUND") {
                 getStatus(userId) shouldBe HttpStatusCode.NotFound
-
             }
             then("GET apps/invest/funds should be NOT_REGISTERED") {
                 getStatusMap(userId) shouldBe mapOf(fundId to "NOT_REGISTERED")

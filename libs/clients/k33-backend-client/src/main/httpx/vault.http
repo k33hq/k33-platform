@@ -1,0 +1,4 @@
+### Get vault account assets
+
+GET https://api.k33.com/apps/vault/assets
+Authorization: Bearer {{firebase_id_token}}

@@ -355,6 +355,80 @@ paths:
         - firebase: [ ]
 
 
+  "/apps/vault/assets":
+    get:
+      description: Get vault assets
+      operationId: "getVaultAssets"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "List of vault assets"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/VaultAsset"
+
+        404:
+          description: "Not registered to vault service"
+      security:
+        - firebase: [ ]
+
+  "/apps/vault/assets/{assetId}/addresses":
+    get:
+      description: Get vault asset addresses
+      operationId: "getVaultAssetAddresses"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "assetId"
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: "List of vault asset addresses"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/VaultAssetAddress"
+      security:
+        - firebase: [ ]
+
+  "/apps/vault/settings":
+    get:
+      description: Get vault app setting
+      operationId: getVaultAppSettings
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: Vault app settings
+          schema:
+            $ref: "#/definitions/VaultAppSettings"
+      security:
+        - firebase: [ ]
+    put:
+      description: Update vault app settings
+      operationId: updateVaultAppSettings
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "vaultAppRequest"
+          in: body
+          schema:
+            $ref: "#/definitions/VaultAppSettings"
+      responses:
+        200:
+          description: Updated vault app settings
+          schema:
+            $ref: "#/definitions/VaultAppSettings"
+      security:
+        - firebase: [ ]
+
+
 definitions:
 
   User:
@@ -771,6 +845,61 @@ definitions:
         type: string
     required:
       - investorType
+
+
+  VaultAssets:
+    type: array
+    items:
+      $ref: "#/definitions/VaultAsset"
+  VaultAsset:
+    type: object
+    properties:
+      id:
+        type: string
+      available:
+        type: number
+      rate:
+        $ref: "#/definitions/Amount"
+      fiatValue:
+        $ref: "#/definitions/Amount"
+      dailyPercentChange:
+        type: number
+    required:
+      - id
+      - available
+  Amount:
+    type: object
+    properties:
+      value:
+        type: number
+      currency:
+        type: string
+    required:
+      - value
+      - currency
+  VaultAssetAddress:
+    type: object
+    properties:
+      assetId:
+        type: string
+      address:
+        type: string
+      addressFormat:
+        type: string
+      legacyAddress:
+        type: string
+      tag:
+        type: string
+    required:
+      - assetId
+      - address
+  VaultAppSettings:
+    type: object
+    properties:
+      currency:
+        type: string
+    required:
+      - currency
 
 
 securityDefinitions:
