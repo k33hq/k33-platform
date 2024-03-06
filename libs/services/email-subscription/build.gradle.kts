@@ -12,5 +12,5 @@ dependencies {
 
     implementation(Ktor.server.core)
     implementation(Ktor.server.auth)
-    implementation("io.ktor:ktor-serialization-kotlinx-json:_")
+    implementation(Ktor.plugins.serialization.kotlinx.json)
 }

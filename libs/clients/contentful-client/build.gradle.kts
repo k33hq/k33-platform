@@ -15,5 +15,5 @@ apollo {
 }
 
 dependencies {
-    implementation("com.apollographql.apollo3:apollo-runtime:_")
+    implementation(ApolloGraphQL.runtime)
 }

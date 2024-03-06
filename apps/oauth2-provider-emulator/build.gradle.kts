@@ -13,7 +13,7 @@ dependencies {
     implementation(Ktor.server.core)
     implementation(Ktor.server.auth)
     implementation(Ktor.server.contentNegotiation)
-    implementation("io.ktor:ktor-serialization-kotlinx-json:_")
+    implementation(Ktor.plugins.serialization.kotlinx.json)
     runtimeOnly(Ktor.server.netty)
 
     implementation("com.nimbusds:nimbus-jose-jwt:_")

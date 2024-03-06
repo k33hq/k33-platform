@@ -10,7 +10,7 @@ dependencies {
     implementation(Ktor.client.cio)
     implementation(Ktor.client.logging)
     implementation(Ktor.client.contentNegotiation)
-    implementation("io.ktor:ktor-serialization-jackson:_")
+    implementation(Ktor.plugins.serialization.jackson)
 
     // test
     testImplementation("io.kotest:kotest-runner-junit5-jvm:_")

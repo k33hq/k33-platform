@@ -8,6 +8,6 @@ dependencies {
     implementation(Ktor.server.callId)
     implementation(Ktor.server.contentNegotiation)
     implementation(Ktor.server.defaultHeaders)
-    implementation("io.ktor:ktor-serialization-kotlinx-json:_")
+    implementation(Ktor.plugins.serialization.kotlinx.json)
     implementation(Ktor.server.statusPages)
 }
