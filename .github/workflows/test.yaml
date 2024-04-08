@@ -121,8 +121,6 @@ jobs:
           ## fireblocks
           FIREBLOCKS_API_KEY: op://env/dev/vault/FIREBLOCKS_API_KEY
           FIREBLOCKS_SECRET_KEY: op://env/dev/vault/FIREBLOCKS_SECRET_KEY
-          ## currency_beacon
-          CURRENCY_BEACON_API_KEY: op://env/dev/vault/CURRENCY_BEACON_API_KEY
           ## coin_gecko
           COIN_GECKO_API_KEY: op://env/dev/vault/COIN_GECKO_API_KEY
           # for gcp emulators

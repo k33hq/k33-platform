@@ -70,8 +70,6 @@ INVEST_EMAIL_TO_LIST=$(op read op://env/$ENV/invest/INVEST_EMAIL_TO_LIST)
 INVEST_EMAIL_CC_LIST=$(op read op://env/$ENV/invest/INVEST_EMAIL_CC_LIST)
 INVEST_EMAIL_BCC_LIST=$(op read op://env/$ENV/invest/INVEST_EMAIL_BCC_LIST)
 # for vault app
-## currency_beacon
-CURRENCY_BEACON_API_KEY=$(op read op://env/$ENV/vault/CURRENCY_BEACON_API_KEY)
 ## coin_gecko
 COIN_GECKO_API_KEY=$(op read op://env/$ENV/vault/COIN_GECKO_API_KEY)
 
@@ -136,7 +134,6 @@ gcloud run deploy "${backendCloudRun["service"]}" \
   --set-env-vars=^:^INVEST_EMAIL_TO_LIST="${INVEST_EMAIL_TO_LIST}" \
   --set-env-vars=^:^INVEST_EMAIL_CC_LIST="${INVEST_EMAIL_CC_LIST}" \
   --set-env-vars=^:^INVEST_EMAIL_BCC_LIST="${INVEST_EMAIL_BCC_LIST}" \
-  --set-env-vars=CURRENCY_BEACON_API_KEY="${CURRENCY_BEACON_API_KEY}" \
   --set-env-vars=COIN_GECKO_API_KEY="${COIN_GECKO_API_KEY}" \
   --service-account "${backendCloudRun["service_account"]}" \
   --no-allow-unauthenticated \
