@@ -1,6 +1,7 @@
 package com.k33.platform.app.vault
 
 import io.kotest.core.spec.style.StringSpec
+import java.time.LocalDate
 
 class VaultServiceTest : StringSpec({
     "get vault assets".config(enabled = false) {
@@ -17,5 +18,11 @@ class VaultServiceTest : StringSpec({
                 println("$id $available $rate $fiatValue")
             }
         }
+    }
+    "generate vault account balance reports".config(enabled = false) {
+        VaultService.generateVaultAccountBalanceReports(
+            date = LocalDate.now().minusDays(1),
+            mode = Mode.FETCH,
+        )
     }
 })

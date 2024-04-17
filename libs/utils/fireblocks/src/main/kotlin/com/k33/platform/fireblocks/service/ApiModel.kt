@@ -40,6 +40,54 @@ data class VaultAssetAddress(
     val userDefined: Boolean? = null,
 )
 
+data class Transaction(
+    val id: String? = null,
+    // https://developers.fireblocks.com/reference/primary-transaction-statuses
+    val status: String? = null,
+    // https://developers.fireblocks.com/reference/transaction-substatuses
+    val subStatus: String? = null,
+    val operation: String? = null,
+    val assetId: String? = null,
+    val source: Source? = null,
+    val sourceAddress: String? = null,
+    val tag: String? = null,
+    val destination: Destination? = null,
+    val destinationAddress: String? = null,
+    val destinationAddressDescription: String? = null,
+    val destinationTag: String? = null,
+    val amountInfo: AmountInfo? = null,
+    val feeInfo: FeeInfo? = null,
+    val feeCurrency: String? = null,
+    val createdAt: Long? = null,
+    val lastUpdated: Long? = null,
+    val createdBy: String? = null,
+    val signedBy: List<String> = emptyList(),
+    val rejectedBy: String? = null,
+)
+
+data class TxnSrcDest(
+    val type: String? = null,
+    val subType: String? = null,
+    val id: String? = null,
+    val name: String? = null,
+    val walletId: String? = null,
+)
+typealias Source = TxnSrcDest
+typealias Destination = TxnSrcDest
+
+data class AmountInfo(
+    val amount: String? = null,
+    val requestedAmount: String? = null,
+    val netAmount: String? = null,
+    val amountUSD: String? = null,
+)
+
+data class FeeInfo(
+    val networkFee: String? = null,
+    val serviceFee: String? = null,
+    val gasPrice: String? = null,
+)
+
 data class SupportedAsset(
     val id: String,
     val name: String,

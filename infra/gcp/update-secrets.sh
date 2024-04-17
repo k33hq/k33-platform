@@ -40,7 +40,9 @@ SLACK_TOKEN=$(op read op://env/$ENV/slack/SLACK_TOKEN)
 STRIPE_API_KEY=$(op read op://env/$ENV/stripe/STRIPE_API_KEY)
 STRIPE_WEBHOOK_ENDPOINT_SECRET=$(op read op://env/$ENV/stripe/STRIPE_WEBHOOK_ENDPOINT_SECRET)
 GOOGLE_ANALYTICS_API_SECRET=$(op read op://env/$ENV/analytics/GOOGLE_ANALYTICS_API_SECRET)
-
+FIREBLOCKS_API_KEY=$(op read op://env/$ENV/vault/FIREBLOCKS_API_KEY)
+FIREBLOCKS_SECRET_KEY=$(op read op://env/$ENV/vault/FIREBLOCKS_SECRET_KEY)
+VAULT_STRIPE_API_KEY=$(op://env/$ENV/vault/STRIPE_API_KEY)
 
 
 declare -A gcp_secrets
@@ -57,6 +59,9 @@ gcp_secrets[8]="SLACK_TOKEN"
 gcp_secrets[9]="STRIPE_API_KEY"
 gcp_secrets[10]="STRIPE_WEBHOOK_ENDPOINT_SECRET"
 gcp_secrets[11]="GOOGLE_ANALYTICS_API_SECRET"
+gcp_secrets[12]="FIREBLOCKS_API_KEY"
+gcp_secrets[13]="FIREBLOCKS_SECRET_KEY"
+gcp_secrets[14]="VAULT_STRIPE_API_KEY"
 
 # debugging
 #for index in ${!gcp_secrets[@]}; do

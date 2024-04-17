@@ -46,13 +46,12 @@ object FireblocksClient {
 
     suspend inline fun <reified E> get(
         path: String,
-        vararg queryParams: Pair<String, String?>
+        vararg queryParams: Pair<String, String>
     ): E? {
         val response = httpClient.get(path) {
             url {
                 queryParams
-                    .filter { it.second != null }
-                    .forEach { parameters.append(it.first, it.second!!) }
+                    .forEach { parameters.append(it.first, it.second) }
             }
         }
         return when (response.status) {

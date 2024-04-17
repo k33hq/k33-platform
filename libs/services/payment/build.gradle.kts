@@ -4,5 +4,5 @@ plugins {
 
 dependencies {
     implementation(project("payment-endpoint"))
-    implementation(project("stripe"))
+    implementation(project("stripe-service"))
 }

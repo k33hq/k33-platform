@@ -1,6 +1,5 @@
 package com.k33.platform.app.vault.coingecko
 
-import arrow.core.raise.nullable
 import com.k33.platform.utils.config.loadConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -17,10 +16,14 @@ import io.ktor.client.request.header
 import io.ktor.http.encodedPath
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 object CoinGeckoClient {
+
     private val config: Config by loadConfig("vault", "coinGecko")
 
     private val httpClient by lazy {
@@ -49,6 +52,7 @@ object CoinGeckoClient {
         }
     }
 
+    // https://docs.coingecko.com/reference/simple-price
     suspend fun getFxRates(
         baseCurrency: String,
         currencyList: List<String>,
@@ -58,7 +62,6 @@ object CoinGeckoClient {
             .joinToString(separator = ",") { symbol ->
                 val id = config.symbolToIdMap[symbol.toMainNetCurrency()]
                     ?: symbol.toMainNetCurrency()
-                    ?: symbol
                 idToSymbolsMap.getOrPut(id) { mutableSetOf() }.add(symbol)
                 id
             }
@@ -82,6 +85,24 @@ object CoinGeckoClient {
             .toMap()
     }
 
+    // https://docs.coingecko.com/reference/coins-id-history
+    suspend fun getHistoricalFxRates(
+        cryptoCurrency: String,
+        date: LocalDate,
+        fiatCurrency: String,
+    ): Double? {
+        val coinId = config.symbolToIdMap[cryptoCurrency.toMainNetCurrency()]
+        return httpClient.get("coins/$coinId/history") {
+            url {
+                parameters.append("date", date.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")))
+                parameters.append("localization", "false")
+            }
+        }.body<CoinHistoricalData>()
+            .marketData
+            .currentPrice[fiatCurrency.lowercase()]
+    }
+
+    // https://docs.coingecko.com/reference/coins-list
     internal suspend fun getCoinList(): List<Coin> {
         return httpClient.get("coins/list").body<List<Coin>>()
     }
@@ -96,6 +117,18 @@ data class FxRate(
 data class Coin(
     val id: String,
     val symbol: String,
+)
+
+@Serializable
+data class CoinHistoricalData(
+    @SerialName("market_data")
+    val marketData: MarketData,
+)
+
+@Serializable
+data class MarketData(
+    @SerialName("current_price")
+    val currentPrice: Map<String, Double>,
 )
 
 fun main() {
@@ -129,7 +162,7 @@ fun main() {
     }
 }
 
-internal fun String.toMainNetCurrency(): String? {
+internal fun String.toMainNetCurrency(): String {
     return this
         .substringBefore("_TEST")
         .substringBefore("TEST")

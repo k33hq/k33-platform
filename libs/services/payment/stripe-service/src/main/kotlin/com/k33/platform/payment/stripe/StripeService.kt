@@ -8,16 +8,13 @@ import com.k33.platform.utils.analytics.Log
 import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.getLogger
-import com.stripe.exception.ApiConnectionException
-import com.stripe.exception.AuthenticationException
-import com.stripe.exception.CardException
-import com.stripe.exception.IdempotencyException
-import com.stripe.exception.PermissionException
-import com.stripe.exception.RateLimitException
-import com.stripe.exception.StripeException
+import com.k33.platform.utils.stripe.AlreadySubscribed
+import com.k33.platform.utils.stripe.NotEligibleForFreeTrial
+import com.k33.platform.utils.stripe.NotFound
+import com.k33.platform.utils.stripe.ServiceUnavailable
+import com.k33.platform.utils.stripe.StripeClient
 import com.stripe.model.Customer
 import com.stripe.model.Price
-import com.stripe.net.RequestOptions
 import com.stripe.param.CustomerCreateParams
 import com.stripe.param.CustomerListParams
 import com.stripe.param.CustomerSearchParams
@@ -26,13 +23,9 @@ import com.stripe.param.SubscriptionListParams
 import com.stripe.param.checkout.SessionCreateParams
 import com.stripe.param.checkout.SessionListLineItemsParams
 import com.stripe.param.checkout.SessionListParams
-import io.ktor.util.encodeBase64
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
-import java.security.MessageDigest
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.collections.filter
@@ -51,15 +44,12 @@ import com.stripe.model.checkout.Session as StripeCheckoutSession
 import com.stripe.param.billingportal.SessionCreateParams as CustomerPortalSessionCreateParams
 import com.stripe.param.checkout.SessionCreateParams as CheckoutSessionCreateParams
 
-object StripeClient {
+object StripeService {
 
     private val logger by getLogger()
 
-    private val requestOptions by lazy {
-        RequestOptions.builder()
-            .setApiKey(System.getenv("STRIPE_API_KEY"))
-            .setClientId("k33-backend")
-            .build()
+    private val stripeClient by lazy {
+        StripeClient(System.getenv("STRIPE_API_KEY"))
     }
 
     private val corporatePlanCoupon by lazy { System.getenv("STRIPE_COUPON_CORPORATE_PLAN") }
@@ -97,7 +87,7 @@ object StripeClient {
         webClientId: String?,
         userAnalyticsId: String?,
     ): CheckoutSession {
-        val price = stripeCall {
+        val price = stripeClient.call {
             Price.retrieve(priceId, requestOptions)
         } ?: throw NotFound("price: [$priceId] not found")
         val productId = price.product
@@ -119,7 +109,7 @@ object StripeClient {
             }
             customerInfo.customers.first().id to subscriptionInfo.hasCurrentOrPriorSubscription(productId = productId)
         } else {
-            val customerId = stripeCall {
+            val customerId = stripeClient.call {
                 Customer.create(
                     CustomerCreateParams
                         .builder()
@@ -196,13 +186,13 @@ object StripeClient {
                 }
             }
             .build()
-        val checkoutSession = stripeCall {
+        val checkoutSession = stripeClient.call {
             StripeCheckoutSession.create(
                 params,
                 withIdempotencyKey(payload = customerId + priceId),
             )
         } ?: throw NotFound("Resource not found. Failed to create checkout session")
-        val lineItems = stripeCall {
+        val lineItems = stripeClient.call {
             checkoutSession.listLineItems(SessionListLineItemsParams.builder().build(), requestOptions)
         } ?: throw ServiceUnavailable("Missing line items in checkout session")
         Log.beginCheckout(
@@ -238,7 +228,7 @@ object StripeClient {
             .setCustomer(customerInfo.customers.firstOrNull()?.id ?: throw NotFound("customer not found"))
             .setReturnUrl(returnUrl)
             .build()
-        val customerPortalSession = stripeCall {
+        val customerPortalSession = stripeClient.call {
             StripeCustomerPortalSession.create(params, requestOptions)
         } ?: throw NotFound("customer not found")
         return CustomerPortalSession(
@@ -247,7 +237,7 @@ object StripeClient {
         )
     }
 
-    suspend fun getCustomerEmail(stripeCustomerId: String): String? = stripeCall {
+    suspend fun getCustomerEmail(stripeCustomerId: String): String? = stripeClient.call {
         Customer.retrieve(stripeCustomerId, requestOptions)
     }?.email
 
@@ -263,7 +253,7 @@ object StripeClient {
             .builder()
             .setEmail(customerEmail)
             .build()
-        val customers = stripeCall {
+        val customers = stripeClient.call {
             Customer.list(listParams, requestOptions)
         }
             ?.data
@@ -348,7 +338,7 @@ object StripeClient {
                 .customers
                 .map { customer ->
                     async {
-                        stripeCall {
+                        stripeClient.call {
                             StripeSubscription.list(
                                 SubscriptionListParams.builder()
                                     .setCustomer(customer.id)
@@ -391,7 +381,7 @@ object StripeClient {
             .builder()
             .setCustomerDetails(details)
             .build()
-        val sessions = stripeCall {
+        val sessions = stripeClient.call {
             StripeCheckoutSession.list(params, requestOptions)
         }
             ?.data
@@ -402,7 +392,7 @@ object StripeClient {
             ?.sortedByDescending { it.expiresAt }
             ?.map { checkoutSession ->
                 async {
-                    val lineItems = stripeCall {
+                    val lineItems = stripeClient.call {
                         checkoutSession.listLineItems(SessionListLineItemsParams.builder().build(), requestOptions)
                     } ?: throw ServiceUnavailable("Missing line items in checkout session")
                     CheckoutSession(
@@ -478,7 +468,7 @@ object StripeClient {
             val customers = mutableListOf<Customer>()
             var page: String? = null
             do {
-                val result = stripeCall {
+                val result = stripeClient.call {
                     Customer.search(
                         CustomerSearchParams
                             .builder()
@@ -524,7 +514,7 @@ object StripeClient {
         priceId: String,
         promotionCode: String?,
     ) {
-        val productId = stripeCall {
+        val productId = stripeClient.call {
             Price.retrieve(priceId, requestOptions)
         }?.product ?: throw NotFound("price: [$priceId] not found")
         val customerInfo = getCustomersByEmail(customerEmail = customerEmail)
@@ -540,7 +530,7 @@ object StripeClient {
             }
             customerInfo.customers.first().id
         } else {
-            val customerId = stripeCall {
+            val customerId = stripeClient.call {
                 Customer.create(
                     CustomerCreateParams
                         .builder()
@@ -586,7 +576,7 @@ object StripeClient {
                 }
             }
             .build()
-        val subscription = stripeCall {
+        val subscription = stripeClient.call {
             StripeSubscription.create(params, requestOptions)
         } ?: throw ServiceUnavailable("Failed to create Stripe subscription")
         logger.info("subscription.status: ${subscription.status}")
@@ -602,7 +592,7 @@ object StripeClient {
         customerEmail: String,
         priceId: String,
     ) {
-        val price = stripeCall {
+        val price = stripeClient.call {
             Price.retrieve(priceId, requestOptions)
         } ?: throw NotFound("price: [$priceId] not found")
         val productId = price.product
@@ -619,7 +609,7 @@ object StripeClient {
 
     private suspend fun StripeCheckoutSession.hasLineItemWith(
         priceId: String
-    ): Boolean = stripeCall {
+    ): Boolean = stripeClient.call {
         listLineItems(
             SessionListLineItemsParams.builder().build(),
             requestOptions
@@ -629,104 +619,4 @@ object StripeClient {
         ?.map { lineItem -> lineItem.price.id }
         ?.contains(priceId)
         ?: false
-
-    private suspend fun <R> stripeCall(
-        block: suspend () -> R
-    ): R? {
-        return withContext(Dispatchers.IO) {
-            try {
-                block()
-            }
-            // we are not catching InvalidRequestException since we want to distinguish between 400 Bad Request and
-            // 404 Not Found.
-
-            // https://stripe.com/docs/error-handling?lang=java#payment-errors
-            // 402
-            // The parameters were valid but the request failed.
-            catch (e: CardException) {
-                logger.error(NotifySlack.ALERTS, "Stripe Payment Error", e)
-                throw BadRequest(e.userMessage)
-            }
-
-            // https://stripe.com/docs/error-handling?lang=java#connection-errors
-            // This is not an HTTP error
-            catch (e: ApiConnectionException) {
-                logger.error(NotifySlack.ALERTS, "Stripe API Connection Exception", e)
-                throw ServiceUnavailable(e.userMessage)
-
-            }
-
-            // https://stripe.com/docs/error-handling?lang=java#rate-limit-errors
-            // 429
-            // Too many requests hit the API too quickly. We recommend an exponential backoff of your requests.
-            catch (e: RateLimitException) {
-                logger.error(NotifySlack.ALERTS, "Received rate limit error from Stripe", e)
-                throw TooManyRequests
-
-            }
-
-            // 401
-            // No valid API key provided.
-            catch (e: AuthenticationException) {
-                logger.error(NotifySlack.ALERTS, "Missing Stripe API key", e)
-                throw InternalServerError
-
-            }
-
-            // https://stripe.com/docs/error-handling?lang=java#permission-errors
-            // 403
-            // The API key doesn't have permissions to perform the request.
-            catch (e: PermissionException) {
-                logger.error(NotifySlack.ALERTS, "API key is missing permissions", e)
-                throw InternalServerError
-
-            }
-
-            // https://stripe.com/docs/error-handling?lang=java#idempotency-errors
-            // 400 or 404
-            // You used an idempotency key for something unexpected,
-            // like replaying a request but passing different parameters.
-            catch (e: IdempotencyException) {
-                logger.error(NotifySlack.ALERTS, "Stripe Idempotency Exception", e)
-                throw BadRequest(e.userMessage)
-
-            } catch (e: StripeException) {
-                // https://stripe.com/docs/api/errors?lang=java
-                when (e.statusCode) {
-                    // The request was unacceptable, often due to missing a required parameter.
-                    400 -> {
-                        throw BadRequest(e.userMessage)
-                    }
-                    // The requested resource doesn't exist.
-                    404 -> null
-                    // The request conflicts with another request (perhaps due to using the same idempotent key).
-                    409 -> throw InternalServerError
-                    // Something went wrong on Stripe's end. (These are rare.)
-                    in 500..599 -> {
-                        logger.error(NotifySlack.ALERTS, "Stripe error", e)
-                        throw ServiceUnavailable(e.userMessage)
-                    }
-
-                    else -> {
-                        // Something went wrong on Stripe's end. (These are rare.)
-                        throw InternalServerError
-                    }
-                }
-            }
-        }
-    }
-
-    private fun withIdempotencyKey(payload: String): RequestOptions {
-
-        fun hashOf(payload: String): String {
-            val md = MessageDigest.getInstance("SHA-256")
-            md.update(payload.lowercase().toByteArray())
-            return md.digest().encodeBase64()
-        }
-
-        return requestOptions
-            .toBuilderFullCopy()
-            .setIdempotencyKey(hashOf(payload = payload))
-            .build()
-    }
 }

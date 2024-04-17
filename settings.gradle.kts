@@ -49,7 +49,7 @@ include(
 
     "libs:services:payment",
     "libs:services:payment:payment-endpoint",
-    "libs:services:payment:stripe",
+    "libs:services:payment:stripe-service",
 
     "libs:services:user",
     "libs:services:user:user-analytics",
@@ -82,4 +82,5 @@ include(
 
     "libs:utils:metrics",
     "libs:utils:slack",
+    "libs:utils:stripe",
 )

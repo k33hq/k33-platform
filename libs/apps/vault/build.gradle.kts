@@ -7,6 +7,12 @@ plugins {
 dependencies {
     implementation(project(":libs:utils:fireblocks"))
 
+    implementation("com.github.librepdf:openpdf:_")
+
+    implementation(project(":libs:utils:stripe"))
+    implementation(project(":libs:utils:firebase-auth"))
+    implementation(project(":libs:utils:file-store"))
+
     implementation(project(":libs:utils:config"))
     implementation(project(":libs:utils:logging"))
     implementation(project(":libs:utils:slack"))

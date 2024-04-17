@@ -14,6 +14,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
 import java.util.UUID
 
 class VaultAppTest : BehaviorSpec({
@@ -153,6 +154,31 @@ class VaultAppTest : BehaviorSpec({
                         response.status shouldBe HttpStatusCode.OK
                         response.body<VaultAppSettings>() shouldBe VaultAppSettings(currency = "NOK")
                     }
+                }
+            }
+        }
+    }
+
+    suspend fun generateVaultAccountsBalanceReports(): HttpResponse {
+        return adminApiClient.put {
+            url(path = "/admin/jobs/generate-vault-accounts-balance-reports") {
+                parameters.append("mode", "FETCH")
+            }
+        }
+    }
+
+    xgiven("User is registered in Stripe") {
+        val userId = ""
+        and("User is register in Vault app") {
+            registerVaultApp(
+                userId = userId,
+                vaultAccountId = "76",
+                currency = "NOK",
+            ).status shouldBe HttpStatusCode.OK
+            `when`("PUT /admin/jobs/generate-vault-accounts-balance-reports") {
+                val response = generateVaultAccountsBalanceReports()
+                then("Status should be 200 OK") {
+                    response.status shouldBe HttpStatusCode.OK
                 }
             }
         }

@@ -42,7 +42,8 @@ suspend fun updateFirebaseUsersStats() {
         }
     }
     FileStoreService.upload(
-        fileId = "user-created-timeline",
-        content = csvFileContents.toByteArray()
+        bucketConfigId = "user-created-timeline",
+        filePath = "user-created-timeline.csv",
+        contents = csvFileContents.toByteArray()
     )
 }

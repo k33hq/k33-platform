@@ -20,3 +20,11 @@ GET https://pro-api.coingecko.com/api/v3/simple/price
     &vs_currencies=usd
     &include_24hr_change=true
 X-CG-PRO-API-KEY: {{coin_gecko_api_key}}
+
+### Historical price
+# https://docs.coingecko.com/reference/coins-id-history
+
+GET  https://pro-api.coingecko.com/api/v3/coins/bitcoin/history
+    ?date=01-04-2024
+    &localization=false
+X-CG-PRO-API-KEY: {{coin_gecko_api_key}}

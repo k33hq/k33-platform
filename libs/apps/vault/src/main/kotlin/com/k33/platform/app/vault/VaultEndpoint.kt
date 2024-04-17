@@ -8,6 +8,8 @@ import com.k33.platform.app.vault.VaultService.updateVaultAppSettings
 import com.k33.platform.identity.auth.gcp.UserInfo
 import com.k33.platform.user.UserId
 import com.k33.platform.utils.logging.logWithMDC
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.Parameters
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
@@ -20,6 +22,9 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeParseException
 
 fun Application.module() {
     routing {
@@ -71,7 +76,39 @@ fun Application.module() {
                 }
             }
         }
+        put("/admin/jobs/generate-vault-accounts-balance-reports/{date?}") {
+            val mode = call.request.queryParameters.getEnum("mode") ?: Mode.FETCH_AND_STORE
+            val date = call.parameters.getLocalDate("date")
+                ?: LocalDate.now(ZoneId.of("Europe/Oslo")).minusDays(1)
+            VaultService.generateVaultAccountBalanceReports(
+                date = date,
+                mode = mode,
+            )
+            call.respond(HttpStatusCode.OK)
+        }
     }
+}
+
+private inline fun <reified E: Enum<E>> Parameters.getEnum(name: String): E? {
+    return get(name)
+        ?.let {
+            try {
+                enumValueOf<E>(it)
+            } catch (e: IllegalArgumentException) {
+                throw BadRequestException("Invalid enum value: $it of $name")
+            }
+        }
+}
+
+private fun Parameters.getLocalDate(name: String): LocalDate? {
+    return get(name)
+        ?.let {
+            try {
+                LocalDate.parse(it)
+            } catch (e: DateTimeParseException) {
+                throw BadRequestException("Invalid local date value: $it of $name")
+            }
+        }
 }
 
 @Serializable
@@ -104,3 +141,24 @@ data class VaultAssetAddress(
 data class VaultAppSettings(
     val currency: String
 )
+
+enum class Mode(
+    // fetch from Fireblocks
+    val fetch: Boolean,
+    // store to DB
+    val store: Boolean,
+) {
+    // running on time to store a snapshot of balances and generate PDFs
+    FETCH_AND_STORE(fetch = true, store = true),
+    // testing to generate PDFs only
+    FETCH(fetch = true, store = false),
+    // running later to regenerate PDFs only
+    LOAD(fetch = false, store = false);
+
+    // load from DB
+    val load: Boolean
+        get() = !fetch
+
+    val useCurrentFxRate: Boolean
+        get() = store
+}

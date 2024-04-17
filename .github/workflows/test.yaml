@@ -123,6 +123,8 @@ jobs:
           FIREBLOCKS_SECRET_KEY: op://env/dev/vault/FIREBLOCKS_SECRET_KEY
           ## coin_gecko
           COIN_GECKO_API_KEY: op://env/dev/vault/COIN_GECKO_API_KEY
+          ## stripe
+          VAULT_STRIPE_API_KEY: op://env/dev/vault/STRIPE_API_KEY
           # for gcp emulators
           GOOGLE_CLOUD_PROJECT: op://env/dev/gcp/GCP_PROJECT_ID
           GOOGLE_APPLICATION_CREDENTIALS: infra/gcp/secrets/gcp-service-account.json

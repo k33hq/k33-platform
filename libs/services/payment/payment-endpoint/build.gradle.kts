@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
 
-    implementation(project(":libs:services:payment:stripe"))
+    implementation(project(":libs:services:payment:stripe-service"))
     implementation(project(":libs:services:identity"))
     implementation(project(":libs:services:user:user-service"))
     implementation(project(":libs:utils:analytics"))

@@ -287,7 +287,7 @@ gcloud scheduler jobs delete update-firebase-users-stats-job \
 
 gcloud scheduler jobs create http update-firebase-users-stats-job \
   --location europe-west1 \
-  --schedule "55 * * * *" \
+  --schedule="55 * * * *" \
   --uri=https://canary---"$GCP_BACKEND_HOST"/admin/jobs/update-firebase-users-stats \
   --oidc-service-account-email=k33-backend-gateway@"$GCP_PROJECT_ID".iam.gserviceaccount.com   \
   --oidc-token-audience=https://"$GCP_BACKEND_HOST"
@@ -308,7 +308,7 @@ gcloud scheduler jobs delete sync-sendgrid-contacts-job \
 
 gcloud scheduler jobs create http sync-sendgrid-contacts-job \
   --location europe-west1 \
-  --schedule "55 11 * * *" \
+  --schedule="55 11 * * *" \
   --uri=https://canary---"$GCP_BACKEND_HOST"/admin/jobs/sync-sendgrid-contacts/${SENDGRID_CONTACT_LIST_ID} \
   --http-method=put \
   --oidc-service-account-email=k33-backend-gateway@"$GCP_PROJECT_ID".iam.gserviceaccount.com   \
@@ -323,12 +323,29 @@ gcloud scheduler jobs delete send-offer-to-users-without-subscription-job \
 
 gcloud scheduler jobs create http send-offer-to-users-without-subscription-job \
   --location europe-west1 \
-  --schedule "5 * * * *" \
+  --schedule="5 * * * *" \
   --uri=https://canary---"$GCP_BACKEND_HOST"/admin/jobs/send-offer-to-users-without-subscription \
   --http-method=post \
   --oidc-service-account-email=k33-backend-gateway@"$GCP_PROJECT_ID".iam.gserviceaccount.com   \
   --oidc-token-audience=https://"$GCP_BACKEND_HOST"
 ```
+
+```shell
+gcloud services enable cloudscheduler.googleapis.com
+
+gcloud scheduler jobs delete generate-vault-accounts-balance-reports-job \
+  --location europe-west1
+
+gcloud scheduler jobs create http generate-vault-accounts-balance-reports-job \
+  --location europe-west1 \
+  --schedule="0 0 1 * *" \
+  --time-zone="Europe/Oslo" \
+  --uri=https://canary---"$GCP_BACKEND_HOST"/admin/jobs/generate-vault-accounts-balance-reports?mode=FETCH_AND_STORE \
+  --http-method=put \
+  --oidc-service-account-email=k33-backend-gateway@"$GCP_PROJECT_ID".iam.gserviceaccount.com   \
+  --oidc-token-audience=https://"$GCP_BACKEND_HOST"
+```
+
 ## For dev only: Run AT in GitHub Action
 
 Create `github` service account

@@ -67,7 +67,7 @@ fun Application.module() {
                     // https://stripe.com/docs/api/events/types
                     if (event.type.startsWith("customer.subscription.", ignoreCase = true)) {
                         val subscription = stripeObject as Subscription
-                        val customerEmail = StripeClient.getCustomerEmail(subscription.customer)
+                        val customerEmail = StripeService.getCustomerEmail(subscription.customer)
                         if (customerEmail != null) {
                             logWithMDC("customerEmail" to customerEmail) {
                                 coroutineScope {
@@ -178,11 +178,11 @@ fun Application.module() {
                                                                 && status == Status.incomplete_expired
                                                     val subscriptionNonProToPro =
                                                         previousStatus != null
-                                                                && previousStatus.productSubscriptionStatus != StripeClient.ProductSubscriptionStatus.active
-                                                                && status.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
+                                                                && previousStatus.productSubscriptionStatus != StripeService.ProductSubscriptionStatus.active
+                                                                && status.productSubscriptionStatus == StripeService.ProductSubscriptionStatus.active
                                                     val subscriptionProToBlocked =
-                                                        previousStatus?.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
-                                                                && status.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.blocked
+                                                        previousStatus?.productSubscriptionStatus == StripeService.ProductSubscriptionStatus.active
+                                                                && status.productSubscriptionStatus == StripeService.ProductSubscriptionStatus.blocked
 
                                                     val subscriptionToBeCanceled =
                                                         event.data.previousAttributes?.get("cancel_at_period_end") == false
@@ -191,7 +191,7 @@ fun Application.module() {
                                                         subscriptionToBeCanceled
                                                                 && status == Status.trialing
                                                     val subscriptionUncanceled =
-                                                        status.productSubscriptionStatus == StripeClient.ProductSubscriptionStatus.active
+                                                        status.productSubscriptionStatus == StripeService.ProductSubscriptionStatus.active
                                                                 && event.data.previousAttributes?.get("cancel_at_period_end") == true
                                                                 && subscription.cancelAtPeriodEnd == false
                                                     val updatedCancellationDetails = setOf("cancellation_details") == event.data.previousAttributes?.keys?.toSet()

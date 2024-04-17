@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   firestore-emulator:
     container_name: firestore-emulator
@@ -82,6 +80,7 @@ services:
       - FIREBLOCKS_API_KEY=${FIREBLOCKS_API_KEY}
       - FIREBLOCKS_SECRET_KEY=${FIREBLOCKS_SECRET_KEY}
       - COIN_GECKO_API_KEY=${COIN_GECKO_API_KEY}
+      - VAULT_STRIPE_API_KEY=${VAULT_STRIPE_API_KEY}
     volumes:
       - "./infra/gcp/secrets/gcp-service-account.json:/config/gcp-service-account.json:ro"
     expose:

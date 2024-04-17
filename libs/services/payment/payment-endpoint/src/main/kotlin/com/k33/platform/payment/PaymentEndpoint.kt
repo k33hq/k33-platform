@@ -1,14 +1,14 @@
 package com.k33.platform.payment
 
 import com.k33.platform.identity.auth.gcp.UserInfo
-import com.k33.platform.payment.stripe.AlreadySubscribed
-import com.k33.platform.payment.stripe.BadRequest
-import com.k33.platform.payment.stripe.NotFound
-import com.k33.platform.payment.stripe.PaymentServiceError
-import com.k33.platform.payment.stripe.StripeClient
+import com.k33.platform.payment.stripe.StripeService
 import com.k33.platform.user.UserId
 import com.k33.platform.user.UserService.fetchUser
 import com.k33.platform.utils.logging.logWithMDC
+import com.k33.platform.utils.stripe.AlreadySubscribed
+import com.k33.platform.utils.stripe.BadRequest
+import com.k33.platform.utils.stripe.NotFound
+import com.k33.platform.utils.stripe.PaymentServiceError
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -38,7 +38,7 @@ fun Application.module() {
                                 ?: throw BadRequest("Path param: productId is mandatory")
                             try {
                                 val userEmail = call.principal<UserInfo>()!!.email
-                                val productSubscription = StripeClient.getSubscription(
+                                val productSubscription = StripeService.getSubscription(
                                     customerEmail = userEmail,
                                     productId = productId,
                                 )
@@ -73,7 +73,7 @@ fun Application.module() {
                             val webClientId = call.request.header("x-client-id")
                             val userEmail = call.principal<UserInfo>()!!.email
                             val request = call.receive<CheckoutSessionRequest>()
-                            val checkoutSession = StripeClient.createOrFetchCheckoutSession(
+                            val checkoutSession = StripeService.createOrFetchCheckoutSession(
                                 customerEmail = userEmail,
                                 priceId = request.priceId,
                                 successUrl = request.successUrl,
@@ -107,7 +107,7 @@ fun Application.module() {
                         try {
                             val userEmail = call.principal<UserInfo>()!!.email
                             val request = call.receive<CustomerPortalSessionRequest>()
-                            val customerPortalSession = StripeClient.createCustomerPortalSession(
+                            val customerPortalSession = StripeService.createCustomerPortalSession(
                                 customerEmail = userEmail,
                                 returnUrl = request.returnUrl,
                             )
@@ -132,7 +132,7 @@ fun Application.module() {
         }
         route("/admin/jobs") {
             post("send-offer-to-users-without-subscription") {
-                if(StripeClient.emailOfferToCustomersWithoutSubscription()) {
+                if(StripeService.emailOfferToCustomersWithoutSubscription()) {
                     call.respond(HttpStatusCode.OK)
                 } else {
                     call.respond(HttpStatusCode.InternalServerError)
@@ -152,7 +152,7 @@ data class SubscribedProducts(
 data class SubscribedProduct(
     val productId: String,
     val priceId: String,
-    val status: StripeClient.ProductSubscriptionStatus,
+    val status: StripeService.ProductSubscriptionStatus,
 )
 
 @Serializable

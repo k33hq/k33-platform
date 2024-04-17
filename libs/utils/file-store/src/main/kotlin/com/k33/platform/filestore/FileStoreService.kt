@@ -5,26 +5,34 @@ import com.google.cloud.storage.BlobInfo
 import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageOptions
 import com.k33.platform.utils.config.loadConfigEager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object FileStoreService {
 
-    fun upload(
-        fileId: String,
-        content: ByteArray,
+    suspend fun upload(
+        bucketConfigId: String,
+        filePath: String,
+        contents: ByteArray,
     ) {
-        val config = loadConfigEager<Config>(name = "gcs", path = "gcs.$fileId")
+        val config = loadConfigEager<Config>(name = "gcs", path = "gcs.$bucketConfigId")
         val storage: Storage = StorageOptions.getDefaultInstance().service
-        val blobId: BlobId = BlobId.of(config.bucketName, config.objectName)
+        val blobId: BlobId = BlobId.of(config.bucketName, filePath)
         val blobInfo: BlobInfo = BlobInfo.newBuilder(blobId).build()
-        storage.create(blobInfo, content)
+        withContext(Dispatchers.IO) {
+            storage.create(blobInfo, contents)
+        }
     }
 
-    fun download(
-        fileId: String,
+    suspend fun download(
+        bucketConfigId: String,
+        filePath: String,
     ): ByteArray {
-        val config = loadConfigEager<Config>(name = "gcs", path = "gcs.$fileId")
+        val config = loadConfigEager<Config>(name = "gcs", path = "gcs.$bucketConfigId")
         val storage: Storage = StorageOptions.getDefaultInstance().service
-        val blobId: BlobId = BlobId.of(config.bucketName, config.objectName)
-        return storage.readAllBytes(blobId)
+        val blobId: BlobId = BlobId.of(config.bucketName, filePath)
+        return withContext(Dispatchers.IO) {
+            storage.readAllBytes(blobId)
+        }
     }
 }

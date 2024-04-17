@@ -28,6 +28,8 @@ gcp_secrets[10]="STRIPE_WEBHOOK_ENDPOINT_SECRET"
 gcp_secrets[11]="GOOGLE_ANALYTICS_API_SECRET"
 gcp_secrets[12]="FIREBLOCKS_API_KEY"
 gcp_secrets[13]="FIREBLOCKS_SECRET_KEY"
+gcp_secrets[14]="VAULT_STRIPE_API_KEY"
+
 
 CLOUD_RUN_SERVICE="k33-backend"
 

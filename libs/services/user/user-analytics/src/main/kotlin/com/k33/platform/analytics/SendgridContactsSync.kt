@@ -28,7 +28,10 @@ object SendgridContactsSync {
         message += "Platform users count: ${platformUsersEmailList.size}"
 
         val excludeUsersEmailList = FileStoreService
-            .download(fileId = "sendgrid-contacts-sync")
+            .download(
+                bucketConfigId = "sendgrid-contacts-sync",
+                filePath = "exclude-contact-emails.csv"
+            )
             .let(::String)
             .split('\n')
         message += "\nExclude users count: ${excludeUsersEmailList.size}"

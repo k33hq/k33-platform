@@ -24,39 +24,39 @@ package com.k33.platform.payment.stripe
  */
 @Suppress("EnumEntryName")
 enum class Status(
-    val productSubscriptionStatus: StripeClient.ProductSubscriptionStatus,
+    val productSubscriptionStatus: StripeService.ProductSubscriptionStatus,
 ) {
-    trialing(StripeClient.ProductSubscriptionStatus.active),
+    trialing(StripeService.ProductSubscriptionStatus.active),
 
     /**
      * For `collection_method=charge_automatically` a subscription moves into `incomplete` if the initial payment attempt fails.
      */
-    incomplete(StripeClient.ProductSubscriptionStatus.blocked),
+    incomplete(StripeService.ProductSubscriptionStatus.blocked),
 
     /**
      * In `incomplete` state, if the first invoice is not paid within 23 hours, the subscription transitions to `incomplete_expired`.
      * This is a terminal state, the open invoice will be voided and no further invoices will be generated.
      */
-    incomplete_expired(StripeClient.ProductSubscriptionStatus.ended),
+    incomplete_expired(StripeService.ProductSubscriptionStatus.ended),
 
     /**
      * Once the first invoice is paid, the subscription moves into an `active` state.
      */
-    active(StripeClient.ProductSubscriptionStatus.active),
+    active(StripeService.ProductSubscriptionStatus.active),
 
     /**
      * For `collection_method=charge_automatically` a subscription moves `past_due` when payment to renew it fails.
      * If it is still not paid by an additional deadline after that, a subscription moves `canceled` or `unpaid`.
      */
-    past_due(StripeClient.ProductSubscriptionStatus.blocked),
-    unpaid(StripeClient.ProductSubscriptionStatus.ended),
-    paused(StripeClient.ProductSubscriptionStatus.ended),
+    past_due(StripeService.ProductSubscriptionStatus.blocked),
+    unpaid(StripeService.ProductSubscriptionStatus.ended),
+    paused(StripeService.ProductSubscriptionStatus.ended),
 
-    canceled(StripeClient.ProductSubscriptionStatus.ended),
+    canceled(StripeService.ProductSubscriptionStatus.ended),
 
     /**
      * This is never returned in Stripe's response.
      * This status is only used in request filter.
      */
-    ended(StripeClient.ProductSubscriptionStatus.ended),
+    ended(StripeService.ProductSubscriptionStatus.ended),
 }
