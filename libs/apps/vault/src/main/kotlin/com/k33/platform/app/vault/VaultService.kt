@@ -5,7 +5,10 @@ import com.k33.platform.app.vault.coingecko.CoinGeckoClient
 import com.k33.platform.app.vault.pdf.getBalanceReport
 import com.k33.platform.app.vault.stripe.StripeService
 import com.k33.platform.filestore.FileStoreService
+import com.k33.platform.fireblocks.service.Destination
+import com.k33.platform.fireblocks.service.Destinations
 import com.k33.platform.fireblocks.service.FireblocksService
+import com.k33.platform.fireblocks.service.TxnSrcDest
 import com.k33.platform.identity.auth.gcp.FirebaseAuthService
 import com.k33.platform.user.UserId
 import com.k33.platform.utils.logging.NotifySlack
@@ -16,7 +19,11 @@ import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Locale
 
 object VaultService {
@@ -142,6 +149,90 @@ object VaultService {
         vaultApp: VaultApp,
     ) {
         firestoreClient.put(inVaultAppContext(), vaultApp)
+    }
+
+    suspend fun UserId.getTransactions(
+        dateRange: Pair<Instant, Instant>,
+        zoneId: ZoneId,
+    ): List<Transaction> {
+        val vaultApp = firestoreClient.get(inVaultAppContext())
+            ?: throw NotFoundException("Not registered to K33 Vault service")
+
+        val vaultAccountId = vaultApp.vaultAccountId
+        val vaultAccount = FireblocksService.fetchVaultAccountById(
+            vaultAccountId = vaultAccountId,
+        )
+
+        if (vaultAccount == null) {
+            logger.warn(
+                NotifySlack.ALERTS,
+                "No vault account (id: $vaultAccountId) found in Fireblocks"
+            )
+            return emptyList()
+        }
+
+        return getTransactions(
+            vaultAccountId = vaultAccountId,
+            dateRange = dateRange,
+            zoneId = zoneId
+        )
+    }
+
+    suspend fun getTransactions(
+        vaultAccountId: String,
+        dateRange: Pair<Instant, Instant>,
+        zoneId: ZoneId
+    ): List<Transaction> {
+        val (after, before) = dateRange
+        return FireblocksService.fetchTransactions(
+            vaultAccountId = vaultAccountId,
+            after = after,
+            before = before,
+        ).map { transaction ->
+            val createdAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(transaction.createdAt!!), zoneId)
+            val fee = transaction.feeInfo?.let {
+                (it.serviceFee?.toBigDecimalOrNull() ?: BigDecimal.ZERO) +
+                        (it.networkFee?.toBigDecimalOrNull() ?: BigDecimal.ZERO) +
+                        (it.gasPrice?.toBigDecimalOrNull() ?: BigDecimal.ZERO)
+            } ?: BigDecimal.ZERO
+
+            // this will be overwritten by transaction.destinations.* if transaction.destinations != null
+            var amount = transaction.amountInfo?.amount ?: ""
+            var amountUSD = transaction.amountInfo?.amountUSD ?: ""
+
+            fun TxnSrcDest?.isVaultAccountWith(id: String): Boolean = this?.type == "VAULT_ACCOUNT" && this.id == id
+
+            // needed only if transaction source and destination are not the vault account
+            val destinations by lazy {
+                transaction.destinations?.find {
+                    it.destination?.type == "VAULT_ACCOUNT" && it.destination?.id == vaultAccountId
+                }
+            }
+
+            val direction = when {
+                transaction.source.isVaultAccountWith(id = vaultAccountId) -> "DEBIT"
+                transaction.destination.isVaultAccountWith(id = vaultAccountId) -> "CREDIT"
+                destinations != null -> {
+                    amount = destinations?.amount ?: ""
+                    amountUSD = destinations?.amountUSD ?: ""
+                    "CREDIT"
+                }
+                else -> ""
+            }
+
+            Transaction(
+                id = transaction.id ?: "",
+                createdAt = createdAt.toString(),
+                operation = transaction.operation ?: "",
+                direction = direction,
+                assetId = transaction.assetId ?: "",
+                amount = amount,
+                netAmount = transaction.amountInfo?.netAmount ?: "",
+                amountUSD = amountUSD,
+                feeCurrency = transaction.feeCurrency ?: "",
+                fee = fee.toPlainString(),
+            )
+        }
     }
 
     suspend fun generateVaultAccountBalanceReports(

@@ -25,36 +25,4 @@ class FireblocksServiceTest : StringSpec({
             )
         } shouldNotBe emptyList<VaultAssetAddress>()
     }
-    "fetch transactions".config(enabled = false) {
-        val zoneId = ZoneId.of("Europe/Oslo")
-        val zoneOffset = ZoneOffset.of("+01:00")
-        val after = ZonedDateTime.ofLocal(LocalDateTime.parse("2023-01-01T00:00:00"), zoneId, zoneOffset).toInstant()
-            .minusMillis(1)
-        println("after: $after")
-        val before = ZonedDateTime.ofLocal(LocalDateTime.parse("2024-01-01T00:00:00"), zoneId, zoneOffset).toInstant()
-        println("before: $before")
-        val transactions = FireblocksService.fetchTransactions(
-            vaultAccountId = vaultAccountId,
-            after = after,
-            before = before,
-        )
-        transactions.forEach(::println)
-        println("CreatedAt,Operation,Direction,Asset,Amount,Fee")
-        transactions.forEach { transaction ->
-            val createdAt =
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(transaction.createdAt!!), zoneId).toLocalDateTime()
-            val amount = transaction.amountInfo?.amountUSD!!
-            val fee = transaction.feeInfo?.let {
-                (it.serviceFee?.toBigDecimalOrNull() ?: BigDecimal.ZERO) +
-                        (it.networkFee?.toBigDecimalOrNull() ?: BigDecimal.ZERO) +
-                        (it.gasPrice?.toBigDecimalOrNull() ?: BigDecimal.ZERO)
-            } ?: BigDecimal.ZERO
-            val direction = when {
-                transaction.source?.type == "VAULT_ACCOUNT" && transaction.source?.id == vaultAccountId -> "DEBIT"
-                transaction.destination?.type == "VAULT_ACCOUNT" && transaction.destination?.id == vaultAccountId -> "CREDIT"
-                else -> null
-            }
-            println("$createdAt,${transaction.operation},$direction,${transaction.assetId},USD $amount,${transaction.feeCurrency} ${fee.toPlainString()}")
-        }
-    }
 })

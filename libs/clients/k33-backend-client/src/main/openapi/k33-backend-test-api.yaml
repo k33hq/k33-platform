@@ -395,6 +395,68 @@ paths:
       security:
         - firebase: [ ]
 
+  "/apps/vault/transactions":
+    get:
+      description: Get vault transactions
+      operationId: "getVaultTransactions"
+      produces:
+        - "text/csv"
+      parameters:
+        - name: "afterDate"
+          in: query
+          type: string
+          format: date
+          required: true
+        - name: "beforeDate"
+          in: query
+          type: string
+          format: date
+          required: true
+        - name: "zoneId"
+          in: query
+          type: string
+          format: date
+          required: false
+      responses:
+        200:
+          description: "CSV file list of transactions"
+        404:
+          description: "User/account not registered/found"
+      security:
+        - firebase: [ ]
+
+  "/apps/vault/admin/transactions":
+    get:
+      description: Get vault transactions
+      operationId: "getVaultTransactionsByAdmin"
+      produces:
+        - "text/csv"
+      parameters:
+        - name: "vaultAccountId"
+          in: query
+          type: string
+          required: true
+        - name: "afterDate"
+          in: query
+          type: string
+          format: date
+          required: true
+        - name: "beforeDate"
+          in: query
+          type: string
+          format: date
+          required: true
+        - name: "zoneId"
+          in: query
+          type: string
+          format: date
+          required: false
+      responses:
+        200:
+          description: "CSV file list of transactions"
+        404:
+          description: "User/account not registered/found"
+
   "/apps/vault/settings":
     get:
       description: Get vault app setting
