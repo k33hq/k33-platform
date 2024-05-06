@@ -23,9 +23,3 @@ dependencies {
 application {
     mainClass.set("org.junit.platform.console.ConsoleLauncher")
 }
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
-    }
-}

@@ -9,7 +9,6 @@ import com.k33.platform.utils.config.loadConfig
 import com.k33.platform.utils.logging.getLogger
 import io.firestore4k.typed.FirestoreClient
 import io.firestore4k.typed.div
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -171,7 +170,6 @@ object InvestService {
         Action taken .......... Approved
         """.trimIndent()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun UserId.delete() = firestoreClient.delete(inInvestAppContext())
 }
 

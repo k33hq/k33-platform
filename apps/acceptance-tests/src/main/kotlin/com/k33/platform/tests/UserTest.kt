@@ -13,7 +13,6 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
-@kotlin.time.ExperimentalTime
 class UserTest : BehaviorSpec({
 
     suspend fun getUser(userId: String): HttpResponse {

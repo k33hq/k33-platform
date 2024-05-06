@@ -4,6 +4,7 @@
 # gradle
 .gradle
 build
+.kotlin
 
 # .env files
 .env*
