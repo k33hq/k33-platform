@@ -25,6 +25,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
@@ -94,6 +95,61 @@ fun Application.module() {
                         userId.register(vaultApp)
                         call.respond(vaultApp)
                     }
+                }
+            }
+        }
+
+        route("/apps/vault/admin/user") {
+            get {
+                val email = call.request.queryParameters["email"]
+                    ?: throw BadRequestException("Missing query parameter: email")
+                logWithMDC("vaultUserEmail" to email) {
+                    val vaultUserStatus = VaultService.getUserStatus(email = email)
+                    val httpStatusCode = if (vaultUserStatus.platformRegistered
+                        && vaultUserStatus.vaultAccountId != null
+                        && vaultUserStatus.stripeErrors.isEmpty()
+                    ) {
+                        HttpStatusCode.OK
+                    } else {
+                        HttpStatusCode.NotFound
+                    }
+                    call.respond(httpStatusCode, vaultUserStatus)
+                }
+            }
+            put {
+                val email = call.request.queryParameters["email"]
+                    ?: throw BadRequestException("Missing query parameter: email")
+                val vaultAccountId = call.request.queryParameters["vaultAccountId"]
+                    ?: throw BadRequestException("Missing query parameter: vaultAccountId")
+                val currency = call.request.queryParameters["currency"] ?: "USD"
+                logWithMDC("vaultUserEmail" to email) {
+                    val vaultUserStatus = VaultService.register(
+                        email = email,
+                        vaultAccountId = vaultAccountId,
+                        currency = currency,
+                    )
+                    val httpStatusCode = if (vaultUserStatus.platformRegistered
+                        && vaultUserStatus.vaultAccountId != null
+                        && vaultUserStatus.stripeErrors.isEmpty()
+                    ) {
+                        HttpStatusCode.OK
+                    } else {
+                        HttpStatusCode.NotFound
+                    }
+                    call.respond(httpStatusCode, vaultUserStatus)
+                }
+            }
+            delete {
+                val email = call.request.queryParameters["email"]
+                    ?: throw BadRequestException("Missing query parameter: email")
+                logWithMDC("vaultUserEmail" to email) {
+                    val vaultUserStatus = VaultService.deregister(email = email)
+                    val httpStatusCode = if (vaultUserStatus.platformRegistered) {
+                        HttpStatusCode.OK
+                    } else {
+                        HttpStatusCode.NotFound
+                    }
+                    call.respond(httpStatusCode, vaultUserStatus)
                 }
             }
         }
@@ -246,4 +302,11 @@ data class Transaction(
     val amountUSD: String,
     val feeCurrency: String,
     val fee: String,
+)
+
+@Serializable
+data class VaultUserStatus(
+    val platformRegistered: Boolean,
+    val vaultAccountId: String?,
+    val stripeErrors: List<String>,
 )

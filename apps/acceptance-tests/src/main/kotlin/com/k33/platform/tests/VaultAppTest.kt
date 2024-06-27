@@ -183,6 +183,59 @@ class VaultAppTest : BehaviorSpec({
             }
         }
     }
+
+    suspend fun getVaultUserStatus(): HttpResponse {
+        return adminApiClient.get {
+            url(path = "/apps/vault/admin/user") {
+                parameters.append("email", "test@k33.com")
+            }
+        }
+    }
+
+    suspend fun registerVaultUser(vaultAccountId: String): HttpResponse {
+        return adminApiClient.put {
+            url(path = "/apps/vault/admin/user") {
+                parameters.append("email", "test@k33.com")
+                parameters.append("vaultAccountId", vaultAccountId)
+            }
+        }
+    }
+
+    given("For vault admin, user is not registered") {
+        `when`("GET /apps/vault/admin/user") {
+            val response = getVaultUserStatus()
+            then("Status should be 404 NOT FOUND") {
+                response.status shouldBe HttpStatusCode.NotFound
+                response.body<VaultUserStatus>() shouldBe VaultUserStatus(
+                    platformRegistered = true,
+                    vaultAccountId = null,
+                    stripeErrors = emptyList(),
+                )
+            }
+        }
+        `when`("Register vault user - PUT /apps/vault/admin/user") {
+            val response = registerVaultUser(vaultAccountId = "76")
+            then("Status should be 200") {
+                response.status shouldBe HttpStatusCode.OK
+                response.body<VaultUserStatus>() shouldBe VaultUserStatus(
+                    platformRegistered = true,
+                    vaultAccountId = "76",
+                    stripeErrors = emptyList(),
+                )
+            }
+            and("GET /apps/vault/admin/user") {
+                val updatedResponse = getVaultUserStatus()
+                then("Status should be 200") {
+                    updatedResponse.status shouldBe HttpStatusCode.OK
+                    response.body<VaultUserStatus>() shouldBe VaultUserStatus(
+                        platformRegistered = true,
+                        vaultAccountId = "76",
+                        stripeErrors = emptyList(),
+                    )
+                }
+            }
+        }
+    }
 })
 
 @Serializable
@@ -220,4 +273,11 @@ data class VaultAppSettings(
 data class VaultApp(
     val vaultAccountId: String,
     val currency: String,
+)
+
+@Serializable
+data class VaultUserStatus(
+    val platformRegistered: Boolean,
+    val vaultAccountId: String? = null,
+    val stripeErrors: List<String>,
 )

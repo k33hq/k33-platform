@@ -432,6 +432,74 @@ paths:
       security:
         - firebase: [ ]
 
+  "/apps/vault/admin/user":
+    get:
+      description: Get vault user
+      operationId: "getVaultUserByAdmin"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "email"
+          in: query
+          type: string
+          format: email
+          required: true
+      responses:
+        200:
+          description: "User is fully registered to Vault app"
+          schema:
+            $ref: "#/definitions/VaultUserStatus"
+        404:
+          description: "User partially registered or User Not Found"
+          schema:
+            $ref: "#/definitions/VaultUserStatus"
+      security:
+        - api_key: [ ]
+    put:
+      description: Register vault user
+      operationId: "registerVaultUserByAdmin"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "email"
+          in: query
+          type: string
+          format: email
+          required: true
+        - name: "vaultAccountId"
+          in: query
+          type: string
+          required: true
+      responses:
+        200:
+          description: "User registered"
+          schema:
+            $ref: "#/definitions/VaultUserStatus"
+        404:
+          description: "User not found"
+      security:
+        - api_key: [ ]
+    delete:
+      description: Deregister vault user
+      operationId: "deregisterVaultUserByAdmin"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "email"
+          in: query
+          type: string
+          format: email
+          required: true
+      responses:
+        200:
+          description: "User deregistered"
+          schema:
+            $ref: "#/definitions/VaultUserStatus"
+        404:
+          description: "User not found"
+      security:
+        - api_key: [ ]
+
   "/apps/vault/admin/transactions":
     get:
       description: Get vault transactions
@@ -964,6 +1032,20 @@ definitions:
     required:
       - assetId
       - address
+  VaultUserStatus:
+    type: object
+    properties:
+      platformRegistered:
+        type: boolean
+      vaultAccountId:
+        type: string
+      stripeErrors:
+        type: array
+        items:
+          type: string
+    required:
+      - platformRegistered
+      - stripeErrors
   VaultAppSettings:
     type: object
     properties:

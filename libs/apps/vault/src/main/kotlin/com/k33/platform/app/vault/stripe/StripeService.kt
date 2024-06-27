@@ -52,4 +52,27 @@ object StripeService {
             }
             ?: emptyList()
     }
+
+    suspend fun getCustomerDetails(
+        email: String,
+    ): List<CustomerDetails> {
+        val listParams = CustomerListParams
+            .builder()
+            .setEmail(email)
+            .setLimit(100)
+            .build()
+
+        return stripeClient.call {
+            Customer.list(listParams, requestOptions)
+        }
+            ?.data
+            ?.map {
+                CustomerDetails(
+                    name = it.name,
+                    address = it.address,
+                    email = it.email,
+                )
+            }
+            ?: emptyList()
+    }
 }

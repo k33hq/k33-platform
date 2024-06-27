@@ -10,3 +10,18 @@ GET https://api.k33.com/apps/vault/admin/transactions
     &afterDate=2023-01-01
     &beforeDate=2023-12-31
 X-API-KEY: {{admin_api_key}}
+
+### Check vault user status by admin
+
+GET https://api.k33.com/apps/vault/admin/user?email={{$random.email}}
+X-API-KEY: {{admin_api_key}}
+
+### Register vault user by admin
+
+GET https://api.k33.com/apps/vault/admin/user?email={{$random.email}}&vaultAccountId={{$random.integer()}}&currency=USD
+X-API-KEY: {{admin_api_key}}
+
+### Deregister vault user by admin
+
+DELETE https://api.k33.com/apps/vault/admin/user?email={{$random.email}}
+X-API-KEY: {{admin_api_key}}

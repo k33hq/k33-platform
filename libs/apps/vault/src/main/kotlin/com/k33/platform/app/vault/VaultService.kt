@@ -5,14 +5,13 @@ import com.k33.platform.app.vault.coingecko.CoinGeckoClient
 import com.k33.platform.app.vault.pdf.getBalanceReport
 import com.k33.platform.app.vault.stripe.StripeService
 import com.k33.platform.filestore.FileStoreService
-import com.k33.platform.fireblocks.service.Destination
-import com.k33.platform.fireblocks.service.Destinations
 import com.k33.platform.fireblocks.service.FireblocksService
 import com.k33.platform.fireblocks.service.TxnSrcDest
 import com.k33.platform.identity.auth.gcp.FirebaseAuthService
 import com.k33.platform.user.UserId
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.getLogger
+import com.stripe.model.Address
 import io.firestore4k.typed.FirestoreClient
 import io.firestore4k.typed.div
 import io.ktor.server.plugins.NotFoundException
@@ -151,6 +150,10 @@ object VaultService {
         firestoreClient.put(inVaultAppContext(), vaultApp)
     }
 
+    suspend fun UserId.deregister() {
+        firestoreClient.delete(inVaultAppContext())
+    }
+
     suspend fun UserId.getTransactions(
         dateRange: Pair<Instant, Instant>,
         zoneId: ZoneId,
@@ -176,6 +179,88 @@ object VaultService {
             dateRange = dateRange,
             zoneId = zoneId
         )
+    }
+
+    suspend fun getUserStatus(
+        email: String,
+    ): VaultUserStatus {
+        val stripeErrors = StripeService.getCustomerDetails(email = email).validate()
+        val userId = FirebaseAuthService.findUserIdOrNull(email)
+            ?.let(::UserId)
+            ?: return VaultUserStatus(
+                platformRegistered = false,
+                vaultAccountId = null,
+                stripeErrors = stripeErrors,
+            )
+        val vaultAccountId = firestoreClient.get(userId.inVaultAppContext())
+            ?.vaultAccountId
+            ?: return VaultUserStatus(
+                platformRegistered = true,
+                vaultAccountId = null,
+                stripeErrors = stripeErrors,
+            )
+        return VaultUserStatus(
+            platformRegistered = true,
+            vaultAccountId = vaultAccountId,
+            stripeErrors = stripeErrors,
+        )
+    }
+
+    suspend fun register(
+        email: String,
+        vaultAccountId: String,
+        currency: String,
+    ): VaultUserStatus {
+        val stripeErrors = StripeService.getCustomerDetails(email = email).validate()
+        val userId = FirebaseAuthService.findUserIdOrNull(email)
+            ?.let(::UserId)
+            ?: return VaultUserStatus(
+                platformRegistered = false,
+                vaultAccountId = null,
+                stripeErrors = stripeErrors,
+            )
+        userId.register(
+            VaultApp(
+                vaultAccountId = vaultAccountId,
+                currency = currency,
+            )
+        )
+        return VaultUserStatus(
+            platformRegistered = true,
+            vaultAccountId = vaultAccountId,
+            stripeErrors = stripeErrors,
+        )
+    }
+
+    suspend fun deregister(
+        email: String,
+    ): VaultUserStatus {
+        val stripeErrors = StripeService.getCustomerDetails(email = email).validate()
+        val userId = FirebaseAuthService.findUserIdOrNull(email)
+            ?.let(::UserId)
+            ?: return VaultUserStatus(
+                platformRegistered = false,
+                vaultAccountId = null,
+                stripeErrors = stripeErrors,
+            )
+        userId.deregister()
+        return VaultUserStatus(
+            platformRegistered = true,
+            vaultAccountId = null,
+            stripeErrors = stripeErrors,
+        )
+    }
+
+    private fun List<StripeService.CustomerDetails>.validate(): List<String> = buildList {
+        if (this@validate.isEmpty()) {
+            add("No stripe users found with this email")
+        } else if (this@validate.size > 1) {
+            add("Multiple stripe users found with this email")
+        } else {
+            this@validate.single().address.validationErrors().forEach {
+                add("Missing address field: $it")
+            }
+        }
     }
 
     suspend fun getTransactions(
@@ -217,6 +302,7 @@ object VaultService {
                     amountUSD = destinations?.amountUSD ?: ""
                     "CREDIT"
                 }
+
                 else -> ""
             }
 
@@ -325,6 +411,15 @@ object VaultService {
                         }
                 }
                 .map { (userId, vaultAssets) ->
+                    val validationErrors = userIdToDetailsMap[userId]?.address?.validationErrors() ?: listOf("address")
+                    if (validationErrors.isNotEmpty()) {
+                        logger.warn(
+                            NotifySlack.ALERTS,
+                            "Missing stripe address field(s) for user: {}, field(s): {}",
+                            userId,
+                            validationErrors
+                        )
+                    }
                     val reportFileContents = getBalanceReport(
                         name = userIdToDetailsMap[userId]?.name ?: "",
                         address = userIdToDetailsMap[userId]?.address?.let { address ->
@@ -345,6 +440,23 @@ object VaultService {
                         contents = reportFileContents,
                     )
                 }
+        }
+    }
+
+    private fun Address.validationErrors(): List<String> = buildList {
+        if (line1.isNullOrEmpty()) {
+            add("line1")
+        }
+        if (postalCode.isNullOrEmpty()) {
+            add("postalCode")
+        }
+        if (city.isNullOrEmpty()) {
+            add("city")
+        }
+        if (country.isNullOrEmpty()) {
+            add("country")
+        } else if (Locale.of("", country).displayName.isNullOrEmpty()) {
+            add("country locale")
         }
     }
 
