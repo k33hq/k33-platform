@@ -1,6 +1,9 @@
 package com.k33.platform.app.vault
 
+import com.k33.platform.app.vault.VaultService.validate
+import com.k33.platform.app.vault.stripe.StripeService
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import java.time.LocalDate
 
 class VaultServiceTest : StringSpec({
@@ -24,5 +27,10 @@ class VaultServiceTest : StringSpec({
             date = LocalDate.now().minusDays(1),
             mode = Mode.FETCH,
         )
+    }
+    "validate user's stripe customer details" {
+        StripeService
+            .getCustomerDetails(email = "test@k33.com")
+            .validate() shouldBe emptyList()
     }
 })

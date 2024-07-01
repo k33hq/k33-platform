@@ -9,9 +9,9 @@ class NotifySlackFilterTest : StringSpec({
             "userId" to "test-user",
             "env" to "test"
         ) {
-            logger.info(NotifySlack.ALERTS, "This is information message")
-            logger.warn(NotifySlack.ALERTS, "This is warning message")
-            logger.error(NotifySlack.ALERTS, "This is error message")
+            logger.info(NotifySlack.ALERTS, "This is {} message", "information")
+            logger.warn(NotifySlack.ALERTS, "This is {} message", "warning")
+            logger.error(NotifySlack.ALERTS, "This is {} message", "error")
         }
     }
 })

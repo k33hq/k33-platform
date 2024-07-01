@@ -85,13 +85,13 @@ class NotifySlackFilter : Filter<ILoggingEvent>() {
                     async {
                         SlackClient.sendRichMessage(
                             channel = channel,
-                            altPlainTextMessage = header + " " + event.message,
+                            altPlainTextMessage = header + " " + event.formattedMessage,
                         ) {
                             header {
                                 text(header, emoji = true)
                             }
                             section {
-                                markdownText("```${event.message}```")
+                                markdownText("```${event.formattedMessage}```")
                                 if (mdcMap.isNotEmpty()) {
                                     fields {
                                         mdcMap.forEach { (key, value) ->

@@ -251,7 +251,7 @@ object VaultService {
         )
     }
 
-    private fun List<StripeService.CustomerDetails>.validate(): List<String> = buildList {
+    internal fun List<StripeService.CustomerDetails>.validate(): List<String> = buildList {
         if (this@validate.isEmpty()) {
             add("No stripe users found with this email")
         } else if (this@validate.size > 1) {
