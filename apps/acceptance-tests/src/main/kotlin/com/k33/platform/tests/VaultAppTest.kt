@@ -197,6 +197,7 @@ class VaultAppTest : BehaviorSpec({
             url(path = "/apps/vault/admin/user") {
                 parameters.append("email", "test@k33.com")
                 parameters.append("vaultAccountId", vaultAccountId)
+                parameters.append("currency", "NOK")
             }
         }
     }
@@ -209,6 +210,7 @@ class VaultAppTest : BehaviorSpec({
                 response.body<VaultUserStatus>() shouldBe VaultUserStatus(
                     platformRegistered = true,
                     vaultAccountId = null,
+                    currency = null,
                     stripeErrors = emptyList(),
                 )
             }
@@ -220,6 +222,7 @@ class VaultAppTest : BehaviorSpec({
                 response.body<VaultUserStatus>() shouldBe VaultUserStatus(
                     platformRegistered = true,
                     vaultAccountId = "76",
+                    currency = "NOK",
                     stripeErrors = emptyList(),
                 )
             }
@@ -230,6 +233,7 @@ class VaultAppTest : BehaviorSpec({
                     response.body<VaultUserStatus>() shouldBe VaultUserStatus(
                         platformRegistered = true,
                         vaultAccountId = "76",
+                        currency = "NOK",
                         stripeErrors = emptyList(),
                     )
                 }
@@ -278,6 +282,7 @@ data class VaultApp(
 @Serializable
 data class VaultUserStatus(
     val platformRegistered: Boolean,
-    val vaultAccountId: String? = null,
+    val vaultAccountId: String?,
+    val currency: String?,
     val stripeErrors: List<String>,
 )

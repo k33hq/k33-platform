@@ -150,7 +150,7 @@ object VaultService {
         firestoreClient.put(inVaultAppContext(), vaultApp)
     }
 
-    suspend fun UserId.deregister() {
+    private suspend fun UserId.deregister() {
         firestoreClient.delete(inVaultAppContext())
     }
 
@@ -190,18 +190,20 @@ object VaultService {
             ?: return VaultUserStatus(
                 platformRegistered = false,
                 vaultAccountId = null,
+                currency = null,
                 stripeErrors = stripeErrors,
             )
-        val vaultAccountId = firestoreClient.get(userId.inVaultAppContext())
-            ?.vaultAccountId
+        val vaultApp = firestoreClient.get(userId.inVaultAppContext())
             ?: return VaultUserStatus(
                 platformRegistered = true,
                 vaultAccountId = null,
+                currency = null,
                 stripeErrors = stripeErrors,
             )
         return VaultUserStatus(
             platformRegistered = true,
-            vaultAccountId = vaultAccountId,
+            vaultAccountId = vaultApp.vaultAccountId,
+            currency = vaultApp.currency,
             stripeErrors = stripeErrors,
         )
     }
@@ -217,6 +219,7 @@ object VaultService {
             ?: return VaultUserStatus(
                 platformRegistered = false,
                 vaultAccountId = null,
+                currency = null,
                 stripeErrors = stripeErrors,
             )
         userId.register(
@@ -228,6 +231,7 @@ object VaultService {
         return VaultUserStatus(
             platformRegistered = true,
             vaultAccountId = vaultAccountId,
+            currency = currency,
             stripeErrors = stripeErrors,
         )
     }
@@ -241,12 +245,14 @@ object VaultService {
             ?: return VaultUserStatus(
                 platformRegistered = false,
                 vaultAccountId = null,
+                currency = null,
                 stripeErrors = stripeErrors,
             )
         userId.deregister()
         return VaultUserStatus(
             platformRegistered = true,
             vaultAccountId = null,
+            currency = null,
             stripeErrors = stripeErrors,
         )
     }

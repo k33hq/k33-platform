@@ -21,7 +21,7 @@ object SlackClient {
         slackConfig.isPrettyResponseLoggingEnabled = true
         Slack
             .getInstance(slackConfig)
-            .methodsAsync(System.getenv("SLACK_TOKEN"))
+            .methodsAsync(System.getenv("SLACK_BOT_TOKEN"))
     }
 
     suspend fun sendMessage(

@@ -7,9 +7,12 @@ dependencies {
     implementation(project(":libs:utils:config"))
     implementation(project(":libs:utils:logging"))
 
-    implementation("com.slack.api:slack-api-client:_")
     api("com.slack.api:slack-api-model-kotlin-extension:_")
+    api("com.slack.api:bolt-ktor:_")
     implementation("com.slack.api:slack-api-client-kotlin-extension:_")
+
+    implementation(Ktor.server.core)
+    implementation(Ktor.server.auth)
 
     implementation(KotlinX.coroutines.core)
     implementation(KotlinX.coroutines.jdk8)

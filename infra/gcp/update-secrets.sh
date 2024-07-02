@@ -36,7 +36,8 @@ CONTENTFUL_RESEARCH_SPACE_TOKEN=$(op read op://env/$ENV/contentful/CONTENTFUL_RE
 CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN=$(op read op://env/$ENV/contentful/CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN)
 ALGOLIA_APP_ID=$(op read op://env/$ENV/algolia/ALGOLIA_APP_ID)
 ALGOLIA_API_KEY=$(op read op://env/$ENV/algolia/ALGOLIA_API_KEY)
-SLACK_TOKEN=$(op read op://env/$ENV/slack/SLACK_TOKEN)
+SLACK_BOT_TOKEN=$(op read op://env/$ENV/slack/SLACK_BOT_TOKEN)
+SLACK_SIGNING_SECRET=$(op read op://env/$ENV/slack/SLACK_SIGNING_SECRET)
 STRIPE_API_KEY=$(op read op://env/$ENV/stripe/STRIPE_API_KEY)
 STRIPE_WEBHOOK_ENDPOINT_SECRET=$(op read op://env/$ENV/stripe/STRIPE_WEBHOOK_ENDPOINT_SECRET)
 GOOGLE_ANALYTICS_API_SECRET=$(op read op://env/$ENV/analytics/GOOGLE_ANALYTICS_API_SECRET)
@@ -55,13 +56,14 @@ gcp_secrets[4]="CONTENTFUL_RESEARCH_SPACE_TOKEN"
 gcp_secrets[5]="CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN"
 gcp_secrets[6]="ALGOLIA_APP_ID"
 gcp_secrets[7]="ALGOLIA_API_KEY"
-gcp_secrets[8]="SLACK_TOKEN"
-gcp_secrets[9]="STRIPE_API_KEY"
-gcp_secrets[10]="STRIPE_WEBHOOK_ENDPOINT_SECRET"
-gcp_secrets[11]="GOOGLE_ANALYTICS_API_SECRET"
-gcp_secrets[12]="FIREBLOCKS_API_KEY"
-gcp_secrets[13]="FIREBLOCKS_SECRET_KEY"
-gcp_secrets[14]="VAULT_STRIPE_API_KEY"
+gcp_secrets[8]="SLACK_BOT_TOKEN"
+gcp_secrets[9]="SLACK_SIGNING_SECRET"
+gcp_secrets[10]="STRIPE_API_KEY"
+gcp_secrets[11]="STRIPE_WEBHOOK_ENDPOINT_SECRET"
+gcp_secrets[12]="GOOGLE_ANALYTICS_API_SECRET"
+gcp_secrets[13]="FIREBLOCKS_API_KEY"
+gcp_secrets[14]="FIREBLOCKS_SECRET_KEY"
+gcp_secrets[15]="VAULT_STRIPE_API_KEY"
 
 # debugging
 #for index in ${!gcp_secrets[@]}; do

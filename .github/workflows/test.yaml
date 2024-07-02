@@ -63,7 +63,8 @@ jobs:
           ALGOLIA_APP_ID: op://env/dev/algolia/ALGOLIA_APP_ID
           ALGOLIA_API_KEY: op://env/dev/algolia/ALGOLIA_API_KEY
           # slack for app
-          SLACK_TOKEN: op://env/dev/slack/SLACK_TOKEN
+          SLACK_BOT_TOKEN: op://env/dev/slack/SLACK_BOT_TOKEN
+          SLACK_SIGNING_SECRET: op://env/dev/slack/SLACK_SIGNING_SECRET
           # @vihang
           SLACK_ALERTS_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
           SLACK_GENERAL_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
@@ -72,6 +73,7 @@ jobs:
           SLACK_PROFESSIONAL_INVESTORS_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
           SLACK_RESEARCH_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
           SLACK_RESEARCH_EVENTS_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_VAULT_ADMIN_CHANNEL_ID: op://env/dev/slack/SLACK_VAULT_ADMIN_CHANNEL_ID
           # slack unit testing
           SLACK_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
           # user service

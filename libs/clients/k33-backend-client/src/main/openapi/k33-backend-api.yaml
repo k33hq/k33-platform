@@ -185,11 +185,50 @@ paths:
         - application/json
       operationId: "reportStripeEvent"
       parameters:
-        - name: "request"
+        - name: "event"
           in: body
           required: true
           schema:
             type: object
+      responses:
+        200:
+          description: "Success"
+
+  "/webhooks/slack":
+    post:
+      description: Webhook to receive slack events
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      operationId: "reportSlackEvent"
+      parameters:
+        - name: "command"
+          in: formData
+          type: string
+          required: true
+        - name: "text"
+          in: formData
+          type: string
+        - name: "response_url"
+          in: formData
+          type: string
+        - name: "trigger_id"
+          in: formData
+          type: string
+        - name: "user_id"
+          in: formData
+          type: string
+        - name: "team_id"
+          in: formData
+          type: string
+        - name: "channel_id"
+          in: formData
+          type: string
+          required: true
+        - name: "api_app_id"
+          in: formData
+          type: string
       responses:
         200:
           description: "Success"
@@ -469,6 +508,9 @@ paths:
           in: query
           type: string
           required: true
+        - name: "currency"
+          in: query
+          type: string
       responses:
         200:
           description: "User registered"

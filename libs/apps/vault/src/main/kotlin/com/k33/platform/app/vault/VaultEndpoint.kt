@@ -9,6 +9,8 @@ import com.k33.platform.app.vault.VaultService.updateVaultAppSettings
 import com.k33.platform.identity.auth.gcp.UserInfo
 import com.k33.platform.user.UserId
 import com.k33.platform.utils.logging.logWithMDC
+import com.k33.platform.utils.slack.app
+import com.slack.api.app_backend.slash_commands.response.SlashCommandResponse
 import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType
 import io.ktor.http.HeaderValueParam
@@ -31,6 +33,7 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.utils.io.core.toByteArray
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.time.LocalDate
@@ -40,6 +43,19 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeParseException
 
 fun Application.module() {
+    app.command("/vault") { request, ctx ->
+        return@command runBlocking {
+            ctx.ack(
+                SlashCommandResponse
+                    .builder()
+                    .blocks(SlackCommandHandler.handleVaultCommand(request.payload))
+                    // default: ephemeral - visible to user only
+                    // in_channel - visible to all in the channel
+                    .responseType("in_channel")
+                    .build()
+            )
+        }
+    }
     routing {
         authenticate("esp-v2-header") {
             route("/apps/vault") {
@@ -308,5 +324,6 @@ data class Transaction(
 data class VaultUserStatus(
     val platformRegistered: Boolean,
     val vaultAccountId: String?,
+    val currency: String?,
     val stripeErrors: List<String>,
 )
