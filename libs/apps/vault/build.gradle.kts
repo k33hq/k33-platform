@@ -35,5 +35,5 @@ dependencies {
 
     // test
     testImplementation("io.kotest:kotest-runner-junit5-jvm:_")
-    testImplementation("io.kotest:kotest-framework-datatest:_")
+    testImplementation(Testing.kotest.framework.datatest)
 }
