@@ -2,6 +2,8 @@
 
 package com.k33.platform.cms.config
 
+import com.k33.platform.utils.algolia.Algolia
+
 @Suppress("EnumEntryName")
 enum class Sync(
     val config: SyncConfig,
@@ -9,20 +11,15 @@ enum class Sync(
     researchArticles(
         SyncConfig(
             ContentfulSpace.research,
-            AlgoliaIndexName.articles,
+            Algolia.Index.articles,
         )
     ),
 }
 
 data class SyncConfig(
     val contentfulSpace: ContentfulSpace,
-    val algoliaIndexName: AlgoliaIndexName,
+    val algoliaIndex: Algolia.Index,
 )
-
-@Suppress("EnumEntryName")
-enum class AlgoliaIndexName {
-    articles,
-}
 
 //
 // Contentful
@@ -46,19 +43,3 @@ data class ContentfulSpaceConfig(
     val token: String,
     val cmaToken: String,
 )
-
-//
-// Algolia
-//
-
-data class AlgoliaConfig(
-    val applicationId: String,
-    val apiKey: String,
-)
-
-val algoliaCconfig: AlgoliaConfig by lazy {
-    AlgoliaConfig(
-        applicationId = System.getenv("ALGOLIA_APP_ID"),
-        apiKey = System.getenv("ALGOLIA_API_KEY"),
-    )
-}

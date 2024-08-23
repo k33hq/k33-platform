@@ -1,7 +1,5 @@
 package com.k33.platform.cms.sync
 
-import com.algolia.search.helper.toObjectID
-import com.algolia.search.model.ObjectID
 import com.contentful.java.cma.model.CMALink
 import com.contentful.java.cma.model.CMAType
 import com.k33.platform.cms.clients.ContentfulMgmtClient
@@ -9,6 +7,8 @@ import com.k33.platform.cms.config.ContentfulSpace
 import com.k33.platform.cms.config.Sync
 import com.k33.platform.cms.content.ContentFactory
 import com.k33.platform.cms.content.ContentField
+import com.k33.platform.utils.algolia.Algolia
+import com.k33.platform.utils.algolia.AlgoliaRecommendClient
 import com.k33.platform.utils.logging.getLogger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
@@ -23,7 +23,9 @@ class AlgoliaToContentful(
     private val logger by getLogger()
 
     private val algoliaClient by lazy {
-        AlgoliaRecommendClient.getInstance(sync)
+        AlgoliaRecommendClient.getInstance(
+            index = sync.config.algoliaIndex,
+        )
     }
 
     private val contentfulMgmtClient by lazy {
@@ -50,11 +52,13 @@ class AlgoliaToContentful(
     suspend fun upsert(
         entryId: String,
     ): Boolean {
-        val relatedEntries = algoliaClient.getRelated(entryId.toObjectID())
+        val relatedEntries = algoliaClient
+            .getRelated(Algolia.ObjectID(entryId))
+            .map(Algolia.ObjectID::value)
         return contentfulMgmtClient.updateField(
             entryId = entryId,
             key = recommendedArticles.fieldId,
-            value = recommendedArticles.mapValues(relatedEntries.map(ObjectID::toString))
+            value = recommendedArticles.mapValues(relatedEntries)
         )
     }
 

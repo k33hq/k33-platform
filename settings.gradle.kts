@@ -63,6 +63,7 @@ include(
     "libs:utils:analytics",
     "libs:utils:analytics:google-analytics",
 
+    "libs:utils:algolia",
     "libs:utils:cms",
     "libs:utils:cms:contentful",
 

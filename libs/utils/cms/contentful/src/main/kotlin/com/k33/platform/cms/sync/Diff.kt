@@ -2,6 +2,7 @@ package com.k33.platform.cms.sync
 
 import com.k33.platform.cms.config.Sync
 import com.k33.platform.cms.content.ContentFactory
+import com.k33.platform.utils.algolia.AlgoliaSearchClient
 import com.k33.platform.utils.logging.getLogger
 import kotlinx.coroutines.runBlocking
 
@@ -15,9 +16,9 @@ object Diff {
             .fetchIdToModifiedMap()
         logger.info("Found in contentful: ${entryIdMap.size}")
 
-        val algoliaClient = AlgoliaSearchClient.getInstance(sync)
+        val algoliaClient = AlgoliaSearchClient.getInstance(index = sync.config.algoliaIndex)
 
-        val indices = algoliaClient.getAllIds()
+        val indices = algoliaClient.getAllIds().mapKeys { it.key.value }
         logger.info("Found in algolia: ${indices.size}")
 
         val newInContentful = entryIdMap.keys - indices.keys

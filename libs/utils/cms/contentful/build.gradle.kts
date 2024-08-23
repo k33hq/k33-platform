@@ -5,6 +5,8 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":libs:utils:algolia"))
+
     implementation(project(":libs:utils:config"))
     implementation(project(":libs:utils:logging"))
     implementation(project(":libs:utils:slack"))
@@ -26,8 +28,6 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-api-kotlin:_")
     implementation("org.apache.logging.log4j:log4j-to-slf4j:_")
     implementation("org.apache.logging.log4j:log4j-core:_")
-
-    implementation("com.algolia:algoliasearch-client-kotlin:_")
 
     // test
     testImplementation("io.kotest:kotest-runner-junit5-jvm:_")
