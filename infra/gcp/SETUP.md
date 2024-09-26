@@ -57,7 +57,6 @@ gcloud alpha firestore databases update --type=firestore-native
 gcloud services enable storage.googleapis.com
 gcloud services enable drive.googleapis.com
 gcloud services enable dns.googleapis.com
-
 ```
 
 Needed for prod only.
@@ -479,6 +478,7 @@ gcloud compute addresses describe k33-web-ip \
 * [Cache modes](https://cloud.google.com/cdn/docs/using-cache-modes)
 * [Configure TTL](https://cloud.google.com/cdn/docs/using-ttl-overrides#gcloud_1)
 * [Enable compression](https://cloud.google.com/cdn/docs/dynamic-compression)
+* [Global SSL Policy for global target HTTPS proxy](https://cloud.google.com/load-balancing/docs/use-ssl-policies)
 
 ```shell
 gcloud compute network-endpoint-groups create cloud-run-neg \
@@ -513,9 +513,14 @@ gcloud compute url-maps create web-url-map \
 gcloud compute ssl-certificates create k33-ssl-certs \
   --domains k33.com
 
+gcloud compute ssl-policies create web-ssl-policy \
+    --profile RESTRICTED \
+    --min-tls-version 1.2
+
 gcloud compute target-https-proxies create web-https-proxy \
   --ssl-certificates=k33-ssl-certs \
-  --url-map=web-url-map
+  --url-map=web-url-map \
+  --ssl-policy web-ssl-policy
 
 gcloud compute forwarding-rules create web-https-fwd-rule \
   --load-balancing-scheme=EXTERNAL_MANAGED \
