@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":libs:utils:config"))
     implementation(project(":libs:utils:logging"))
     implementation(project(":libs:utils:slack"))
+    implementation(project(":libs:utils:ktor"))
 
     implementation(project(":libs:services:identity"))
     implementation(project(":libs:services:user:user-model"))
