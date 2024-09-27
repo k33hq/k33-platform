@@ -1,17 +1,19 @@
 package com.k33.platform.app.vault
 
 import arrow.core.raise.nullable
+import com.k33.platform.app.vault.VaultUserService.getVaultApp
+import com.k33.platform.app.vault.VaultUserService.validationErrors
 import com.k33.platform.app.vault.coingecko.CoinGeckoClient
 import com.k33.platform.app.vault.pdf.getBalanceReport
 import com.k33.platform.app.vault.stripe.StripeService
 import com.k33.platform.filestore.FileStoreService
-import com.k33.platform.fireblocks.service.FireblocksService
-import com.k33.platform.fireblocks.service.TxnSrcDest
+import com.k33.platform.fireblocks.service.transactions.FireblocksTransactionService
+import com.k33.platform.fireblocks.service.transactions.TxnSrcDest
+import com.k33.platform.fireblocks.service.vault.account.FireblocksVaultAccountService
 import com.k33.platform.identity.auth.gcp.FirebaseAuthService
 import com.k33.platform.user.UserId
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.getLogger
-import com.stripe.model.Address
 import io.firestore4k.typed.FirestoreClient
 import io.firestore4k.typed.div
 import io.ktor.server.plugins.NotFoundException
@@ -32,9 +34,7 @@ object VaultService {
     private val firestoreClient by lazy { FirestoreClient() }
 
     suspend fun UserId.getVaultAssets(currency: String?): List<VaultAsset> {
-        val vaultApp = firestoreClient.get(inVaultAppContext())
-            ?: throw NotFoundException("Not registered to K33 Vault service")
-
+        val vaultApp = getVaultApp()
         return getVaultAssets(
             vaultApp = vaultApp,
             currency = currency
@@ -45,7 +45,7 @@ object VaultService {
         vaultApp: VaultApp,
         currency: String?,
     ): List<VaultAsset> {
-        val vaultAccount = FireblocksService.fetchVaultAccountById(
+        val vaultAccount = FireblocksVaultAccountService.fetchVaultAccountById(
             vaultAccountId = vaultApp.vaultAccountId,
         )
 
@@ -108,10 +108,8 @@ object VaultService {
     suspend fun UserId.getVaultAddresses(
         vaultAssetId: String
     ): List<VaultAssetAddress> {
-        val vaultApp = firestoreClient.get(inVaultAppContext())
-            ?: throw NotFoundException("Not registered to K33 Vault service")
-
-        return FireblocksService.fetchVaultAssetAddresses(
+        val vaultApp = getVaultApp()
+        return FireblocksVaultAccountService.fetchVaultAssetAddresses(
             vaultAccountId = vaultApp.vaultAccountId,
             vaultAssetId = vaultAssetId,
         ).mapNotNull {
@@ -127,42 +125,13 @@ object VaultService {
         }
     }
 
-    suspend fun UserId.getVaultAppSettings(): VaultAppSettings {
-        val vaultApp = firestoreClient.get(inVaultAppContext())
-            ?: throw NotFoundException("Not registered to K33 Vault service")
-        return VaultAppSettings(
-            currency = vaultApp.currency,
-        )
-    }
-
-    suspend fun UserId.updateVaultAppSettings(settings: VaultAppSettings) {
-        val vaultApp = firestoreClient.get(inVaultAppContext())
-            ?: throw NotFoundException("Not registered to K33 Vault service")
-        val updatedVaultApp = vaultApp.copy(
-            currency = settings.currency,
-        )
-        firestoreClient.put(inVaultAppContext(), updatedVaultApp)
-    }
-
-    suspend fun UserId.register(
-        vaultApp: VaultApp,
-    ) {
-        firestoreClient.put(inVaultAppContext(), vaultApp)
-    }
-
-    private suspend fun UserId.deregister() {
-        firestoreClient.delete(inVaultAppContext())
-    }
-
     suspend fun UserId.getTransactions(
         dateRange: Pair<Instant, Instant>,
         zoneId: ZoneId,
     ): List<Transaction> {
-        val vaultApp = firestoreClient.get(inVaultAppContext())
-            ?: throw NotFoundException("Not registered to K33 Vault service")
-
+        val vaultApp = getVaultApp()
         val vaultAccountId = vaultApp.vaultAccountId
-        val vaultAccount = FireblocksService.fetchVaultAccountById(
+        val vaultAccount = FireblocksVaultAccountService.fetchVaultAccountById(
             vaultAccountId = vaultAccountId,
         )
 
@@ -181,101 +150,13 @@ object VaultService {
         )
     }
 
-    suspend fun getUserStatus(
-        email: String,
-    ): VaultUserStatus {
-        val stripeErrors = StripeService.getCustomerDetails(email = email).validate()
-        val userId = FirebaseAuthService.findUserIdOrNull(email)
-            ?.let(::UserId)
-            ?: return VaultUserStatus(
-                platformRegistered = false,
-                vaultAccountId = null,
-                currency = null,
-                stripeErrors = stripeErrors,
-            )
-        val vaultApp = firestoreClient.get(userId.inVaultAppContext())
-            ?: return VaultUserStatus(
-                platformRegistered = true,
-                vaultAccountId = null,
-                currency = null,
-                stripeErrors = stripeErrors,
-            )
-        return VaultUserStatus(
-            platformRegistered = true,
-            vaultAccountId = vaultApp.vaultAccountId,
-            currency = vaultApp.currency,
-            stripeErrors = stripeErrors,
-        )
-    }
-
-    suspend fun register(
-        email: String,
-        vaultAccountId: String,
-        currency: String,
-    ): VaultUserStatus {
-        val stripeErrors = StripeService.getCustomerDetails(email = email).validate()
-        val userId = FirebaseAuthService.findUserIdOrNull(email)
-            ?.let(::UserId)
-            ?: return VaultUserStatus(
-                platformRegistered = false,
-                vaultAccountId = null,
-                currency = null,
-                stripeErrors = stripeErrors,
-            )
-        userId.register(
-            VaultApp(
-                vaultAccountId = vaultAccountId,
-                currency = currency,
-            )
-        )
-        return VaultUserStatus(
-            platformRegistered = true,
-            vaultAccountId = vaultAccountId,
-            currency = currency,
-            stripeErrors = stripeErrors,
-        )
-    }
-
-    suspend fun deregister(
-        email: String,
-    ): VaultUserStatus {
-        val stripeErrors = StripeService.getCustomerDetails(email = email).validate()
-        val userId = FirebaseAuthService.findUserIdOrNull(email)
-            ?.let(::UserId)
-            ?: return VaultUserStatus(
-                platformRegistered = false,
-                vaultAccountId = null,
-                currency = null,
-                stripeErrors = stripeErrors,
-            )
-        userId.deregister()
-        return VaultUserStatus(
-            platformRegistered = true,
-            vaultAccountId = null,
-            currency = null,
-            stripeErrors = stripeErrors,
-        )
-    }
-
-    internal fun List<StripeService.CustomerDetails>.validate(): List<String> = buildList {
-        if (this@validate.isEmpty()) {
-            add("No stripe users found with this email")
-        } else if (this@validate.size > 1) {
-            add("Multiple stripe users found with this email")
-        } else {
-            this@validate.single().address.validationErrors().forEach {
-                add("Missing address field: $it")
-            }
-        }
-    }
-
     suspend fun getTransactions(
         vaultAccountId: String,
         dateRange: Pair<Instant, Instant>,
         zoneId: ZoneId
     ): List<Transaction> {
         val (after, before) = dateRange
-        return FireblocksService.fetchTransactions(
+        return FireblocksTransactionService.fetchTransactions(
             vaultAccountId = vaultAccountId,
             after = after,
             before = before,
@@ -449,27 +330,12 @@ object VaultService {
         }
     }
 
-    private fun Address.validationErrors(): List<String> = buildList {
-        if (line1.isNullOrEmpty()) {
-            add("line1")
-        }
-        if (postalCode.isNullOrEmpty()) {
-            add("postalCode")
-        }
-        if (city.isNullOrEmpty()) {
-            add("city")
-        }
-        if (country.isNullOrEmpty()) {
-            add("country")
-        } else if (Locale.of("", country).displayName.isNullOrEmpty()) {
-            add("country locale")
-        }
-    }
+
 
     private suspend fun fetchFireblocksVaultAssets(
         vaultAccountId: String,
     ): List<VaultAssetBalance> = coroutineScope {
-        val vaultAccount = FireblocksService.fetchVaultAccountById(
+        val vaultAccount = FireblocksVaultAccountService.fetchVaultAccountById(
             vaultAccountId = vaultAccountId,
         )
         when {

@@ -2,15 +2,13 @@ package com.k33.platform.app.vault
 
 import com.k33.platform.app.vault.VaultService.getTransactions
 import com.k33.platform.app.vault.VaultService.getVaultAddresses
-import com.k33.platform.app.vault.VaultService.getVaultAppSettings
 import com.k33.platform.app.vault.VaultService.getVaultAssets
-import com.k33.platform.app.vault.VaultService.register
-import com.k33.platform.app.vault.VaultService.updateVaultAppSettings
+import com.k33.platform.app.vault.VaultUserService.getVaultAppSettings
+import com.k33.platform.app.vault.VaultUserService.register
+import com.k33.platform.app.vault.VaultUserService.updateVaultAppSettings
 import com.k33.platform.identity.auth.gcp.UserInfo
 import com.k33.platform.user.UserId
 import com.k33.platform.utils.logging.logWithMDC
-import com.k33.platform.utils.slack.app
-import com.slack.api.app_backend.slash_commands.response.SlashCommandResponse
 import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType
 import io.ktor.http.HeaderValueParam
@@ -33,7 +31,6 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.time.LocalDate
@@ -43,19 +40,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeParseException
 
 fun Application.module() {
-    app.command("/vault") { request, ctx ->
-        return@command runBlocking {
-            ctx.ack(
-                SlashCommandResponse
-                    .builder()
-                    .blocks(SlackCommandHandler.handleVaultCommand(request.payload))
-                    // default: ephemeral - visible to user only
-                    // in_channel - visible to all in the channel
-                    .responseType("in_channel")
-                    .build()
-            )
-        }
-    }
+    SlackRequestHandler.registerHandler()
     routing {
         authenticate("esp-v2-header") {
             route("/apps/vault") {
@@ -120,7 +105,7 @@ fun Application.module() {
                 val email = call.request.queryParameters["email"]
                     ?: throw BadRequestException("Missing query parameter: email")
                 logWithMDC("vaultUserEmail" to email) {
-                    val vaultUserStatus = VaultService.getUserStatus(email = email)
+                    val vaultUserStatus = VaultUserService.getUserStatus(email = email)
                     val httpStatusCode = if (vaultUserStatus.platformRegistered
                         && vaultUserStatus.vaultAccountId != null
                         && vaultUserStatus.stripeErrors.isEmpty()
@@ -139,7 +124,7 @@ fun Application.module() {
                     ?: throw BadRequestException("Missing query parameter: vaultAccountId")
                 val currency = call.request.queryParameters["currency"] ?: "USD"
                 logWithMDC("vaultUserEmail" to email) {
-                    val vaultUserStatus = VaultService.register(
+                    val vaultUserStatus = VaultUserService.registerUser(
                         email = email,
                         vaultAccountId = vaultAccountId,
                         currency = currency,
@@ -159,7 +144,7 @@ fun Application.module() {
                 val email = call.request.queryParameters["email"]
                     ?: throw BadRequestException("Missing query parameter: email")
                 logWithMDC("vaultUserEmail" to email) {
-                    val vaultUserStatus = VaultService.deregister(email = email)
+                    val vaultUserStatus = VaultUserService.deregister(email = email)
                     val httpStatusCode = if (vaultUserStatus.platformRegistered) {
                         HttpStatusCode.OK
                     } else {
