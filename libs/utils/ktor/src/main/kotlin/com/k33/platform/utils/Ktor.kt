@@ -33,6 +33,7 @@ fun Application.module() {
             when (cause) {
                 is BadRequestException -> call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
                 is NotFoundException -> call.respond(HttpStatusCode.NotFound, cause.message ?: "")
+                is ClientErrorException -> call.respond(cause.status, cause.message ?: "")
                 else -> {
                     call.respond(HttpStatusCode.InternalServerError, "Internal Server Error")
                     call.application.log.error("Internal Server Error", cause)
