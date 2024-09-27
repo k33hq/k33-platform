@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 class EmailServiceTest : StringSpec({
 
     val emailService by getEmailService()
-    "send email".config(enabled = false) {
+    "! send email" {
         emailService.sendEmail(
             from = Email("vihang@k33.com"),
             toList = listOf(Email("vihang@k33.com")),
@@ -19,7 +19,7 @@ class EmailServiceTest : StringSpec({
         )
     }
 
-    "send email using template".config(enabled = false) {
+    "!send email using template" {
         emailService.sendEmail(
             from = Email("vihang@k33.com"),
             toList = listOf(Email("vihang@k33.com")),
@@ -33,14 +33,14 @@ class EmailServiceTest : StringSpec({
         )
     }
 
-    "get suppression groups".config(enabled = false) {
+    "!get suppression groups" {
         val suppressionGroups = emailService.getSuppressionGroups(
             userEmail = "vihang@k33.com",
         )
         suppressionGroups!!.shouldContain(SuppressionGroup(id = 21117, name = "K33 Tech Updates", suppressed = false))
     }
 
-    "upsert into a suppression group".config(enabled = false) {
+    "!upsert into a suppression group" {
         val result = emailService.upsertIntoSuppressionGroup(
             userEmail = "vihang@k33.com",
             suppressionGroupId = 21117
@@ -48,7 +48,7 @@ class EmailServiceTest : StringSpec({
         result shouldBe true
     }
 
-    "remove from a suppression group".config(enabled = false) {
+    "!remove from a suppression group" {
         val result = emailService.removeFromSuppressionGroup(
             userEmail = "vihang@k33.com",
             suppressionGroupId = 21117

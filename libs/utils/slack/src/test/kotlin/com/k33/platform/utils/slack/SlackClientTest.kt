@@ -5,22 +5,22 @@ import io.kotest.matchers.shouldBe
 
 class SlackClientTest : StringSpec({
 
-    "send message to slack channel".config(enabled = false) {
+    "!send message to slack channel" {
         SlackClient.sendMessage(
             channel = ChannelId(System.getenv("SLACK_CHANNEL_ID")),
             message = "Testing"
         )
     }
 
-    "get private channel id".config(enabled = false) {
+    "!get private channel id" {
         SlackClient.getChannelId("") shouldBe ""
     }
 
-    "get public channel id".config(enabled = false) {
+    "!get public channel id" {
         SlackClient.getChannelId("") shouldBe ""
     }
 
-    "get all channel ids".config(enabled = false) {
+    "!get all channel ids" {
         SlackClient.getChannelNameToIdMap().forEach { (key, value) ->
             println("$key => $value")
         }

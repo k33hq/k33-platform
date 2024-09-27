@@ -11,10 +11,10 @@ import java.time.ZonedDateTime
 
 class FireblocksServiceTest : StringSpec({
     val vaultAccountId = "76"
-    "fetch fireblocks vault account by id".config(enabled = false) {
+    "!fetch fireblocks vault account by id" {
         FireblocksService.fetchVaultAccountById("76") shouldNotBe null
     }
-    "get vault asset addresses".config(enabled = false) {
+    "!get vault asset addresses" {
         val vaultAssets = FireblocksService.fetchVaultAccountById(
             vaultAccountId = vaultAccountId,
         )!!.assets!!

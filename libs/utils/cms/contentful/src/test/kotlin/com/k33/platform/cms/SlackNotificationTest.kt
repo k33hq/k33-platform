@@ -5,7 +5,7 @@ import io.kotest.core.spec.style.StringSpec
 
 class SlackNotificationTest : StringSpec({
 
-    "send slack notification on publish".config(enabled = false) {
+    "!send slack notification on publish" {
         SlackNotification.notifySlack(
             pageId = ""
         )

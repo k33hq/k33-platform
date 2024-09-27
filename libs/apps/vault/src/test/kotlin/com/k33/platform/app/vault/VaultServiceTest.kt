@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import java.time.LocalDate
 
 class VaultServiceTest : StringSpec({
-    "get vault assets".config(enabled = false) {
+    "!get vault assets" {
         val vaultApp = VaultApp(
             vaultAccountId = "76",
             currency = "USD"
@@ -22,7 +22,7 @@ class VaultServiceTest : StringSpec({
             }
         }
     }
-    "generate vault account balance reports".config(enabled = false) {
+    "!generate vault account balance reports" {
         VaultService.generateVaultAccountBalanceReports(
             date = LocalDate.now().minusDays(1),
             mode = Mode.FETCH,

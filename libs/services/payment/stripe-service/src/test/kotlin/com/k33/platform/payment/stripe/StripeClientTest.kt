@@ -5,7 +5,7 @@ import java.time.Instant
 import java.util.UUID
 
 class StripeClientTest: StringSpec({
-    "create/fetch checkout session".config(enabled = false) {
+    "!create/fetch checkout session" {
         val session = StripeService.createOrFetchCheckoutSession(
             customerEmail = "test@k33.com",
             priceId = "",
@@ -17,7 +17,7 @@ class StripeClientTest: StringSpec({
         println(session.url)
     }
 
-    "create customer portal session".config(enabled = false) {
+    "!create customer portal session" {
         val url = StripeService.createCustomerPortalSession(
             customerEmail = "test@k33.com",
             returnUrl = "https://dev.k33.com/research/settings",
@@ -25,7 +25,7 @@ class StripeClientTest: StringSpec({
         println(url)
     }
 
-    "get customers with no subscription".config(enabled = false) {
+    "!get customers with no subscription" {
         val createdSince = Instant.parse("2024-01-01T00:00:00Z")
         val createdBefore = Instant.parse("2024-02-06T00:00:00Z")
         val emailsOfCustomersWithNoSubscription = StripeService.getCustomersWithoutSubscription(

@@ -7,7 +7,7 @@ import java.io.FileOutputStream
 import java.time.LocalDate
 
 class BalanceReportTest: StringSpec({
-    "generate balance report".config(enabled = false) {
+    "!generate balance report" {
         val vaultApp = VaultApp(
             vaultAccountId = "76",
             currency = "NOK"

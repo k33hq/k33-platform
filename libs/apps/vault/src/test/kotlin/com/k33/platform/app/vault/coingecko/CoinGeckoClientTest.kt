@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class CoinGeckoClientTest : StringSpec({
-    "get fx rates".config(enabled = false) {
+    "!get fx rates" {
         CoinGeckoClient.getFxRates(
             baseCurrency = "USD",
             currencyList = listOf(

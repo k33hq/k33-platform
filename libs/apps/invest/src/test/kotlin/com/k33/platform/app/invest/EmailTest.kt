@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.StringSpec
 
 class EmailTest: StringSpec({
 
-    "send email".config(enabled = false) {
+    "!send email" {
         InvestService.sendEmail(
             investorEmail = "test@k33.com",
             fundInfoRequest = FundInfoRequest(
