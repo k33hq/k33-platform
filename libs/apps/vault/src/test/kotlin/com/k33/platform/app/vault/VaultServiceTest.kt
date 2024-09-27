@@ -1,15 +1,18 @@
 package com.k33.platform.app.vault
 
-import com.k33.platform.app.vault.VaultService.validate
-import com.k33.platform.app.vault.stripe.StripeService
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 class VaultServiceTest : StringSpec({
+
+    val vaultAccountId = "238"
+
     "!get vault assets" {
         val vaultApp = VaultApp(
-            vaultAccountId = "76",
+            vaultAccountId = vaultAccountId,
             currency = "USD"
         )
         val vaultAssets = VaultService.getVaultAssets(
@@ -18,7 +21,7 @@ class VaultServiceTest : StringSpec({
         )
         vaultAssets.forEach { vaultAsset: VaultAsset ->
             with(vaultAsset) {
-                println("$id $available $rate $fiatValue")
+                println("$id $available $pending $staked $total $rate $fiatValue")
             }
         }
     }
@@ -28,9 +31,12 @@ class VaultServiceTest : StringSpec({
             mode = Mode.FETCH,
         )
     }
-    "validate user's stripe customer details" {
-        StripeService
-            .getCustomerDetails(email = "test@k33.com")
-            .validate() shouldBe emptyList()
+    "!generate transactions csv" {
+        val transactions = VaultService.getTransactions(
+            vaultAccountId = vaultAccountId,
+            dateRange = Instant.now().minus(7, ChronoUnit.DAYS) to Instant.now(),
+            zoneId = ZoneId.of("Europe/London"),
+        )
+        println(toCsv(transactions))
     }
 })

@@ -78,7 +78,7 @@ suspend fun getBalanceReport(
                                 "Net Asset Value\n(A × B)" to Element.ALIGN_RIGHT,
                             ),
                             data = vaultAssets
-                                .filter { it.available > 0.0 }
+                                .filter { it.total > 0.0 }
                                 .flatMap {
                                     listOf(
                                         it.id,
@@ -91,7 +91,7 @@ suspend fun getBalanceReport(
                                 "",
                                 "",
                                 "Total",
-                                currencyFormatter.format(vaultAssets.sumOf { it.fiatValue?.value ?: 0.0 })
+                                currencyFormatter.format(vaultAssets.sumOf { it.fiatValue?.value ?: 0.0 }),
                             )
                         )
 

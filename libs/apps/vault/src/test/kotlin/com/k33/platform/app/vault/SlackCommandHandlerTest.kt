@@ -13,34 +13,26 @@ data class CommandSpec(
 )
 
 class SlackCommandHandlerTest : BehaviorSpec({
-    val help = CommandSpec(
-        "help",
-        SlackCommandHandler.help,
-        expectedParsedWords = emptyList(),
-    )
     val info = CommandSpec(
         "info",
-        SlackCommandHandler.info,
+        SlackRequestHandler.info,
         expectedParsedWords = listOf("test@k33.com"),
     )
     val register = CommandSpec(
         "register",
-        SlackCommandHandler.register,
+        SlackRequestHandler.register,
         expectedParsedWords = listOf("test@k33.com", "76", "USD"),
     )
     val all = listOf(
-        help,
         info,
         register,
     )
     context("Matching commands with command patterns") {
         forAll(
-            // valid help
-            row("help", help, listOf(info, register)),
             // valid info
-            row("info test@k33.com", info, listOf(help, register)),
+            row("info test@k33.com", info, listOf(register)),
             // valid register
-            row("register test@k33.com 76 USD", register, listOf(help, info)),
+            row("register test@k33.com 76 USD", register, listOf(info)),
             // invalid command
             row("invalid", null, all),
             // invalid email

@@ -70,6 +70,7 @@ object CoinGeckoClient {
                 parameters.append("ids", ids)
                 parameters.append("vs_currencies", baseCurrency)
                 parameters.append("include_24hr_change", "true")
+                parameters.append("precision", "full")
             }
         }.body<Map<String, Map<String, Double>>>()
             .entries

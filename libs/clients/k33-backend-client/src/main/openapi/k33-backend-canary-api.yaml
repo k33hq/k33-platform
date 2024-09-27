@@ -447,6 +447,7 @@ paths:
       operationId: "getVaultTransactions"
       produces:
         - "text/csv"
+        - "application/json"
       parameters:
         - name: "afterDate"
           in: query
@@ -465,7 +466,7 @@ paths:
           required: false
       responses:
         200:
-          description: "CSV file list of transactions"
+          description: "List of transactions"
         404:
           description: "User/account not registered/found"
       security:
@@ -606,6 +607,118 @@ paths:
           description: Updated vault app settings
           schema:
             $ref: "#/definitions/VaultAppSettings"
+      security:
+        - firebase: [ ]
+
+  "/apps/vault/staking/assets":
+    get:
+      description: Get vault staking assets
+      operationId: "getVaultStakingAssets"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: Vault staking assets
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/VaultStakingAsset"
+      security:
+        - firebase: [ ]
+
+  "/apps/vault/staking/positions":
+    get:
+      description: Get vault staking positions
+      operationId: "getVaultStakingPositions"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: Vault staking positions
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/VaultStakingPosition"
+      security:
+        - firebase: [ ]
+    post:
+      description: Create Vault Staking Position
+      operationId: createVaultStakingPosition
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: StakingRequest
+          in: body
+          schema:
+            $ref: "#/definitions/StakeRequest"
+      responses:
+        201:
+          description: Created vault staking position
+          schema:
+            $ref: "#/definitions/VaultStakingPosition"
+        404:
+          description: Bad request
+      security:
+        - firebase: [ ]
+  "/apps/vault/staking/positions/{stakingPositionId}":
+    get:
+      description: Get vault staking position by id
+      operationId: "getVaultStakingPosition"
+      produces:
+        - "application/json"
+      parameters:
+        - name: stakingPositionId
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: Vault staking position
+          schema:
+            $ref: "#/definitions/VaultStakingPosition"
+      security:
+        - firebase: [ ]
+    put:
+      description: Unstake or claim rewards
+      operationId: "updateVaultStakingPosition"
+      produces:
+        - "application/json"
+      parameters:
+        - name: stakingPositionId
+          in: path
+          type: string
+          required: true
+        - name: action
+          in: query
+          type: string
+          enum:
+            - unstake
+            - withdraw
+            - claimRewards
+          required: true
+      responses:
+        200:
+          description: Vault staking position
+          schema:
+            $ref: "#/definitions/VaultStakingPosition"
+      security:
+        - firebase: [ ]
+
+  "/apps/vault/staking/providers":
+    get:
+      description: Get vault staking providers
+      operationId: "getVaultStakingProviders"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: Vault staking providers
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/VaultStakingProvider"
       security:
         - firebase: [ ]
 
@@ -1039,6 +1152,12 @@ definitions:
         type: string
       available:
         type: number
+      pending:
+        type: number
+      staked:
+        type: number
+      total:
+        type: number
       rate:
         $ref: "#/definitions/Amount"
       fiatValue:
@@ -1047,7 +1166,7 @@ definitions:
         type: number
     required:
       - id
-      - available
+      - total
   Amount:
     type: object
     properties:
@@ -1095,6 +1214,131 @@ definitions:
         type: string
     required:
       - currency
+  VaultStakingAsset:
+    type: object
+    properties:
+      id:
+        type: string
+      available:
+        type: string
+      pending:
+        type: string
+      staked:
+        type: string
+    required:
+      - id
+  VaultStakingPosition:
+    type: object
+    properties:
+      id:
+        type: string
+      vaultAccountId:
+        type: string
+      validatorName:
+        type: string
+      providerName:
+        type: string
+      chainDescriptor:
+        type: string
+      amount:
+        type: string
+      rewardsAmount:
+        type: string
+      dateCreated:
+        type: string
+      status:
+        type: string
+      relatedTransactions:
+        type: array
+        items:
+          $ref: "#/definitions/RelatedTransaction"
+      validatorAddress:
+        type: string
+      providerId:
+        type: string
+      availableActions:
+        type: array
+        items:
+          type: string
+      inProgress:
+        type: boolean
+      inProgressTxId:
+        type: string
+      blockchainPositionInfo:
+        type: object
+        $ref: "#/definitions/BlockchainPositionInfo"
+    required:
+      - id
+      - vaultAccountId
+      - validatorName
+      - providerName
+      - chainDescriptor
+      - amount
+      - rewardsAmount
+      - dateCreated
+      - status
+      - relatedTransactions
+      - validatorAddress
+      - providerId
+      - availableActions
+      - inProgress
+      - blockchainPositionInfo
+  RelatedTransaction:
+    type: object
+    properties:
+      txId:
+        type: string
+      completed:
+        type: boolean
+    required:
+      - txId
+      - completed
+  BlockchainPositionInfo:
+    type: object
+    properties:
+      stakeAccountAddress:
+        type: string
+  StakeRequest:
+    type: object
+    properties:
+      vaultAssetId:
+        type: string
+      amount:
+        type: string
+    required:
+      - vaultAssetId
+      - amount
+  VaultStakingProvider:
+    type: object
+    properties:
+      id:
+        type: string
+      providerName:
+        type: string
+      validators:
+        type: array
+        items:
+          $ref: "#/definitions/VaultStakingProviderValidator"
+      iconUrl:
+        type: string
+      termsOfServiceUrl:
+        type: string
+    required:
+      - id
+      - providerName
+      - validators
+      - iconUrl
+      - termsOfServiceUrl
+  VaultStakingProviderValidator:
+    type: object
+    properties:
+      chainDescriptor:
+        type: string
+      feePercent:
+        type: number
+    required:
+      - chainDescriptor
+      - feePercent
 
 
 securityDefinitions:

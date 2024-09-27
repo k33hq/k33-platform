@@ -1,20 +1,23 @@
 package com.k33.platform.app.vault
 
 import arrow.core.raise.nullable
+import com.k33.platform.app.vault.VaultUserService.getVaultApp
+import com.k33.platform.app.vault.VaultUserService.validationErrors
 import com.k33.platform.app.vault.coingecko.CoinGeckoClient
 import com.k33.platform.app.vault.pdf.getBalanceReport
+import com.k33.platform.app.vault.staking.VaultStakingService
 import com.k33.platform.app.vault.stripe.StripeService
 import com.k33.platform.filestore.FileStoreService
-import com.k33.platform.fireblocks.service.FireblocksService
-import com.k33.platform.fireblocks.service.TxnSrcDest
+import com.k33.platform.fireblocks.service.transactions.FireblocksTransactionService
+import com.k33.platform.fireblocks.service.transactions.TxnSrcDest
+import com.k33.platform.fireblocks.service.vault.account.FireblocksVaultAccountService
 import com.k33.platform.identity.auth.gcp.FirebaseAuthService
 import com.k33.platform.user.UserId
 import com.k33.platform.utils.logging.NotifySlack
 import com.k33.platform.utils.logging.getLogger
-import com.stripe.model.Address
+import com.k33.platform.utils.logging.logWithMDC
 import io.firestore4k.typed.FirestoreClient
 import io.firestore4k.typed.div
-import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -25,6 +28,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Locale
+import com.k33.platform.fireblocks.service.vault.account.VaultAsset as FireblocksVaultAsset
 
 object VaultService {
 
@@ -33,240 +37,155 @@ object VaultService {
     private val firestoreClient by lazy { FirestoreClient() }
 
     suspend fun UserId.getVaultAssets(currency: String?): List<VaultAsset> {
-        val vaultApp = firestoreClient.get(inVaultAppContext())
-            ?: throw NotFoundException("Not registered to K33 Vault service")
-
-        return getVaultAssets(
-            vaultApp = vaultApp,
-            currency = currency
-        )
+        val vaultApp = getVaultApp()
+        return logWithMDC("vaultAccountId" to vaultApp.vaultAccountId) {
+            getVaultAssets(
+                vaultApp = vaultApp,
+                currency = currency
+            )
+        }
     }
 
     internal suspend fun getVaultAssets(
         vaultApp: VaultApp,
         currency: String?,
     ): List<VaultAsset> {
-        val vaultAccount = FireblocksService.fetchVaultAccountById(
+
+        val vaultAccount = FireblocksVaultAccountService.fetchVaultAccountById(
             vaultAccountId = vaultApp.vaultAccountId,
         )
 
         if (vaultAccount == null) {
             logger.warn(
                 NotifySlack.ALERTS,
-                "No vault account (id: ${vaultApp.vaultAccountId}) found in Fireblocks"
+                "No vault account found in Fireblocks"
             )
             return emptyList()
         }
 
-        val baseCurrency = currency ?: vaultApp.currency
+        val stakingAssetsMap = VaultStakingService
+            .getStakingPositionAssets(vaultAccountId = vaultApp.vaultAccountId)
+            .associateBy { it.id }
 
-        val cryptoCurrencyToBalanceMap = vaultAccount
+        val vaultAssetsMap = vaultAccount
             .assets
-            ?.mapNotNull { vaultAsset ->
+            .let { it ?: emptyList() }
+            .mapNotNull {
                 nullable {
-                    vaultAsset.id.bind() to vaultAsset.available.bind().toDouble()
-                }
-            }
-            ?.toMap()
-            ?: emptyMap()
-
-        return if (cryptoCurrencyToBalanceMap.isNotEmpty()) {
-            val cryptoCurrencyList = cryptoCurrencyToBalanceMap
-                .filterValues { it > 0 }
-                .keys
-                .toList()
-            val fxMap = CoinGeckoClient.getFxRates(
-                baseCurrency = baseCurrency,
-                currencyList = cryptoCurrencyList
-            )
-            cryptoCurrencyToBalanceMap
-                .map { (currency, balance) ->
-                    VaultAsset(
-                        id = currency,
-                        available = balance,
-                        rate = nullable {
-                            Amount(
-                                value = fxMap[currency]?.rate.bind(),
-                                currency = baseCurrency,
-                            )
-                        },
-                        fiatValue = nullable {
-                            Amount(
-                                value = fxMap[currency]?.rate.bind() * balance,
-                                currency = baseCurrency,
-                            )
-                        },
-                        dailyPercentChange = fxMap[currency]
-                            ?.percentChangeIn24hr,
+                    it.id.bind() to it.copy(
+                        pending = stakingAssetsMap[it.id]?.pending?.toPlainString(),
+                        staked = stakingAssetsMap[it.id]?.staked?.toPlainString(),
                     )
                 }
-                .sortedByDescending { it.fiatValue?.value }
-        } else {
-            emptyList()
-        }
+            }
+            .toMap()
+            .toMutableMap()
+            .apply {
+                stakingAssetsMap.forEach { (id, asset) ->
+                    putIfAbsent(
+                        id,
+                        FireblocksVaultAsset(
+                            id = id,
+                            pending = asset.pending?.toPlainString(),
+                            staked = asset.staked?.toPlainString(),
+                        ),
+                    )
+                }
+            }
+            .toMap()
+
+        val baseCurrency = currency ?: vaultApp.currency
+
+        val cryptoCurrencyToTotalMap: Map<String, Double> = vaultAssetsMap
+            .mapValues { (_, vaultAsset) ->
+                (vaultAsset.available?.toDoubleOrNull() ?: 0.0) +
+                        (@Suppress("DEPRECATION") vaultAsset.pending?.toDoubleOrNull() ?: 0.0) +
+                        (@Suppress("DEPRECATION") vaultAsset.staked?.toDoubleOrNull() ?: 0.0)
+            }
+            .filterValues { it > 0.0 }
+
+        val cryptoCurrencyList = cryptoCurrencyToTotalMap
+            .keys
+            .toList()
+
+        val fxMap = CoinGeckoClient.getFxRates(
+            baseCurrency = baseCurrency,
+            currencyList = cryptoCurrencyList
+        )
+
+        return vaultAssetsMap
+            .map { (cryptocurrency, vaultAsset) ->
+                VaultAsset(
+                    id = cryptocurrency,
+                    available = vaultAsset.available?.toDoubleOrNull(),
+                    pending = @Suppress("DEPRECATION") vaultAsset.pending?.toDoubleOrNull(),
+                    staked = @Suppress("DEPRECATION") vaultAsset.staked?.toDoubleOrNull(),
+                    total = cryptoCurrencyToTotalMap[cryptocurrency] ?: 0.0,
+                    rate = nullable {
+                        Amount(
+                            value = fxMap[cryptocurrency]?.rate.bind(),
+                            currency = baseCurrency,
+                        )
+                    },
+                    fiatValue = nullable {
+                        Amount(
+                            value = (cryptoCurrencyToTotalMap[cryptocurrency].bind() * fxMap[cryptocurrency]?.rate.bind()),
+                            currency = baseCurrency,
+                        )
+                    },
+                    dailyPercentChange = fxMap[cryptocurrency]
+                        ?.percentChangeIn24hr,
+                )
+            }
+            .sortedByDescending { it.fiatValue?.value }
     }
 
     suspend fun UserId.getVaultAddresses(
         vaultAssetId: String
     ): List<VaultAssetAddress> {
-        val vaultApp = firestoreClient.get(inVaultAppContext())
-            ?: throw NotFoundException("Not registered to K33 Vault service")
-
-        return FireblocksService.fetchVaultAssetAddresses(
-            vaultAccountId = vaultApp.vaultAccountId,
-            vaultAssetId = vaultAssetId,
-        ).mapNotNull {
-            nullable {
-                VaultAssetAddress(
-                    assetId = vaultAssetId,
-                    address = it.address.bind(),
-                    addressFormat = it.addressFormat,
-                    legacyAddress = it.address,
-                    tag = it.tag
-                )
+        val vaultApp = getVaultApp()
+        return logWithMDC("vaultAccountId" to vaultApp.vaultAccountId) {
+            FireblocksVaultAccountService.fetchVaultAssetAddresses(
+                vaultAccountId = vaultApp.vaultAccountId,
+                vaultAssetId = vaultAssetId,
+            ).mapNotNull {
+                nullable {
+                    VaultAssetAddress(
+                        assetId = vaultAssetId,
+                        address = it.address.bind(),
+                        addressFormat = it.addressFormat,
+                        legacyAddress = it.address,
+                        tag = it.tag
+                    )
+                }
             }
         }
-    }
-
-    suspend fun UserId.getVaultAppSettings(): VaultAppSettings {
-        val vaultApp = firestoreClient.get(inVaultAppContext())
-            ?: throw NotFoundException("Not registered to K33 Vault service")
-        return VaultAppSettings(
-            currency = vaultApp.currency,
-        )
-    }
-
-    suspend fun UserId.updateVaultAppSettings(settings: VaultAppSettings) {
-        val vaultApp = firestoreClient.get(inVaultAppContext())
-            ?: throw NotFoundException("Not registered to K33 Vault service")
-        val updatedVaultApp = vaultApp.copy(
-            currency = settings.currency,
-        )
-        firestoreClient.put(inVaultAppContext(), updatedVaultApp)
-    }
-
-    suspend fun UserId.register(
-        vaultApp: VaultApp,
-    ) {
-        firestoreClient.put(inVaultAppContext(), vaultApp)
-    }
-
-    private suspend fun UserId.deregister() {
-        firestoreClient.delete(inVaultAppContext())
     }
 
     suspend fun UserId.getTransactions(
         dateRange: Pair<Instant, Instant>,
         zoneId: ZoneId,
     ): List<Transaction> {
-        val vaultApp = firestoreClient.get(inVaultAppContext())
-            ?: throw NotFoundException("Not registered to K33 Vault service")
-
+        val vaultApp = getVaultApp()
         val vaultAccountId = vaultApp.vaultAccountId
-        val vaultAccount = FireblocksService.fetchVaultAccountById(
-            vaultAccountId = vaultAccountId,
-        )
-
-        if (vaultAccount == null) {
-            logger.warn(
-                NotifySlack.ALERTS,
-                "No vault account (id: $vaultAccountId) found in Fireblocks"
-            )
-            return emptyList()
-        }
-
-        return getTransactions(
-            vaultAccountId = vaultAccountId,
-            dateRange = dateRange,
-            zoneId = zoneId
-        )
-    }
-
-    suspend fun getUserStatus(
-        email: String,
-    ): VaultUserStatus {
-        val stripeErrors = StripeService.getCustomerDetails(email = email).validate()
-        val userId = FirebaseAuthService.findUserIdOrNull(email)
-            ?.let(::UserId)
-            ?: return VaultUserStatus(
-                platformRegistered = false,
-                vaultAccountId = null,
-                currency = null,
-                stripeErrors = stripeErrors,
-            )
-        val vaultApp = firestoreClient.get(userId.inVaultAppContext())
-            ?: return VaultUserStatus(
-                platformRegistered = true,
-                vaultAccountId = null,
-                currency = null,
-                stripeErrors = stripeErrors,
-            )
-        return VaultUserStatus(
-            platformRegistered = true,
-            vaultAccountId = vaultApp.vaultAccountId,
-            currency = vaultApp.currency,
-            stripeErrors = stripeErrors,
-        )
-    }
-
-    suspend fun register(
-        email: String,
-        vaultAccountId: String,
-        currency: String,
-    ): VaultUserStatus {
-        val stripeErrors = StripeService.getCustomerDetails(email = email).validate()
-        val userId = FirebaseAuthService.findUserIdOrNull(email)
-            ?.let(::UserId)
-            ?: return VaultUserStatus(
-                platformRegistered = false,
-                vaultAccountId = null,
-                currency = null,
-                stripeErrors = stripeErrors,
-            )
-        userId.register(
-            VaultApp(
+        return logWithMDC("vaultAccountId" to vaultApp.vaultAccountId) {
+            val vaultAccount = FireblocksVaultAccountService.fetchVaultAccountById(
                 vaultAccountId = vaultAccountId,
-                currency = currency,
             )
-        )
-        return VaultUserStatus(
-            platformRegistered = true,
-            vaultAccountId = vaultAccountId,
-            currency = currency,
-            stripeErrors = stripeErrors,
-        )
-    }
 
-    suspend fun deregister(
-        email: String,
-    ): VaultUserStatus {
-        val stripeErrors = StripeService.getCustomerDetails(email = email).validate()
-        val userId = FirebaseAuthService.findUserIdOrNull(email)
-            ?.let(::UserId)
-            ?: return VaultUserStatus(
-                platformRegistered = false,
-                vaultAccountId = null,
-                currency = null,
-                stripeErrors = stripeErrors,
-            )
-        userId.deregister()
-        return VaultUserStatus(
-            platformRegistered = true,
-            vaultAccountId = null,
-            currency = null,
-            stripeErrors = stripeErrors,
-        )
-    }
-
-    internal fun List<StripeService.CustomerDetails>.validate(): List<String> = buildList {
-        if (this@validate.isEmpty()) {
-            add("No stripe users found with this email")
-        } else if (this@validate.size > 1) {
-            add("Multiple stripe users found with this email")
-        } else {
-            this@validate.single().address.validationErrors().forEach {
-                add("Missing address field: $it")
+            if (vaultAccount == null) {
+                logger.warn(
+                    NotifySlack.ALERTS,
+                    "No vault account found in Fireblocks"
+                )
+                return@logWithMDC emptyList()
             }
+
+            return@logWithMDC getTransactions(
+                vaultAccountId = vaultAccountId,
+                dateRange = dateRange,
+                zoneId = zoneId
+            )
         }
     }
 
@@ -276,7 +195,7 @@ object VaultService {
         zoneId: ZoneId
     ): List<Transaction> {
         val (after, before) = dateRange
-        return FireblocksService.fetchTransactions(
+        return FireblocksTransactionService.fetchTransactions(
             vaultAccountId = vaultAccountId,
             after = after,
             before = before,
@@ -365,17 +284,19 @@ object VaultService {
             val userIdToVaultAssetBalanceListMap = userIdToVaultAccountIdMap
                 .map { (userId, vaultAccountId) ->
                     async {
-                        if (mode.fetch) {
-                            // fetch
-                            userId to fetchFireblocksVaultAssets(vaultAccountId).also {
-                                if (mode.store) {
-                                    // store
-                                    userId.storeVaultAssetBalanceList(it, date)
+                        logWithMDC("userId" to userId.value, "vaultAccountId" to vaultAccountId) {
+                            if (mode.fetch) {
+                                // fetch
+                                userId to fetchFireblocksVaultAssets(vaultAccountId).also {
+                                    if (mode.store) {
+                                        // store
+                                        userId.storeVaultAssetBalanceList(it, date)
+                                    }
                                 }
+                            } else {
+                                // mode.load == true
+                                userId to userId.fetchVaultAssetBalanceList(date)
                             }
-                        } else {
-                            // mode.load == true
-                            userId to userId.fetchVaultAssetBalanceList(date)
                         }
                     }
                 }
@@ -389,10 +310,12 @@ object VaultService {
                 .flatMap { it.map(VaultAssetBalance::asset) }
                 .distinct()
             val assetIdToRateMap = if (mode.useCurrentFxRate) {
-                CoinGeckoClient.getFxRates(
-                    baseCurrency = "nok",
-                    currencyList = assetIdList,
-                ).mapValues { (_, fxRate) -> fxRate.rate }
+                CoinGeckoClient
+                    .getFxRates(
+                        baseCurrency = "nok",
+                        currencyList = assetIdList,
+                    )
+                    .mapValues { (_, fxRate) -> fxRate.rate }
             } else {
                 assetIdList.map { assetId ->
                     async {
@@ -410,72 +333,66 @@ object VaultService {
                     vaultAssetBalanceList
                         .mapNotNull { vaultAssetBalance ->
                             nullable {
-                                val available = vaultAssetBalance.available?.toDoubleOrNull().bind()
                                 val rate = assetIdToRateMap[vaultAssetBalance.asset].bind()
+                                val total = (vaultAssetBalance.available?.toDoubleOrNull() ?: 0.0) +
+                                        (vaultAssetBalance.pending?.toDoubleOrNull() ?: 0.0) +
+                                        (vaultAssetBalance.staked?.toDoubleOrNull() ?: 0.0)
                                 VaultAsset(
                                     id = vaultAssetBalance.asset,
-                                    available = available,
+                                    available = vaultAssetBalance.available?.toDoubleOrNull(),
+                                    pending = vaultAssetBalance.pending?.toDoubleOrNull(),
+                                    staked = vaultAssetBalance.staked?.toDoubleOrNull(),
+                                    total = total,
                                     rate = Amount(rate, "NOK"),
-                                    fiatValue = Amount(rate * available, "NOK"),
+                                    fiatValue = Amount((rate * total), "NOK"),
                                     dailyPercentChange = null
                                 )
                             }
                         }
                 }
                 .map { (userId, vaultAssets) ->
-                    val validationErrors = userIdToDetailsMap[userId]?.address?.validationErrors() ?: listOf("address")
-                    if (validationErrors.isNotEmpty()) {
-                        logger.warn(
-                            NotifySlack.ALERTS,
-                            "Missing stripe address field(s) for user: {}, field(s): {}",
-                            userId,
-                            validationErrors
+                    logWithMDC("userId" to userId.value) {
+                        val validationErrors = userIdToDetailsMap[userId]
+                            ?.address
+                            ?.validationErrors()
+                            ?: listOf("address")
+                        if (validationErrors.isNotEmpty()) {
+                            logger.warn(
+                                NotifySlack.ALERTS,
+                                "Missing stripe address field(s) for user: {}, field(s): {}",
+                                userId,
+                                validationErrors
+                            )
+                        }
+                        val reportFileContents = getBalanceReport(
+                            name = userIdToDetailsMap[userId]?.name ?: "",
+                            address = userIdToDetailsMap[userId]?.address?.let { address ->
+                                listOfNotNull(
+                                    address.line1,
+                                    address.line2,
+                                    "${address.postalCode?.plus(" ") ?: ""}${address.city ?: ""}",
+                                    address.state,
+                                    nullable { Locale.of("", address.country.bind()).displayName }
+                                )
+                            } ?: emptyList(),
+                            date = date,
+                            vaultAssets = vaultAssets,
+                        )
+                        saveBalanceReport(
+                            userId = userId,
+                            fileName = "$date.pdf",
+                            contents = reportFileContents,
                         )
                     }
-                    val reportFileContents = getBalanceReport(
-                        name = userIdToDetailsMap[userId]?.name ?: "",
-                        address = userIdToDetailsMap[userId]?.address?.let { address ->
-                            listOfNotNull(
-                                address.line1,
-                                address.line2,
-                                "${address.postalCode?.plus(" ") ?: ""}${address.city ?: ""}",
-                                address.state,
-                                nullable { Locale.of("", address.country.bind()).displayName }
-                            )
-                        } ?: emptyList(),
-                        date = date,
-                        vaultAssets = vaultAssets,
-                    )
-                    saveBalanceReport(
-                        userId = userId,
-                        fileName = "$date.pdf",
-                        contents = reportFileContents,
-                    )
                 }
         }
     }
 
-    private fun Address.validationErrors(): List<String> = buildList {
-        if (line1.isNullOrEmpty()) {
-            add("line1")
-        }
-        if (postalCode.isNullOrEmpty()) {
-            add("postalCode")
-        }
-        if (city.isNullOrEmpty()) {
-            add("city")
-        }
-        if (country.isNullOrEmpty()) {
-            add("country")
-        } else if (Locale.of("", country).displayName.isNullOrEmpty()) {
-            add("country locale")
-        }
-    }
 
     private suspend fun fetchFireblocksVaultAssets(
         vaultAccountId: String,
     ): List<VaultAssetBalance> = coroutineScope {
-        val vaultAccount = FireblocksService.fetchVaultAccountById(
+        val vaultAccount = FireblocksVaultAccountService.fetchVaultAccountById(
             vaultAccountId = vaultAccountId,
         )
         when {
@@ -490,18 +407,23 @@ object VaultService {
             }
 
             else -> {
+                val stakingAssetsMap = VaultStakingService
+                    .getStakingPositionAssets(vaultAccountId = vaultAccountId)
+                    .associateBy { it.id }
+
                 vaultAccount
                     .assets
                     ?.mapNotNull { fireblocksVaultAsset ->
                         nullable {
+                            val assetId = fireblocksVaultAsset.id.bind()
                             VaultAssetBalance(
-                                asset = fireblocksVaultAsset.id.bind(),
+                                asset = assetId,
                                 total = fireblocksVaultAsset.total,
                                 available = fireblocksVaultAsset.available,
-                                pending = fireblocksVaultAsset.pending,
+                                pending = stakingAssetsMap[assetId]?.pending?.toPlainString(),
                                 frozen = fireblocksVaultAsset.frozen,
                                 lockedAmount = fireblocksVaultAsset.lockedAmount,
-                                staked = fireblocksVaultAsset.staked,
+                                staked = stakingAssetsMap[assetId]?.staked?.toPlainString(),
                             )
                         }
                     }

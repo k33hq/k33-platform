@@ -1,6 +1,8 @@
 package com.k33.platform.fireblocks.client
 
-import com.k33.platform.utils.config.ConfigAsResourceFile
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.k33.platform.utils.config.loadConfig
 import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWSAlgorithm
@@ -31,6 +33,10 @@ private val signer by lazy {
 
 @OptIn(ExperimentalStdlibApi::class)
 val FireblocksAuthPlugin = createClientPlugin("FireblocksAuthPlugin") {
+    val jackson = jacksonObjectMapper().apply {
+        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    }
     onRequest { request, content ->
         // https://developers.fireblocks.com/reference/signing-a-request-jwt-structure#jwt-structure
         val expiry = Date(Instant.now().plusSeconds(55).toEpochMilli())
@@ -40,7 +46,7 @@ val FireblocksAuthPlugin = createClientPlugin("FireblocksAuthPlugin") {
             val sha256 = when (content) {
                 is EmptyContent -> messageDigest.digest("".toByteArray())
                 is TextContent -> messageDigest.digest(content.text.toByteArray())
-                else -> messageDigest.digest("".toByteArray())
+                else -> messageDigest.digest(jackson.writeValueAsBytes(content))
             }
             sha256.toHexString(format = HexFormat.Default)
         }

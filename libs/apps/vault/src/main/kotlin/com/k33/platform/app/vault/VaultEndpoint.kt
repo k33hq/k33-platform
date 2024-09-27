@@ -1,16 +1,16 @@
 package com.k33.platform.app.vault
 
+import arrow.core.raise.nullable
 import com.k33.platform.app.vault.VaultService.getTransactions
 import com.k33.platform.app.vault.VaultService.getVaultAddresses
-import com.k33.platform.app.vault.VaultService.getVaultAppSettings
 import com.k33.platform.app.vault.VaultService.getVaultAssets
-import com.k33.platform.app.vault.VaultService.register
-import com.k33.platform.app.vault.VaultService.updateVaultAppSettings
+import com.k33.platform.app.vault.VaultUserService.getVaultAppSettings
+import com.k33.platform.app.vault.VaultUserService.register
+import com.k33.platform.app.vault.VaultUserService.updateVaultAppSettings
+import com.k33.platform.app.vault.staking.vaultStakingEndpoint
 import com.k33.platform.identity.auth.gcp.UserInfo
 import com.k33.platform.user.UserId
 import com.k33.platform.utils.logging.logWithMDC
-import com.k33.platform.utils.slack.app
-import com.slack.api.app_backend.slash_commands.response.SlashCommandResponse
 import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType
 import io.ktor.http.HeaderValueParam
@@ -32,7 +32,6 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.time.LocalDate
@@ -42,19 +41,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeParseException
 
 fun Application.module() {
-    app.command("/vault") { request, ctx ->
-        return@command runBlocking {
-            ctx.ack(
-                SlashCommandResponse
-                    .builder()
-                    .blocks(SlackCommandHandler.handleVaultCommand(request.payload))
-                    // default: ephemeral - visible to user only
-                    // in_channel - visible to all in the channel
-                    .responseType("in_channel")
-                    .build()
-            )
-        }
-    }
+    SlackRequestHandler.registerHandler()
     routing {
         authenticate("esp-v2-header") {
             route("/apps/vault") {
@@ -78,11 +65,21 @@ fun Application.module() {
 
                 get("transactions") {
                     val userId = UserId(call.principal<UserInfo>()!!.userId)
+                    val acceptContentType = nullable {
+                        ContentType.parse(call.request.headers[HttpHeaders.Accept].bind())
+                    }
                     logWithMDC("userId" to userId.value) {
                         val (afterDate, beforeDate, zoneId) = call.request.queryParameters.getDateRange()
                         val transactions = userId.getTransactions(afterDate to beforeDate, zoneId)
-                        call.respondTransactionsAsCsv(transactions)
+                        when (acceptContentType) {
+                            ContentType.Application.Json -> call.respond(transactions)
+                            ContentType.Text.CSV -> call.respondTransactionsAsCsv(transactions)
+                        }
                     }
+                }
+
+                route("staking") {
+                    vaultStakingEndpoint()
                 }
 
                 route("settings") {
@@ -119,7 +116,7 @@ fun Application.module() {
                 val email = call.request.queryParameters["email"]
                     ?: throw BadRequestException("Missing query parameter: email")
                 logWithMDC("vaultUserEmail" to email) {
-                    val vaultUserStatus = VaultService.getUserStatus(email = email)
+                    val vaultUserStatus = VaultUserService.getUserStatus(email = email)
                     val httpStatusCode = if (vaultUserStatus.platformRegistered
                         && vaultUserStatus.vaultAccountId != null
                         && vaultUserStatus.stripeErrors.isEmpty()
@@ -138,7 +135,7 @@ fun Application.module() {
                     ?: throw BadRequestException("Missing query parameter: vaultAccountId")
                 val currency = call.request.queryParameters["currency"] ?: "USD"
                 logWithMDC("vaultUserEmail" to email) {
-                    val vaultUserStatus = VaultService.register(
+                    val vaultUserStatus = VaultUserService.registerUser(
                         email = email,
                         vaultAccountId = vaultAccountId,
                         currency = currency,
@@ -158,7 +155,7 @@ fun Application.module() {
                 val email = call.request.queryParameters["email"]
                     ?: throw BadRequestException("Missing query parameter: email")
                 logWithMDC("vaultUserEmail" to email) {
-                    val vaultUserStatus = VaultService.deregister(email = email)
+                    val vaultUserStatus = VaultUserService.deregister(email = email)
                     val httpStatusCode = if (vaultUserStatus.platformRegistered) {
                         HttpStatusCode.OK
                     } else {
@@ -172,10 +169,16 @@ fun Application.module() {
         get("/apps/vault/admin/transactions") {
             val vaultAccountId = call.request.queryParameters["vaultAccountId"]
                 ?: throw BadRequestException("Missing query parameter: vaultAccountId")
+            val acceptContentType = nullable {
+                ContentType.parse(call.request.headers[HttpHeaders.Accept].bind())
+            }
             logWithMDC("vaultAccountId" to vaultAccountId) {
                 val (afterDate, beforeDate, zoneId) = call.request.queryParameters.getDateRange()
                 val transactions = getTransactions(vaultAccountId, afterDate to beforeDate, zoneId)
-                call.respondTransactionsAsCsv(transactions)
+                when (acceptContentType) {
+                    ContentType.Application.Json -> call.respond(transactions)
+                    ContentType.Text.CSV -> call.respondTransactionsAsCsv(transactions)
+                }
             }
         }
 
@@ -241,7 +244,7 @@ private suspend fun ApplicationCall.respondTransactionsAsCsv(
     )
 }
 
-private fun toCsv(
+internal fun toCsv(
     transactions: List<Transaction>
 ): String = buildString {
     appendLine("Id,CreatedAt,Operation,Direction,Asset,Amount,NetAmount,AmountUSD,FeeCurrency,Fee")
@@ -255,7 +258,10 @@ private fun toCsv(
 @Serializable
 data class VaultAsset(
     val id: String,
-    val available: Double,
+    val available: Double?,
+    val pending: Double?,
+    val staked: Double?,
+    val total: Double,
     val rate: Amount?,
     val fiatValue: Amount?,
     val dailyPercentChange: Double?,
@@ -306,6 +312,7 @@ enum class Mode(
         get() = store
 }
 
+@Serializable
 data class Transaction(
     val id: String,
     val createdAt: String,

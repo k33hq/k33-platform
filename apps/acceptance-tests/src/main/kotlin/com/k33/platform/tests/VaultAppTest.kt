@@ -1,11 +1,14 @@
 package com.k33.platform.tests
 
+import com.k33.platform.utils.logging.prettyPrint
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
+import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.request.parameter
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -13,6 +16,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.parameters
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.util.UUID
@@ -36,6 +40,21 @@ class VaultAppTest : BehaviorSpec({
     ): HttpResponse {
         return apiClient.get {
             url(path = "apps/vault/assets/$assetId/addresses")
+            headers {
+                appendEndpointsApiUserInfoHeader(userId)
+            }
+        }
+    }
+
+    suspend fun getTransactions(
+        userId: String,
+    ): HttpResponse {
+        return apiClient.get {
+            url(path = "apps/vault/transactions") {
+                parameters.append("afterDate", LocalDate.now().minusDays(7).toString())
+                parameters.append("beforeDate", LocalDate.now().toString())
+            }
+            accept(ContentType.Application.Json)
             headers {
                 appendEndpointsApiUserInfoHeader(userId)
             }
@@ -91,27 +110,33 @@ class VaultAppTest : BehaviorSpec({
         val userId = UUID.randomUUID().toString()
         `when`("GET apps/vault/assets") {
             val response = getVaultAssets(userId)
-            then("Status should be 404 NOT FOUND") {
-                response.status shouldBe HttpStatusCode.NotFound
+            then("Status should be 403 FORBIDDEN") {
+                response.status shouldBe HttpStatusCode.Forbidden
+            }
+        }
+        `when`("GET apps/vault/transactions") {
+            val response = getTransactions(userId)
+            then("Status should be 403 FORBIDDEN") {
+                response.status shouldBe HttpStatusCode.Forbidden
             }
         }
         `when`("GET apps/vault/settings") {
             val response = getVaultAppSettings(userId)
-            then("Status should be 404 NOT FOUND") {
-                response.status shouldBe HttpStatusCode.NotFound
+            then("Status should be 403 FORBIDDEN") {
+                response.status shouldBe HttpStatusCode.Forbidden
             }
         }
         `when`("PUT apps/vault/settings") {
             val response = updateVaultAppSettings(userId, "NOK")
-            then("Status should be 404 NOT FOUND") {
-                response.status shouldBe HttpStatusCode.NotFound
+            then("Status should be 404 FORBIDDEN") {
+                response.status shouldBe HttpStatusCode.Forbidden
             }
         }
         `when`("PUT apps/vault/register") {
-            val registerResponse = registerVaultApp(userId, vaultAccountId = "76", currency = "USD")
+            val registerResponse = registerVaultApp(userId, vaultAccountId = "238", currency = "USD")
             then("Status should be 200 OK") {
                 registerResponse.status shouldBe HttpStatusCode.OK
-                registerResponse.body<VaultApp>() shouldBe VaultApp(vaultAccountId = "76", currency = "USD")
+                registerResponse.body<VaultApp>() shouldBe VaultApp(vaultAccountId = "238", currency = "USD")
             }
             and("GET apps/vault/assets") {
                 val response = getVaultAssets(userId)
@@ -125,13 +150,23 @@ class VaultAppTest : BehaviorSpec({
                 }
             }
             and("GET apps/vault/assets/{assetId}/addresses") {
-                val response = getVaultAssetAddresses(userId, "BTC_TEST")
+                val response = getVaultAssetAddresses(userId, "SOL_TEST")
                 then("Status should be 200 OK") {
                     response.status shouldBe HttpStatusCode.OK
                     val vaultAssetAddresses = response.body<List<VaultAssetAddress>>()
                     vaultAssetAddresses.size shouldBeGreaterThan 0
                     for (vaultAssetAddress in vaultAssetAddresses) {
                         println("${vaultAssetAddress.assetId} : @ ${vaultAssetAddress.address}, old @ ${vaultAssetAddress.address}, @ fmt ${vaultAssetAddress.addressFormat}, # ${vaultAssetAddress.tag}")
+                    }
+                }
+            }
+            and("GET apps/vault/transactions") {
+                val response = getTransactions(userId)
+                then("Status should be 200 OK") {
+                    response.status shouldBe HttpStatusCode.OK
+                    val transactions = response.body<List<Transaction>>()
+                    for (transaction in transactions) {
+                        println(transaction.prettyPrint())
                     }
                 }
             }
@@ -172,7 +207,7 @@ class VaultAppTest : BehaviorSpec({
         and("User is register in Vault app") {
             registerVaultApp(
                 userId = userId,
-                vaultAccountId = "76",
+                vaultAccountId = "238",
                 currency = "NOK",
             ).status shouldBe HttpStatusCode.OK
             `when`("PUT /admin/jobs/generate-vault-accounts-balance-reports") {
@@ -205,7 +240,7 @@ class VaultAppTest : BehaviorSpec({
     given("For vault admin, user is not registered") {
         `when`("GET /apps/vault/admin/user") {
             val response = getVaultUserStatus()
-            then("Status should be 404 NOT FOUND") {
+            then("Status should be 404 Not Found") {
                 response.status shouldBe HttpStatusCode.NotFound
                 response.body<VaultUserStatus>() shouldBe VaultUserStatus(
                     platformRegistered = true,
@@ -216,12 +251,12 @@ class VaultAppTest : BehaviorSpec({
             }
         }
         `when`("Register vault user - PUT /apps/vault/admin/user") {
-            val response = registerVaultUser(vaultAccountId = "76")
+            val response = registerVaultUser(vaultAccountId = "238")
             then("Status should be 200") {
                 response.status shouldBe HttpStatusCode.OK
                 response.body<VaultUserStatus>() shouldBe VaultUserStatus(
                     platformRegistered = true,
-                    vaultAccountId = "76",
+                    vaultAccountId = "238",
                     currency = "NOK",
                     stripeErrors = emptyList(),
                 )
@@ -232,7 +267,7 @@ class VaultAppTest : BehaviorSpec({
                     updatedResponse.status shouldBe HttpStatusCode.OK
                     response.body<VaultUserStatus>() shouldBe VaultUserStatus(
                         platformRegistered = true,
-                        vaultAccountId = "76",
+                        vaultAccountId = "238",
                         currency = "NOK",
                         stripeErrors = emptyList(),
                     )
@@ -245,7 +280,10 @@ class VaultAppTest : BehaviorSpec({
 @Serializable
 data class VaultAsset(
     val id: String,
-    val available: Double,
+    val available: Double?,
+    val pending: Double?,
+    val staked: Double?,
+    val total: Double,
     val rate: Amount?,
     val fiatValue: Amount?,
     val dailyPercentChange: Double?,
@@ -266,6 +304,20 @@ data class VaultAssetAddress(
     val addressFormat: String? = null,
     val legacyAddress: String? = null,
     val tag: String? = null,
+)
+
+@Serializable
+data class Transaction(
+    val id: String,
+    val createdAt: String,
+    val operation: String,
+    val direction: String,
+    val assetId: String,
+    val amount: String,
+    val netAmount: String,
+    val amountUSD: String,
+    val feeCurrency: String,
+    val fee: String,
 )
 
 @Serializable

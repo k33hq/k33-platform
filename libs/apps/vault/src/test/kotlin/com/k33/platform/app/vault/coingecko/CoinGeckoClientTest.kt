@@ -2,6 +2,7 @@ package com.k33.platform.app.vault.coingecko
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import java.time.LocalDate
 
 class CoinGeckoClientTest : StringSpec({
     "!get fx rates" {
@@ -21,6 +22,15 @@ class CoinGeckoClientTest : StringSpec({
         ).forEach { (symbol, fxRate) ->
             println("$symbol: USD ${fxRate.rate}, ${fxRate.percentChangeIn24hr}%")
         }
+    }
+
+    "!get historical fx rates" {
+        val historicalValue = CoinGeckoClient.getHistoricalFxRates(
+            cryptoCurrency = "BTC",
+            date = LocalDate.now(),
+            fiatCurrency = "nok",
+        )
+        println("historicalValue: $historicalValue")
     }
 
     "map: main -> main" {

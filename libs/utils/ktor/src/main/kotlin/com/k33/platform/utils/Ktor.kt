@@ -28,13 +28,37 @@ import java.time.temporal.ChronoUnit
 
 fun Application.module() {
     install(StatusPages) {
-        exception<Throwable> { call, cause ->
-            when (cause) {
-                is BadRequestException -> call.respond(HttpStatusCode.BadRequest, cause.message ?: "")
-                is NotFoundException -> call.respond(HttpStatusCode.NotFound, cause.message ?: "")
+        exception<Throwable> { call, throwable ->
+            when (throwable) {
+                is BadRequestException -> call.respond(
+                    status = HttpStatusCode.BadRequest,
+                    message = ErrorResponse(
+                        code = "BAD_REQUEST",
+                        message = throwable.message ?: "",
+                    ),
+                )
+                is NotFoundException -> call.respond(
+                    status = HttpStatusCode.NotFound,
+                    message = ErrorResponse(
+                        code = "NOT_FOUND",
+                        message = throwable.message ?: "",
+                    ),
+                )
+                is RestApiException -> call.respond(
+                    status = throwable.status,
+                    message = ErrorResponse(
+                        code = throwable.code,
+                        message = throwable.message,
+                    )
+                )
                 else -> {
-                    call.respond(HttpStatusCode.InternalServerError, "Internal Server Error")
-                    call.application.log.error("Internal Server Error", cause)
+                    call.application.log.error("Internal Server Error", throwable)
+                    call.respond(status = HttpStatusCode.InternalServerError,
+                        message = ErrorResponse(
+                            code = "INTERNAL_SERVER_ERROR",
+                            message = "Internal Server Error",
+                        ),
+                    )
                 }
             }
         }
