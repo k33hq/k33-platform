@@ -31,6 +31,7 @@ object UserEventHandler {
         pageUrl: String?,
     ) {
         coroutineScope {
+            /*
             launch {
                 emailService.sendEmail(
                     from = Email(
@@ -53,6 +54,7 @@ object UserEventHandler {
                     unsubscribeSettings = researchWelcomeEmail.unsubscribeSettings,
                 )
             }
+            */
             launch {
                 Log.signUp(
                     webClientId = webClientId,
