@@ -11,7 +11,6 @@ import com.k33.platform.utils.stripe.NotFound
 import com.k33.platform.utils.stripe.PaymentServiceError
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.application.log
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal

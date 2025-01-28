@@ -5,7 +5,6 @@ import com.slack.api.bolt.ktor.respond
 import com.slack.api.bolt.ktor.toBoltRequest
 import com.slack.api.bolt.util.SlackRequestParser
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 

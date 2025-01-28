@@ -3,7 +3,6 @@ package com.k33.platform.analytics
 import com.k33.platform.filestore.FileStoreService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.response.respond
 import io.ktor.server.routing.post

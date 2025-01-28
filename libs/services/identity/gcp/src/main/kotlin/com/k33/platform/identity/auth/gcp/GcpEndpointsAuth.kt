@@ -2,7 +2,6 @@ package com.k33.platform.identity.auth.gcp
 
 import io.ktor.http.ContentType
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.AuthenticationConfig
 import io.ktor.server.auth.AuthenticationContext
@@ -13,7 +12,7 @@ import io.ktor.server.auth.OAuthKey
 import io.ktor.server.auth.UnauthorizedResponse
 import io.ktor.server.auth.authenticate
 import io.ktor.server.plugins.callid.callIdMdc
-import io.ktor.server.plugins.callloging.CallLogging
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.header
 import io.ktor.server.response.respond

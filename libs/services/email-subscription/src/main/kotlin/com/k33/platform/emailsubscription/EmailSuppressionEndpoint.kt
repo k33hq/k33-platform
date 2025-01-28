@@ -4,7 +4,6 @@ import com.k33.platform.email.getEmailService
 import com.k33.platform.identity.auth.gcp.UserInfo
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.plugins.BadRequestException

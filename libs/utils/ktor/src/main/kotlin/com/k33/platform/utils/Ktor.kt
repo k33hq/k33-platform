@@ -8,8 +8,6 @@ import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStarting
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.ApplicationStopping
-import io.ktor.server.application.application
-import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.ktor.server.plugins.BadRequestException
@@ -20,6 +18,7 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
+import io.ktor.server.routing.application
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -67,16 +66,16 @@ fun Application.module() {
             call.respondText(Instant.now().truncatedTo(ChronoUnit.SECONDS).toString())
         }
     }
-    environment.monitor.subscribe(ApplicationStarting) {
+    monitor.subscribe(ApplicationStarting) {
         log.info("Application starting...")
     }
-    environment.monitor.subscribe(ApplicationStarted) {
+    monitor.subscribe(ApplicationStarted) {
         log.info("Application started.")
     }
-    environment.monitor.subscribe(ApplicationStopping) {
+    monitor.subscribe(ApplicationStopping) {
         log.info("Application stopping...")
     }
-    environment.monitor.subscribe(ApplicationStopped) {
+    monitor.subscribe(ApplicationStopped) {
         log.info("Application stopped.")
     }
 }

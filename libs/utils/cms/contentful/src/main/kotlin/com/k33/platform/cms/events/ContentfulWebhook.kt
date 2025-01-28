@@ -5,7 +5,6 @@ import com.k33.platform.utils.logging.getLogger
 import com.k33.platform.utils.logging.logWithMDC
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.request.header
 import io.ktor.server.response.respond
 import io.ktor.server.routing.post

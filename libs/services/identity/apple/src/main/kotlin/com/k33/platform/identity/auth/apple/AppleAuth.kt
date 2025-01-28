@@ -3,7 +3,6 @@ package com.k33.platform.identity.auth.apple
 import com.k33.platform.identity.auth.gcp.FirebaseAuthService
 import com.k33.platform.utils.logging.logWithMDC
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.auth.AuthenticationConfig
 import io.ktor.server.auth.AuthenticationContext
 import io.ktor.server.auth.AuthenticationFailedCause

@@ -6,7 +6,6 @@ import com.k33.platform.user.UserService.fetchUser
 import com.k33.platform.utils.logging.logWithMDC
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.application.log
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
