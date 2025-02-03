@@ -46,6 +46,7 @@ suspend fun getBalanceReport(
                 val locale = Locale.of("no", "NO")
                 val currencyFormatter = NumberFormat.getCurrencyInstance(locale)
                 val numberFormatter = NumberFormat.getInstance(locale)
+                numberFormatter.maximumFractionDigits = 17
 
                 document.use { document ->
                     with(document) {
@@ -55,9 +56,6 @@ suspend fun getBalanceReport(
                         }
                         this.text("Balance Report", size = 18, style = Font.BOLD) {
                             this.spacingBefore = 10f
-                        }
-                        this.text("Personal Account", size = 12, color = Color.GRAY) {
-                            this.spacingBefore = 5f
                         }
 
                         this.text(name.uppercase(), size = 14) {

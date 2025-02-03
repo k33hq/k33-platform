@@ -18,6 +18,7 @@ import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -330,10 +331,15 @@ object VaultService {
     suspend fun generateVaultAccountBalanceReports(
         date: LocalDate,
         mode: Mode,
+        email: String? = null, // if null, then execute for all users in Stripe
     ) {
         val (userIdToDetailsMap, userIdToVaultAssetBalanceListMap) = coroutineScope {
-            val userIdToDetailsMap = StripeService
-                .getAllCustomerDetails()
+            val customerDetailsList = if (email != null) {
+                StripeService.getCustomerDetails(email)
+            } else {
+                StripeService.getAllCustomerDetails()
+            }
+            val userIdToDetailsMap = customerDetailsList
                 .mapNotNull { customerDetails ->
                     val userIdString = FirebaseAuthService.findUserIdOrNull(customerDetails.email)
                     if (userIdString != null) {
@@ -392,7 +398,7 @@ object VaultService {
                     async {
                         assetId to CoinGeckoClient.getHistoricalFxRates(
                             cryptoCurrency = assetId,
-                            date = date,
+                            date = date.plusDays(1),
                             fiatCurrency = "nok",
                         )
                     }
@@ -536,5 +542,15 @@ object VaultService {
                 }
             }
             .awaitAll()
+    }
+}
+
+fun main() {
+    runBlocking {
+        VaultService.generateVaultAccountBalanceReports(
+            date = LocalDate.of(2024, 12, 31),
+            mode = Mode.LOAD,
+            email = ""
+        )
     }
 }
