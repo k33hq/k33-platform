@@ -4,6 +4,7 @@ import com.k33.platform.app.vault.staking.VaultStakingService.claimRewards
 import com.k33.platform.app.vault.staking.VaultStakingService.getStakingAssets
 import com.k33.platform.app.vault.staking.VaultStakingService.getStakingPosition
 import com.k33.platform.app.vault.staking.VaultStakingService.getStakingPositions
+import com.k33.platform.app.vault.staking.VaultStakingService.partialUnstake
 import com.k33.platform.app.vault.staking.VaultStakingService.stake
 import com.k33.platform.app.vault.staking.VaultStakingService.unstake
 import com.k33.platform.app.vault.staking.VaultStakingService.withdraw
@@ -77,6 +78,12 @@ fun Route.vaultStakingEndpoint() {
                         val action = call.request.queryParameters["action"]
                     ) {
                         "unstake" -> userId.unstake(stakingPositionId = stakingPositionId)
+                        "partialUnstake" -> {
+                            val amount = call.request.queryParameters["amount"]
+                                ?: throw BadRequestException("Missing query  parameter: amount")
+                            userId.partialUnstake(stakingPositionId = stakingPositionId, amount = amount)
+                        }
+
                         "withdraw" -> userId.withdraw(stakingPositionId = stakingPositionId)
                         "claimRewards" -> userId.claimRewards(stakingPositionId = stakingPositionId)
                         else -> throw BadRequestException("Unrecognized action $action")

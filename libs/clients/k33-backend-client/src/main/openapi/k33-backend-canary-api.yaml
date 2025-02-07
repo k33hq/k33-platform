@@ -695,9 +695,13 @@ paths:
           type: string
           enum:
             - unstake
+            - partialUnstake
             - withdraw
             - claimRewards
           required: true
+        - name: amount
+          in: query
+          type: string
       responses:
         200:
           description: Vault staking position

@@ -5,6 +5,7 @@ import com.k33.platform.app.vault.VaultUserService.getVaultApp
 import com.k33.platform.fireblocks.service.staking.FireblocksStakingService
 import com.k33.platform.fireblocks.service.staking.chains.actions.FeeLevel
 import com.k33.platform.fireblocks.service.staking.chains.actions.claimRewards
+import com.k33.platform.fireblocks.service.staking.chains.actions.partialUnstake
 import com.k33.platform.fireblocks.service.staking.chains.actions.stake
 import com.k33.platform.fireblocks.service.staking.chains.actions.unstake
 import com.k33.platform.fireblocks.service.staking.chains.actions.withdraw
@@ -165,6 +166,47 @@ object VaultStakingService {
             txNote = requestId,
         )
         logger.info("Unstake response: {}", unstakeResponse)
+    }
+
+    suspend fun UserId.partialUnstake(
+        stakingPositionId: String,
+        amount: String,
+    ): StakingPosition? {
+        // check if user has registered to vault app
+        val vaultApp = getVaultApp()
+        return logWithMDC("vaultAccountId" to vaultApp.vaultAccountId) {
+            val stakingPosition = getStakingPosition(
+                vaultAccountId = vaultApp.vaultAccountId,
+                stakingPositionId = stakingPositionId
+            )
+            partialUnstake(
+                vaultAssetId = stakingPosition.chainDescriptor,
+                stakingPositionId = stakingPositionId,
+                amount = amount,
+            )
+            FireblocksStakingService.getStakingPosition(
+                stakingPositionId = stakingPositionId,
+            )
+        }
+    }
+
+    internal suspend fun partialUnstake(
+        vaultAssetId: String,
+        stakingPositionId: String,
+        amount: String,
+    ) {
+        logger.info("Partial unstaking - Staking Position ID: {}", stakingPositionId)
+        val requestId = UUID.randomUUID().toString()
+        logger.info("Partial unstaking Request ID: {}", requestId)
+        val partialUnstakeResponse = FireblocksStakingService.partialUnstake(
+            requestId = requestId,
+            chainDescriptor = vaultAssetId,
+            stakingPositionId = stakingPositionId,
+            stakingFee = FeeLevel.MEDIUM,
+            txNote = requestId,
+            amount = amount,
+        )
+        logger.info("Partial unstaking response: {}", partialUnstakeResponse)
     }
 
     suspend fun UserId.withdraw(

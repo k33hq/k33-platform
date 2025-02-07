@@ -30,7 +30,7 @@ suspend fun FireblocksStakingService.stake(
     vaultAccountId: String,
     providerId: String,
     stakeAmount: String,
-    txNote: String? = null,
+    txNote: String,
     stakingFee: StakingFee,
 ): StakeResponse? = FireblocksClient.post(
     path = "staking/chains/$chainDescriptor/stake",

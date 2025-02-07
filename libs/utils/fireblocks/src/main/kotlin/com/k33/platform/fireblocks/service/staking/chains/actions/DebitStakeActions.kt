@@ -11,18 +11,21 @@ import com.k33.platform.fireblocks.service.staking.FireblocksStakingService
 
 private data class DebitStakeRequest(
     val id: String,
-    val fee: String? = null,
-    val feeLevel: String? = null,
-    val txNote: String? = null,
+    val fee: String?,
+    val feeLevel: String?,
+    val txNote: String?,
+    // used by action == unstake only.
+    val amount: String?,
 )
 
-suspend fun debitStakeAction(
+private suspend fun debitStakeAction(
     action: String,
     requestId: String,
     chainDescriptor: String,
     stakingPositionId: String,
     stakingFee: StakingFee,
-    txNote: String? = null,
+    txNote: String?,
+    amount: String?,
 ): String? = FireblocksClient.post(
     path = "staking/chains/$chainDescriptor/$action",
     "Idempotency-Key" to requestId,
@@ -33,6 +36,7 @@ suspend fun debitStakeAction(
         fee = fee?.toString(),
         feeLevel = feeLevel,
         txNote = txNote,
+        amount = amount,
     )
 }
 
@@ -53,6 +57,28 @@ suspend fun FireblocksStakingService.unstake(
     stakingPositionId = stakingPositionId,
     stakingFee = stakingFee,
     txNote = txNote,
+    amount = null,
+)
+
+/**
+ * Execute a staking action - `unstake`
+ * [staking/chains/{chainDescriptor}/unstake](https://developers.fireblocks.com/reference/executeaction)
+ */
+suspend fun FireblocksStakingService.partialUnstake(
+    requestId: String,
+    chainDescriptor: String,
+    stakingPositionId: String,
+    stakingFee: StakingFee,
+    txNote: String? = null,
+    amount: String,
+): String? = debitStakeAction(
+    action = "unstake",
+    requestId = requestId,
+    chainDescriptor = chainDescriptor,
+    stakingPositionId = stakingPositionId,
+    stakingFee = stakingFee,
+    txNote = txNote,
+    amount = amount,
 )
 
 /**
@@ -72,6 +98,7 @@ suspend fun FireblocksStakingService.withdraw(
     stakingPositionId = stakingPositionId,
     stakingFee = stakingFee,
     txNote = txNote,
+    amount = null,
 )
 
 /**
@@ -91,4 +118,5 @@ suspend fun FireblocksStakingService.claimRewards(
     stakingPositionId = stakingPositionId,
     stakingFee = stakingFee,
     txNote = txNote,
+    amount = null,
 )

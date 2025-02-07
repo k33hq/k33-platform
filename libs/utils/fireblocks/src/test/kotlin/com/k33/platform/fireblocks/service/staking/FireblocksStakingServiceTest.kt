@@ -2,6 +2,7 @@ package com.k33.platform.fireblocks.service.staking
 
 import com.k33.platform.fireblocks.service.staking.chains.actions.FeeLevel
 import com.k33.platform.fireblocks.service.staking.chains.actions.claimRewards
+import com.k33.platform.fireblocks.service.staking.chains.actions.partialUnstake
 import com.k33.platform.fireblocks.service.staking.chains.actions.stake
 import com.k33.platform.fireblocks.service.staking.chains.actions.unstake
 import com.k33.platform.fireblocks.service.staking.chains.actions.withdraw
@@ -100,6 +101,18 @@ class FireblocksStakingServiceTest : StringSpec({
             stakingFee = FeeLevel.MEDIUM,
         )
         logger.debug("Unstake response: {}", unstakeResponse?.prettyPrint())
+    }
+
+    "!partial unstake" {
+        val requestId = UUID.randomUUID().toString()
+        val partialUnstakeResponse = FireblocksStakingService.partialUnstake(
+            requestId = requestId,
+            chainDescriptor = "SOL_TEST",
+            stakingPositionId = stakingPositionId,
+            stakingFee = FeeLevel.MEDIUM,
+            amount = "0.001",
+        )
+        logger.debug("Partial unstake response: {}", partialUnstakeResponse?.prettyPrint())
     }
 
     "!withdraw" {
