@@ -380,7 +380,7 @@ object VaultService {
                         )
                         saveBalanceReport(
                             userId = userId,
-                            fileName = "$date.pdf",
+                            fileName = "${date}_v2.pdf",
                             contents = reportFileContents,
                         )
                     }
