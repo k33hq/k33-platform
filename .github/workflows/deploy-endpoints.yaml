@@ -21,12 +21,12 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          GCP_PROJECT_ID: op://env/prod/gcp/GCP_PROJECT_ID
-          GCP_API_HOST: op://env/prod/gcp/GCP_API_HOST
-          GCP_BACKEND_HOST: op://env/prod/gcp/GCP_BACKEND_HOST
-          CORS_REGEX: op://env/prod/gcp/CORS_REGEX
-          GCP_WORKLOAD_IDENTITY_PROVIDER: op://env/github/gcp/GCP_WORKLOAD_IDENTITY_PROVIDER
-          GCP_SERVICE_ACCOUNT: op://env/github/gcp/GCP_SERVICE_ACCOUNT
+          GCP_PROJECT_ID: op://k33-platform-env/prod/gcp/GCP_PROJECT_ID
+          GCP_API_HOST: op://k33-platform-env/prod/gcp/GCP_API_HOST
+          GCP_BACKEND_HOST: op://k33-platform-env/prod/gcp/GCP_BACKEND_HOST
+          CORS_REGEX: op://k33-platform-env/prod/gcp/CORS_REGEX
+          GCP_WORKLOAD_IDENTITY_PROVIDER: op://k33-platform-env/github/gcp/GCP_WORKLOAD_IDENTITY_PROVIDER
+          GCP_SERVICE_ACCOUNT: op://k33-platform-env/github/gcp/GCP_SERVICE_ACCOUNT
       - name: Google auth
         uses: google-github-actions/auth@v1
         with:

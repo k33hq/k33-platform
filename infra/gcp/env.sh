@@ -19,7 +19,7 @@ fi
 
 rm -f .env infra/gcp/secrets/gcp-service-account.json
 ENV=$1 op inject -i .env.template -o .env
-op read op://env/$1/gcp/GCP_SA_KEY > infra/gcp/secrets/gcp-service-account.json
+op read op://k33-platform-env/$1/gcp/GCP_SA_KEY > infra/gcp/secrets/gcp-service-account.json
 
 gcloud config configurations activate k33-$1
 gcloud auth activate-service-account --key-file=infra/gcp/secrets/gcp-service-account.json

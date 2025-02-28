@@ -22,9 +22,9 @@ fi
 # loading secrets from 1password
 ENV=prod
 
-GCP_PROJECT_ID=$(op read op://env/$ENV/gcp/GCP_PROJECT_ID)
-GCP_BACKEND_HOST=$(op read op://env/$ENV/gcp/GCP_BACKEND_HOST)
-CORS_REGEX=$(op read op://env/$ENV/gcp/CORS_REGEX)
+GCP_PROJECT_ID=$(op read op://k33-platform-env/$ENV/gcp/GCP_PROJECT_ID)
+GCP_BACKEND_HOST=$(op read op://k33-platform-env/$ENV/gcp/GCP_BACKEND_HOST)
+CORS_REGEX=$(op read op://k33-platform-env/$ENV/gcp/CORS_REGEX)
 
 
 # Deploy endpoints service

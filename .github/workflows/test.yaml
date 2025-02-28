@@ -31,104 +31,104 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           # gcp
-          GCP_PROJECT_ID: op://env/dev/gcp/GCP_PROJECT_ID
-          GCP_SA_KEY: op://env/github/gcp-dev/GCP_SA_KEY
+          GCP_PROJECT_ID: op://k33-platform-env/dev/gcp/GCP_PROJECT_ID
+          GCP_SA_KEY: op://k33-platform-env/github/gcp-dev/GCP_SA_KEY
           # stripe
-          STRIPE_API_KEY: op://env/dev/stripe/STRIPE_API_KEY
-          STRIPE_WEBHOOK_ENDPOINT_SECRET: op://env/dev/stripe/STRIPE_WEBHOOK_ENDPOINT_SECRET
-          STRIPE_PRODUCT_ID_RESEARCH_TWIC: op://env/dev/stripe/STRIPE_PRODUCT_ID_RESEARCH_TWIC
-          STRIPE_PRODUCT_ID_RESEARCH_NN: op://env/dev/stripe/STRIPE_PRODUCT_ID_RESEARCH_NN
-          STRIPE_PRODUCT_ID_RESEARCH_AOC: op://env/dev/stripe/STRIPE_PRODUCT_ID_RESEARCH_AOC
-          STRIPE_PRODUCT_ID_RESEARCH_PRO: op://env/dev/stripe/STRIPE_PRODUCT_ID_RESEARCH_PRO
-          STRIPE_COUPON_CORPORATE_PLAN: op://env/dev/stripe/STRIPE_COUPON_CORPORATE_PLAN
+          STRIPE_API_KEY: op://k33-platform-env/dev/stripe/STRIPE_API_KEY
+          STRIPE_WEBHOOK_ENDPOINT_SECRET: op://k33-platform-env/dev/stripe/STRIPE_WEBHOOK_ENDPOINT_SECRET
+          STRIPE_PRODUCT_ID_RESEARCH_TWIC: op://k33-platform-env/dev/stripe/STRIPE_PRODUCT_ID_RESEARCH_TWIC
+          STRIPE_PRODUCT_ID_RESEARCH_NN: op://k33-platform-env/dev/stripe/STRIPE_PRODUCT_ID_RESEARCH_NN
+          STRIPE_PRODUCT_ID_RESEARCH_AOC: op://k33-platform-env/dev/stripe/STRIPE_PRODUCT_ID_RESEARCH_AOC
+          STRIPE_PRODUCT_ID_RESEARCH_PRO: op://k33-platform-env/dev/stripe/STRIPE_PRODUCT_ID_RESEARCH_PRO
+          STRIPE_COUPON_CORPORATE_PLAN: op://k33-platform-env/dev/stripe/STRIPE_COUPON_CORPORATE_PLAN
           # for AT
-          STRIPE_PRICE_ID_RESEARCH_PRO: op://env/dev/stripe/STRIPE_PRICE_ID_RESEARCH_PRO
+          STRIPE_PRICE_ID_RESEARCH_PRO: op://k33-platform-env/dev/stripe/STRIPE_PRICE_ID_RESEARCH_PRO
           # monitoring - metrics for app
           METRICS_ENABLED: false
           # sendgrid for app
-          SENDGRID_API_KEY: op://env/github/sendgrid/SENDGRID_API_KEY
+          SENDGRID_API_KEY: op://k33-platform-env/github/sendgrid/SENDGRID_API_KEY
           SENDGRID_ENABLED: false
           # contentful for app
-          CONTENTFUL_INVEST_SPACE_ID: op://env/dev/contentful/CONTENTFUL_INVEST_SPACE_ID
-          CONTENTFUL_INVEST_SPACE_TOKEN: op://env/dev/contentful/CONTENTFUL_INVEST_SPACE_TOKEN
-          CONTENTFUL_LEGAL_SPACE_ID: op://env/dev/contentful/CONTENTFUL_LEGAL_SPACE_ID
-          CONTENTFUL_LEGAL_SPACE_TOKEN: op://env/dev/contentful/CONTENTFUL_LEGAL_SPACE_TOKEN
-          CONTENTFUL_RESEARCH_SPACE_ID: op://env/dev/contentful/CONTENTFUL_RESEARCH_SPACE_ID
-          CONTENTFUL_RESEARCH_SPACE_TOKEN: op://env/dev/contentful/CONTENTFUL_RESEARCH_SPACE_TOKEN
-          CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN: op://env/dev/contentful/CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN
+          CONTENTFUL_INVEST_SPACE_ID: op://k33-platform-env/dev/contentful/CONTENTFUL_INVEST_SPACE_ID
+          CONTENTFUL_INVEST_SPACE_TOKEN: op://k33-platform-env/dev/contentful/CONTENTFUL_INVEST_SPACE_TOKEN
+          CONTENTFUL_LEGAL_SPACE_ID: op://k33-platform-env/dev/contentful/CONTENTFUL_LEGAL_SPACE_ID
+          CONTENTFUL_LEGAL_SPACE_TOKEN: op://k33-platform-env/dev/contentful/CONTENTFUL_LEGAL_SPACE_TOKEN
+          CONTENTFUL_RESEARCH_SPACE_ID: op://k33-platform-env/dev/contentful/CONTENTFUL_RESEARCH_SPACE_ID
+          CONTENTFUL_RESEARCH_SPACE_TOKEN: op://k33-platform-env/dev/contentful/CONTENTFUL_RESEARCH_SPACE_TOKEN
+          CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN: op://k33-platform-env/dev/contentful/CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN
           # for testing
-          TEST_PAGE_ID: op://env/dev/test/TEST_PAGE_ID
-          TEST_REPORT_ID: op://env/dev/test/TEST_REPORT_ID
+          TEST_PAGE_ID: op://k33-platform-env/dev/test/TEST_PAGE_ID
+          TEST_REPORT_ID: op://k33-platform-env/dev/test/TEST_REPORT_ID
           # algolia for app
-          ALGOLIA_APP_ID: op://env/dev/algolia/ALGOLIA_APP_ID
-          ALGOLIA_API_KEY: op://env/dev/algolia/ALGOLIA_API_KEY
+          ALGOLIA_APP_ID: op://k33-platform-env/dev/algolia/ALGOLIA_APP_ID
+          ALGOLIA_API_KEY: op://k33-platform-env/dev/algolia/ALGOLIA_API_KEY
           # slack for app
-          SLACK_BOT_TOKEN: op://env/dev/slack/SLACK_BOT_TOKEN
-          SLACK_SIGNING_SECRET: op://env/dev/slack/SLACK_SIGNING_SECRET
+          SLACK_BOT_TOKEN: op://k33-platform-env/dev/slack/SLACK_BOT_TOKEN
+          SLACK_SIGNING_SECRET: op://k33-platform-env/dev/slack/SLACK_SIGNING_SECRET
           # @vihang
-          SLACK_ALERTS_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
-          SLACK_GENERAL_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
-          SLACK_INVEST_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
-          SLACK_PRODUCT_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
-          SLACK_PROFESSIONAL_INVESTORS_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
-          SLACK_RESEARCH_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
-          SLACK_RESEARCH_EVENTS_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
-          SLACK_VAULT_ADMIN_CHANNEL_ID: op://env/dev/slack/SLACK_VAULT_ADMIN_CHANNEL_ID
+          SLACK_ALERTS_CHANNEL_ID: op://k33-platform-env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_GENERAL_CHANNEL_ID: op://k33-platform-env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_INVEST_CHANNEL_ID: op://k33-platform-env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_PRODUCT_CHANNEL_ID: op://k33-platform-env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_PROFESSIONAL_INVESTORS_CHANNEL_ID: op://k33-platform-env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_RESEARCH_CHANNEL_ID: op://k33-platform-env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_RESEARCH_EVENTS_CHANNEL_ID: op://k33-platform-env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_VAULT_ADMIN_CHANNEL_ID: op://k33-platform-env/dev/slack/SLACK_VAULT_ADMIN_CHANNEL_ID
           # slack unit testing
-          SLACK_CHANNEL_ID: op://env/dev/slack/SLACK_CHANNEL_ID
+          SLACK_CHANNEL_ID: op://k33-platform-env/dev/slack/SLACK_CHANNEL_ID
           # user service
-          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33
-          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH
-          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33: op://env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33
-          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH: op://env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH
+          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33: op://k33-platform-env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33
+          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH: op://k33-platform-env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH
+          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33: op://k33-platform-env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33
+          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH: op://k33-platform-env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH
           # stripe webhook
           ## TWIC
-          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_TWIC: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_TWIC
-          SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_TWIC: op://env/dev/sendgrid/SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_TWIC
-          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_TWIC: op://env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_TWIC
+          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_TWIC: op://k33-platform-env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_TWIC
+          SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_TWIC: op://k33-platform-env/dev/sendgrid/SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_TWIC
+          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_TWIC: op://k33-platform-env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_TWIC
           ## NN
-          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_NN: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_NN
-          SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_NN: op://env/dev/sendgrid/SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_NN
-          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_NN: op://env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_NN
+          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_NN: op://k33-platform-env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_NN
+          SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_NN: op://k33-platform-env/dev/sendgrid/SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_NN
+          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_NN: op://k33-platform-env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_NN
           ## AOC
-          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_AOC: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_AOC
-          SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_AOC: op://env/dev/sendgrid/SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_AOC
-          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_AOC: op://env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_AOC
+          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_AOC: op://k33-platform-env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_AOC
+          SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_AOC: op://k33-platform-env/dev/sendgrid/SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_AOC
+          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_AOC: op://k33-platform-env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_AOC
           ## PRO
-          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO_TRIAL: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO_TRIAL
-          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO
-          SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_PRO: op://env/dev/sendgrid/SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_PRO
-          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_PRO: op://env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_PRO
+          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO_TRIAL: op://k33-platform-env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO_TRIAL
+          SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO: op://k33-platform-env/dev/sendgrid/SENDGRID_TEMPLATE_ID_WELCOME_TO_K33_RESEARCH_PRO
+          SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_PRO: op://k33-platform-env/dev/sendgrid/SENDGRID_CONTACT_LIST_ID_K33_RESEARCH_PRO
+          SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_PRO: op://k33-platform-env/dev/sendgrid/SENDGRID_UNSUBSCRIBE_GROUP_ID_K33_RESEARCH_PRO
           # lifecycle
-          SENDGRID_TEMPLATE_ID_CANCEL_DURING_TRIAL_K33_RESEARCH_PRO: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_CANCEL_DURING_TRIAL_K33_RESEARCH_PRO
+          SENDGRID_TEMPLATE_ID_CANCEL_DURING_TRIAL_K33_RESEARCH_PRO: op://k33-platform-env/dev/sendgrid/SENDGRID_TEMPLATE_ID_CANCEL_DURING_TRIAL_K33_RESEARCH_PRO
           # stripe cronjob
-          SENDGRID_TEMPLATE_ID_NEW_USER_OFFER_K33_RESEARCH: op://env/dev/sendgrid/SENDGRID_TEMPLATE_ID_NEW_USER_OFFER_K33_RESEARCH
+          SENDGRID_TEMPLATE_ID_NEW_USER_OFFER_K33_RESEARCH: op://k33-platform-env/dev/sendgrid/SENDGRID_TEMPLATE_ID_NEW_USER_OFFER_K33_RESEARCH
           # analytics
-          GOOGLE_ANALYTICS_API_SECRET: op://env/dev/analytics/GOOGLE_ANALYTICS_API_SECRET
-          GOOGLE_ANALYTICS_FIREBASE_APP_ID: op://env/dev/analytics/GOOGLE_ANALYTICS_FIREBASE_APP_ID
-          GOOGLE_ANALYTICS_MEASUREMENT_ID: op://env/dev/analytics/GOOGLE_ANALYTICS_MEASUREMENT_ID
+          GOOGLE_ANALYTICS_API_SECRET: op://k33-platform-env/dev/analytics/GOOGLE_ANALYTICS_API_SECRET
+          GOOGLE_ANALYTICS_FIREBASE_APP_ID: op://k33-platform-env/dev/analytics/GOOGLE_ANALYTICS_FIREBASE_APP_ID
+          GOOGLE_ANALYTICS_MEASUREMENT_ID: op://k33-platform-env/dev/analytics/GOOGLE_ANALYTICS_MEASUREMENT_ID
           # for invest app
           # List of ISO Alpha3 3-char uppercase Country codes separated by comma without space.
           # E.g. ABC,PQR,XYZ
-          INVEST_DENIED_COUNTRY_CODE_LIST: op://env/dev/invest/INVEST_DENIED_COUNTRY_CODE_LIST
+          INVEST_DENIED_COUNTRY_CODE_LIST: op://k33-platform-env/dev/invest/INVEST_DENIED_COUNTRY_CODE_LIST
           # Single value of the format - address#label
-          INVEST_EMAIL_FROM: op://env/dev/invest/INVEST_EMAIL_FROM
+          INVEST_EMAIL_FROM: op://k33-platform-env/dev/invest/INVEST_EMAIL_FROM
           # Comma separated non-empty list, with each value of the format - address#label
-          INVEST_EMAIL_TO_LIST: op://env/dev/invest/INVEST_EMAIL_TO_LIST
+          INVEST_EMAIL_TO_LIST: op://k33-platform-env/dev/invest/INVEST_EMAIL_TO_LIST
           # Comma separated nullable or empty (blank) list, with each value of the format - address#label
           # INVEST_EMAIL_CC_LIST:
           # Comma separated nullable or empty (blank) list, with each value of the format - address#label
           # INVEST_EMAIL_BCC_LIST:
           # for vault app
           ## fireblocks
-          FIREBLOCKS_API_KEY: op://env/dev/vault/FIREBLOCKS_API_KEY
-          FIREBLOCKS_SECRET_KEY: op://env/dev/vault/FIREBLOCKS_SECRET_KEY
+          FIREBLOCKS_API_KEY: op://k33-platform-env/dev/vault/FIREBLOCKS_API_KEY
+          FIREBLOCKS_SECRET_KEY: op://k33-platform-env/dev/vault/FIREBLOCKS_SECRET_KEY
           ## coin_gecko
-          COIN_GECKO_API_KEY: op://env/dev/vault/COIN_GECKO_API_KEY
+          COIN_GECKO_API_KEY: op://k33-platform-env/dev/vault/COIN_GECKO_API_KEY
           ## stripe
-          VAULT_STRIPE_API_KEY: op://env/dev/vault/STRIPE_API_KEY
+          VAULT_STRIPE_API_KEY: op://k33-platform-env/dev/vault/STRIPE_API_KEY
           # for gcp emulators
-          GOOGLE_CLOUD_PROJECT: op://env/dev/gcp/GCP_PROJECT_ID
+          GOOGLE_CLOUD_PROJECT: op://k33-platform-env/dev/gcp/GCP_PROJECT_ID
           GOOGLE_APPLICATION_CREDENTIALS: infra/gcp/secrets/gcp-service-account.json
           # for trade app
           # SPANNER_EMULATOR_HOST: 0.0.0.0:9010

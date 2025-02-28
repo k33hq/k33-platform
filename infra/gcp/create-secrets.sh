@@ -28,22 +28,22 @@ fi
 
 ENV=$1
 
-SENDGRID_API_KEY=$(op read op://env/$ENV/sendgrid/SENDGRID_API_KEY)
-CONTENTFUL_LEGAL_SPACE_ID=$(op read op://env/$ENV/contentful/CONTENTFUL_LEGAL_SPACE_ID)
-CONTENTFUL_LEGAL_SPACE_TOKEN=$(op read op://env/$ENV/contentful/CONTENTFUL_LEGAL_SPACE_TOKEN)
-CONTENTFUL_RESEARCH_SPACE_ID=$(op read op://env/$ENV/contentful/CONTENTFUL_RESEARCH_SPACE_ID)
-CONTENTFUL_RESEARCH_SPACE_TOKEN=$(op read op://env/$ENV/contentful/CONTENTFUL_RESEARCH_SPACE_TOKEN)
-CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN=$(op read op://env/$ENV/contentful/CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN)
-ALGOLIA_APP_ID=$(op read op://env/$ENV/algolia/ALGOLIA_APP_ID)
-ALGOLIA_API_KEY=$(op read op://env/$ENV/algolia/ALGOLIA_API_KEY)
-SLACK_BOT_TOKEN=$(op read op://env/$ENV/slack/SLACK_BOT_TOKEN)
-SLACK_SIGNING_SECRET=$(op read op://env/$ENV/slack/SLACK_SIGNING_SECRET)
-STRIPE_API_KEY=$(op read op://env/$ENV/stripe/STRIPE_API_KEY)
-STRIPE_WEBHOOK_ENDPOINT_SECRET=$(op read op://env/$ENV/stripe/STRIPE_WEBHOOK_ENDPOINT_SECRET)
-GOOGLE_ANALYTICS_API_SECRET=$(op read op://env/$ENV/analytics/GOOGLE_ANALYTICS_API_SECRET)
-FIREBLOCKS_API_KEY=$(op read op://env/$ENV/vault/FIREBLOCKS_API_KEY)
-FIREBLOCKS_SECRET_KEY=$(op read op://env/$ENV/vault/FIREBLOCKS_SECRET_KEY)
-VAULT_STRIPE_API_KEY=$(op://env/$ENV/vault/STRIPE_API_KEY)
+SENDGRID_API_KEY=$(op read op://k33-platform-env/$ENV/sendgrid/SENDGRID_API_KEY)
+CONTENTFUL_LEGAL_SPACE_ID=$(op read op://k33-platform-env/$ENV/contentful/CONTENTFUL_LEGAL_SPACE_ID)
+CONTENTFUL_LEGAL_SPACE_TOKEN=$(op read op://k33-platform-env/$ENV/contentful/CONTENTFUL_LEGAL_SPACE_TOKEN)
+CONTENTFUL_RESEARCH_SPACE_ID=$(op read op://k33-platform-env/$ENV/contentful/CONTENTFUL_RESEARCH_SPACE_ID)
+CONTENTFUL_RESEARCH_SPACE_TOKEN=$(op read op://k33-platform-env/$ENV/contentful/CONTENTFUL_RESEARCH_SPACE_TOKEN)
+CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN=$(op read op://k33-platform-env/$ENV/contentful/CONTENTFUL_RESEARCH_SPACE_CMA_TOKEN)
+ALGOLIA_APP_ID=$(op read op://k33-platform-env/$ENV/algolia/ALGOLIA_APP_ID)
+ALGOLIA_API_KEY=$(op read op://k33-platform-env/$ENV/algolia/ALGOLIA_API_KEY)
+SLACK_BOT_TOKEN=$(op read op://k33-platform-env/$ENV/slack/SLACK_BOT_TOKEN)
+SLACK_SIGNING_SECRET=$(op read op://k33-platform-env/$ENV/slack/SLACK_SIGNING_SECRET)
+STRIPE_API_KEY=$(op read op://k33-platform-env/$ENV/stripe/STRIPE_API_KEY)
+STRIPE_WEBHOOK_ENDPOINT_SECRET=$(op read op://k33-platform-env/$ENV/stripe/STRIPE_WEBHOOK_ENDPOINT_SECRET)
+GOOGLE_ANALYTICS_API_SECRET=$(op read op://k33-platform-env/$ENV/analytics/GOOGLE_ANALYTICS_API_SECRET)
+FIREBLOCKS_API_KEY=$(op read op://k33-platform-env/$ENV/vault/FIREBLOCKS_API_KEY)
+FIREBLOCKS_SECRET_KEY=$(op read op://k33-platform-env/$ENV/vault/FIREBLOCKS_SECRET_KEY)
+VAULT_STRIPE_API_KEY=$(op://k33-platform-env/$ENV/vault/STRIPE_API_KEY)
 
 
 declare -A gcp_secrets
