@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    implementation(Kotlin.stdlib)
     implementation(project(":libs:utils:logging"))
     implementation(project(":apps:oauth2-provider-emulator:oauth2-provider-api"))
     implementation(project(":libs:utils:firebase-auth"))

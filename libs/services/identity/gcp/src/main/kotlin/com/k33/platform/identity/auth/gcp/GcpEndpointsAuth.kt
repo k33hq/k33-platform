@@ -7,7 +7,6 @@ import io.ktor.server.auth.AuthenticationConfig
 import io.ktor.server.auth.AuthenticationContext
 import io.ktor.server.auth.AuthenticationFailedCause
 import io.ktor.server.auth.AuthenticationProvider
-import io.ktor.server.auth.Credential
 import io.ktor.server.auth.OAuthKey
 import io.ktor.server.auth.UnauthorizedResponse
 import io.ktor.server.auth.authenticate
@@ -21,7 +20,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
 import java.util.Base64
@@ -68,7 +66,7 @@ fun AuthenticationConfig.gcpEndpointsAuthConfig() {
 data class EspV2Header(
     @SerialName("user_id") val userId: String,
     val email: String,
-) : Credential
+)
 
 private val jsonSerializer = Json {
     ignoreUnknownKeys = true

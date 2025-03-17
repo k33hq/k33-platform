@@ -14,7 +14,7 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-core:_")
     implementation(KotlinX.serialization.json)
 
-    implementation(kotlin("stdlib"))
+    implementation(Kotlin.stdlib)
     implementation(KotlinX.coroutines.core)
     implementation(KotlinX.coroutines.jdk8)
 

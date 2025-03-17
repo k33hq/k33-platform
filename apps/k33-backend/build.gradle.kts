@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(kotlin("stdlib"))
+    runtimeOnly(Kotlin.stdlib)
 
     runtimeOnly(project(":libs:services:identity"))
     runtimeOnly(project(":libs:services:user"))

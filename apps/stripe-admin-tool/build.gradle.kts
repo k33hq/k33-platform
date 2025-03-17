@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    implementation(Kotlin.stdlib)
     implementation(KotlinX.coroutines.core)
     implementation(KotlinX.coroutines.jdk8)
 

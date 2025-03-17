@@ -7,7 +7,6 @@ import io.ktor.server.auth.AuthenticationConfig
 import io.ktor.server.auth.AuthenticationContext
 import io.ktor.server.auth.AuthenticationFailedCause
 import io.ktor.server.auth.AuthenticationProvider
-import io.ktor.server.auth.Credential
 import io.ktor.server.auth.OAuthKey
 import io.ktor.server.auth.UnauthorizedResponse
 import io.ktor.server.auth.UserIdPrincipal
@@ -61,7 +60,7 @@ fun AuthenticationConfig.appleJwtAuthConfig() {
 @Serializable
 data class EspV2Header(
     val email: String,
-) : Credential
+)
 
 fun ApplicationRequest.espV2Header(): EspV2Header? {
     val userInfo = header(GcpHttpHeaders.UserInfo) ?: return null
