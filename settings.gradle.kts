@@ -3,8 +3,12 @@ plugins {
 }
 
 refreshVersions {
+    val regex = Regex("^\\d{2}.\\d$")
     rejectVersionIf {
-        candidate.stabilityLevel != de.fayard.refreshVersions.core.StabilityLevel.Stable
+        candidate.stabilityLevel.isLessStableThan(current.stabilityLevel) || (
+                "${moduleId.group}:${moduleId.name}" == "com.graphql-java:graphql-java"
+                        && !candidate.value.matches(regex)
+                )
     }
     extraArtifactVersionKeyRules(file("refreshVersions-extra-rules.txt"))
 }
