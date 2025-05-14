@@ -554,7 +554,12 @@ object StripeService {
             )
             .apply {
                 if (customerEmail.endsWith("@k33.com", ignoreCase = true)) {
-                    setCoupon(corporatePlanCoupon)
+                    addDiscount(
+                        SubscriptionCreateParams.Discount
+                            .builder()
+                            .setCoupon(corporatePlanCoupon)
+                            .build()
+                    )
                 } else {
                     setTrialPeriodDays(TRIAL_PERIOD_DAYS.toLong())
                     setTrialSettings(
@@ -571,7 +576,12 @@ object StripeService {
                             .build()
                     )
                     if (promotionCode != null) {
-                        setPromotionCode(promotionCode)
+                        addDiscount(
+                            SubscriptionCreateParams.Discount
+                                .builder()
+                                .setPromotionCode(promotionCode)
+                                .build()
+                        )
                     }
                 }
             }

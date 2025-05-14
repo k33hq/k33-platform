@@ -1,6 +1,6 @@
 # K33 Platform
 
-[![Kotlin](https://img.shields.io/badge/kotlin-2.1.20-7f52ff.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.1.21-7f52ff.svg?logo=kotlin)](http://kotlinlang.org)
 [![Test](https://github.com/k33hq/k33-platform/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/k33hq/k33-platform/actions/workflows/test.yaml)
 ![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/k33hq/k33-platform/test.yaml?branch=main&logo=github)
 ![GitHub](https://img.shields.io/github/license/k33hq/k33-platform)

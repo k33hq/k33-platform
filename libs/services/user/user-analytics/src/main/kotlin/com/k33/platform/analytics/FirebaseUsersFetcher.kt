@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.time.ZoneId
@@ -78,5 +79,16 @@ object FirebaseUsersFetcher {
                 firebaseAuth.deleteUsers(userIds).also { delay(1.seconds) }
             }
             .toList()
+    }
+}
+
+fun main() {
+    runBlocking {
+        FirebaseUsersFetcher
+            .fetchUsers()
+            .map(User::email)
+            .forEach { email ->
+                println(email)
+            }
     }
 }
