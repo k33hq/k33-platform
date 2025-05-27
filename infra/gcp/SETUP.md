@@ -440,6 +440,7 @@ gcloud iam workload-identity-pools providers create-oidc "github-workload-id-pro
   --workload-identity-pool="github-actions-workload-id-pool" \
   --display-name="Github workload ID provider" \
   --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.aud=assertion.aud,attribute.repository_owner=assertion.repository_owner,attribute.repository=assertion.repository" \
+  --attribute-condition="assertion.repository_owner == 'k33hq'" \
   --issuer-uri="https://token.actions.githubusercontent.com"
 ```
 

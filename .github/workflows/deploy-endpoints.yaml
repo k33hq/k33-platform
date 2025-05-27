@@ -13,9 +13,9 @@ jobs:
       id-token: "write"
     steps:
       - name: Checkout the Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Load secrets
-        uses: 1password/load-secrets-action@v1
+        uses: 1password/load-secrets-action@v4
         with:
           # Export loaded secrets as environment variables
           export-env: true
@@ -28,12 +28,12 @@ jobs:
           GCP_WORKLOAD_IDENTITY_PROVIDER: op://k33-platform-env/github/gcp/GCP_WORKLOAD_IDENTITY_PROVIDER
           GCP_SERVICE_ACCOUNT: op://k33-platform-env/github/gcp/GCP_SERVICE_ACCOUNT
       - name: Google auth
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
       - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
       - name: Deploy GCP Cloud Endpoints

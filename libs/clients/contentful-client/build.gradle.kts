@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm")
-    id("com.apollographql.apollo3")
+    id("com.apollographql.apollo")
 }
 
 apollo {
@@ -15,5 +15,5 @@ apollo {
 }
 
 dependencies {
-    implementation(ApolloGraphQL.runtime)
+    implementation("com.apollographql.apollo:apollo-runtime:_")
 }

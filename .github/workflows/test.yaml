@@ -12,19 +12,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the Repository
-        uses: actions/checkout@v3
-      - name: Setup jdk 20
-        uses: actions/setup-java@v3
+        uses: actions/checkout@v6
+      - name: Setup jdk 25
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: "21.0.6"
+          java-version: "25"
           cache: "gradle"
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew --no-daemon installDist --parallel
       - name: Load secrets
-        uses: 1password/load-secrets-action@v1
+        uses: 1password/load-secrets-action@v4
         with:
           # Export loaded secrets as environment variables
           export-env: true
@@ -136,4 +136,4 @@ jobs:
         run: |
           echo "${GCP_SA_KEY}" >> infra/gcp/secrets/gcp-service-account.json
       - name: Run docker compose based system integration tests
-        run: docker compose up --build --abort-on-container-exit
+        run: docker compose -f compose.no-esp.yaml up --build --abort-on-container-exit

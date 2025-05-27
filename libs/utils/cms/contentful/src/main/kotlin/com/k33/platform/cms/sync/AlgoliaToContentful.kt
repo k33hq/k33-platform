@@ -100,6 +100,7 @@ class AlgoliaToContentful(
 
 fun main() {
     runBlocking {
+        // REMINDER: disable contentful webhook before doing this to avoid triggering multiple GitHub Actions
         AlgoliaToContentful(Sync.researchArticles).upsertAll()
 //        AlgoliaToContentful(Sync.researchArticles).upsert("")
 //        AlgoliaToContentful(Sync.researchArticles).delete("")
