@@ -46,6 +46,7 @@ fun Application.module() {
             post {
                 val payload = call.receiveText()
                 val sigHeader = call.request.header("Stripe-Signature")
+                    ?: throw BadRequestException("Missing Stripe-Signature header")
                 val event = try {
                     Webhook.constructEvent(
                         payload,

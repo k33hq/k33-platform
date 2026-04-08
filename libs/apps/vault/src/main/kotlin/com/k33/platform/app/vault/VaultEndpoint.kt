@@ -72,6 +72,9 @@ fun Application.module() {
                     val userId = UserId(call.principal<UserInfo>()!!.userId)
                     logWithMDC("userId" to userId.value) {
                         val assetId = call.parameters["assetId"]!!
+                        if (assetId.contains("..") || assetId.contains("/") || assetId.contains("\\")) {
+                            throw BadRequestException("Invalid asset ID")
+                        }
                         call.respond(userId.getVaultAddresses(vaultAssetId = assetId))
                     }
                 }
