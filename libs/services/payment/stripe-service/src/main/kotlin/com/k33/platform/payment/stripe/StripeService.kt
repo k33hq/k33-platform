@@ -127,7 +127,7 @@ object StripeService {
             // in case of duplicates we give priority to one created later
             .setCustomer(customerId)
             // https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-payment_method_collection
-            .setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.ALWAYS)
+            .setPaymentMethodCollection(CheckoutSessionCreateParams.PaymentMethodCollection.IF_REQUIRED)
             .apply {
                 if (isProd
                     && customerEmail.endsWith("@k33.com", ignoreCase = true)
