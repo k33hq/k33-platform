@@ -15,11 +15,16 @@ import com.stripe.model.Address
 import io.firestore4k.typed.FirestoreClient
 import io.firestore4k.typed.div
 import io.ktor.server.plugins.NotFoundException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import java.io.FileOutputStream
 import java.math.BigDecimal
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -330,7 +335,8 @@ object VaultService {
 
     suspend fun generateVaultAccountBalanceReports(
         date: LocalDate,
-        mode: Mode,
+        inputMode: InputMode,
+        outputMode: OutputMode = OutputMode.FILESTORE,
         email: String? = null, // if null, then execute for all users in Stripe
     ) {
         val (userIdToDetailsMap, userIdToVaultAssetBalanceListMap) = coroutineScope {
@@ -365,10 +371,10 @@ object VaultService {
             val userIdToVaultAssetBalanceListMap = userIdToVaultAccountIdMap
                 .map { (userId, vaultAccountId) ->
                     async {
-                        if (mode.fetch) {
+                        if (inputMode.fetch) {
                             // fetch
                             userId to fetchFireblocksVaultAssets(vaultAccountId).also {
-                                if (mode.store) {
+                                if (inputMode.store) {
                                     // store
                                     userId.storeVaultAssetBalanceList(it, date)
                                 }
@@ -388,7 +394,7 @@ object VaultService {
                 .values
                 .flatMap { it.map(VaultAssetBalance::asset) }
                 .distinct()
-            val assetIdToRateMap = if (mode.useCurrentFxRate) {
+            val assetIdToRateMap = if (inputMode.useCurrentFxRate) {
                 CoinGeckoClient.getFxRates(
                     baseCurrency = "nok",
                     currencyList = assetIdList,
@@ -450,6 +456,7 @@ object VaultService {
                         userId = userId,
                         fileName = "$date.pdf",
                         contents = reportFileContents,
+                        outputMode = outputMode,
                     )
                 }
         }
@@ -514,12 +521,23 @@ object VaultService {
         userId: UserId,
         fileName: String,
         contents: ByteArray,
+        outputMode: OutputMode,
     ) {
-        FileStoreService.upload(
-            bucketConfigId = "firebase",
-            filePath = "users/$userId/balanceReports/$fileName",
-            contents = contents,
-        )
+        if(outputMode.local) {
+            withContext(Dispatchers.IO) {
+                Files.createDirectories(Paths.get(userId.value))
+                FileOutputStream("${userId.value}/$fileName").use { fos ->
+                    fos.write(contents)
+                }
+            }
+        }
+        if(outputMode.filestore) {
+            FileStoreService.upload(
+                bucketConfigId = "firebase",
+                filePath = "users/$userId/balanceReports/$fileName",
+                contents = contents,
+            )
+        }
     }
 
     private suspend fun UserId.fetchVaultAssetBalanceList(
@@ -548,9 +566,10 @@ object VaultService {
 fun main() {
     runBlocking {
         VaultService.generateVaultAccountBalanceReports(
-            date = LocalDate.of(2024, 12, 31),
-            mode = Mode.LOAD,
-            email = ""
+            date = LocalDate.of(2026, 11, 1),
+            inputMode = InputMode.FETCH,
+            outputMode = OutputMode.LOCAL,
+            email = null,
         )
     }
 }

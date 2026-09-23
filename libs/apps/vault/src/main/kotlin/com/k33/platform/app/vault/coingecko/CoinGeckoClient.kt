@@ -71,7 +71,7 @@ object CoinGeckoClient {
                 parameters.append("vs_currencies", baseCurrency)
                 parameters.append("include_24hr_change", "true")
             }
-        }.body<Map<String, Map<String, Double>>>()
+        }.body<Map<String, Map<String, Double?>>>()
             .entries
             .flatMap { (coinId, map) ->
                 idToSymbolsMap.getOrDefault(coinId, emptySet())
@@ -99,7 +99,7 @@ object CoinGeckoClient {
             }
         }.body<CoinHistoricalData>()
             .marketData
-            .currentPrice[fiatCurrency.lowercase()]
+            ?.currentPrice[fiatCurrency.lowercase()]
     }
 
     // https://docs.coingecko.com/reference/coins-list
@@ -122,7 +122,7 @@ data class Coin(
 @Serializable
 data class CoinHistoricalData(
     @SerialName("market_data")
-    val marketData: MarketData,
+    val marketData: MarketData? = null,
 )
 
 @Serializable

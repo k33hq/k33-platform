@@ -180,12 +180,12 @@ fun Application.module() {
         }
 
         put("/admin/jobs/generate-vault-accounts-balance-reports/{date?}") {
-            val mode = call.request.queryParameters.getEnum("mode") ?: Mode.FETCH_AND_STORE
+            val inputMode = call.request.queryParameters.getEnum("mode") ?: InputMode.FETCH_AND_STORE
             val date = call.parameters.getLocalDate("date")
                 ?: LocalDate.now(ZoneId.of("Europe/Oslo")).minusDays(1)
             VaultService.generateVaultAccountBalanceReports(
                 date = date,
-                mode = mode,
+                inputMode = inputMode,
             )
             call.respond(HttpStatusCode.OK)
         }
@@ -283,7 +283,7 @@ data class VaultAppSettings(
     val currency: String
 )
 
-enum class Mode(
+enum class InputMode(
     // fetch from Fireblocks
     val fetch: Boolean,
     // store to DB
@@ -304,6 +304,18 @@ enum class Mode(
 
     val useCurrentFxRate: Boolean
         get() = store
+}
+
+enum class OutputMode(
+    val filestore: Boolean,
+    val local: Boolean,
+) {
+    // store in file store
+    FILESTORE(filestore = true, local = false),
+    // store locally
+    LOCAL(filestore = false, local = true),
+    // store in filestore and locally
+    BOTH(filestore = true, local = true),
 }
 
 data class Transaction(

@@ -25,7 +25,7 @@ class VaultServiceTest : StringSpec({
     "!generate vault account balance reports" {
         VaultService.generateVaultAccountBalanceReports(
             date = LocalDate.now().minusDays(1),
-            mode = Mode.FETCH,
+            inputMode = InputMode.FETCH,
         )
     }
     "validate user's stripe customer details" {

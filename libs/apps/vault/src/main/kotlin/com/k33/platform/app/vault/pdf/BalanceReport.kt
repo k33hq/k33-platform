@@ -83,8 +83,8 @@ suspend fun getBalanceReport(
                                     listOf(
                                         it.id,
                                         numberFormatter.format(it.available),
-                                        currencyFormatter.format(it.rate?.value),
-                                        currencyFormatter.format(it.fiatValue?.value),
+                                        it.rate?.value?.let(currencyFormatter::format) ?: "",
+                                        it.fiatValue?.value?.let(currencyFormatter::format) ?: "",
                                     )
                                 },
                             footer = listOf(
