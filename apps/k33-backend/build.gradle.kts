@@ -18,7 +18,6 @@ dependencies {
     runtimeOnly(project(":libs:utils:logging:slack-logging"))
     runtimeOnly(project(":libs:utils:logging:gcp-logging"))
 
-    runtimeOnly(project(":libs:apps:invest"))
     runtimeOnly(project(":libs:apps:vault"))
 }
 

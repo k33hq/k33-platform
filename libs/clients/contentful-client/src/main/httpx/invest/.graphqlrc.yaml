@@ -1,7 +1,0 @@
-schema: schema.graphqls
-extensions:
-  endpoints:
-    invest:
-      url: https://graphql.contentful.com/content/v1/spaces/${CONTENTFUL_INVEST_SPACE_ID}
-      headers:
-        Authorization: Bearer ${CONTENTFUL_INVEST_SPACE_TOKEN}

@@ -4,10 +4,6 @@ plugins {
 }
 
 apollo {
-    service("invest") {
-        srcDir("src/main/httpx/invest")
-        packageName.set("com.k33.platform.cms.space.invest")
-    }
     service("research") {
         srcDir("src/main/httpx/research")
         packageName.set("com.k33.platform.cms.space.research")

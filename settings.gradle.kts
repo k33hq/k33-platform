@@ -21,7 +21,6 @@ include(
     "apps:k33-backend",
 
     "apps:contentful-admin-tool",
-    "apps:firestore-admin",
     "apps:stripe-admin-tool",
 
     "apps:oauth2-provider-emulator",
@@ -30,7 +29,6 @@ include(
     // libs
 
     // libs / apps
-    "libs:apps:invest",
     "libs:apps:vault",
 
     // libs / clients

@@ -25,12 +25,6 @@ class NotifySlackFilter : Filter<ILoggingEvent>() {
             ?: ChannelName("gcp-alerts")
     }
 
-    private val slackInvestChannel by lazy {
-        System.getenv("SLACK_INVEST_CHANNEL_ID")?.let { ChannelId(it) }
-            ?: System.getenv("SLACK_INVEST_CHANNEL_NAME")?.let { ChannelName(it) }
-            ?: ChannelName("invest")
-    }
-
     private val slackGeneralChannel by lazy {
         System.getenv("SLACK_GENERAL_CHANNEL_ID")?.let { ChannelId(it) }
             ?: System.getenv("SLACK_GENERAL_CHANNEL_NAME")?.let { ChannelName(it) }
@@ -59,7 +53,6 @@ class NotifySlackFilter : Filter<ILoggingEvent>() {
         null -> null
         NotifySlack.ALERTS -> slackChannel
         NotifySlack.GENERAL -> slackGeneralChannel
-        NotifySlack.INVEST -> slackInvestChannel
         NotifySlack.PRODUCT -> slackProductChannel
         NotifySlack.RESEARCH -> slackResearchChannel
         NotifySlack.RESEARCH_EVENTS -> slackResearchEventsChannel
