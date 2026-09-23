@@ -10,10 +10,10 @@ import com.stripe.exception.PermissionException
 import com.stripe.exception.RateLimitException
 import com.stripe.exception.StripeException
 import com.stripe.net.RequestOptions
-import io.ktor.util.encodeBase64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
+import kotlin.io.encoding.Base64
 
 class StripeClient(
     apiKey: String
@@ -118,7 +118,7 @@ class StripeClient(
         fun hashOf(payload: String): String {
             val md = MessageDigest.getInstance("SHA-256")
             md.update(payload.lowercase().toByteArray())
-            return md.digest().encodeBase64()
+            return Base64.encode(md.digest())
         }
 
         return requestOptions

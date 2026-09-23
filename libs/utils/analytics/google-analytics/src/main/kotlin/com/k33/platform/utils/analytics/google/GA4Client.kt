@@ -40,8 +40,8 @@ sealed class GA4Client {
         }
         install(ContentNegotiation) {
             jackson {
-                setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+                setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
+                setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY)
             }
         }
         defaultRequest {

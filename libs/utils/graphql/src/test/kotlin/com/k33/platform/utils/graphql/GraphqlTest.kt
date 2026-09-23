@@ -24,7 +24,7 @@ class GraphqlTest : AnnotationSpec() {
         coroutineScope {
 
             GraphqlModulesRegistry.registerDataFetcher("user") { env ->
-                val userId: String = env.graphQlContext["userId"]
+                val userId: String = env.graphQlContext["userId"] ?: return@registerDataFetcher null
                 async {
                     User(
                         userId = userId,

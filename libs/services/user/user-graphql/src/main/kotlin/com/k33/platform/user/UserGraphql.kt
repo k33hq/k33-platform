@@ -10,7 +10,7 @@ import kotlinx.coroutines.future.asCompletableFuture
 fun Application.module() {
     GraphqlModulesRegistry.registerSchema(readResourceWithoutWhitespace("/user.graphqls"))
     GraphqlModulesRegistry.registerDataFetcher("user") { env ->
-        val userId = UserId(env.graphQlContext["userId"])
+        val userId = UserId(env.graphQlContext["userId"] ?: return@registerDataFetcher null)
         async { userId.fetchUser() }.asCompletableFuture()
     }
 }

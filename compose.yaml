@@ -1,7 +1,7 @@
 services:
   firestore-emulator:
     container_name: firestore-emulator
-    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:564.0.0-emulators
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
     expose:
       - 5173
     ports:
