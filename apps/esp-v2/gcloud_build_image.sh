@@ -87,6 +87,9 @@ if [ -z "${ESP_FULL_VERSION}" ]; then
   # Find the tag with the longest length.
   ESP_FULL_VERSION=""
   for tag in "${TAGS_ARRAY[@]}"; do
+     if [[ ! "${tag}" =~ ^[0-9] ]]; then
+        continue
+     fi
      if [ ${#tag} -gt ${#ESP_FULL_VERSION} ]; then
         ESP_FULL_VERSION=${tag}
      fi
@@ -104,20 +107,17 @@ curl --fail -o "service.json" -H @- \
 Authorization: Bearer ${access_token}
 EOF
 
+chmod 644 service.json
+
 (
 set -x
 
 cat <<EOF > Dockerfile
 FROM ${BASE_IMAGE}
 
-USER root
 ENV ENDPOINTS_SERVICE_PATH /etc/endpoints/service.json
 COPY service.json \${ENDPOINTS_SERVICE_PATH}
 ENV ESPv2_ARGS ^++^--cors_preset=cors_with_regex++--cors_allow_origin_regex="${CORS_REGEX}"++--cors_allow_headers="X-Client-Id,DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"++--cors_max_age=5m
-RUN chown -R envoy:envoy \${ENDPOINTS_SERVICE_PATH} && chmod -R 755 \${ENDPOINTS_SERVICE_PATH}
-USER envoy
-
-ENTRYPOINT ["/env_start_proxy.py"]
 EOF
 
 NEW_IMAGE="${IMAGE_REPOSITORY}/endpoints-runtime-serverless:${ESP_FULL_VERSION}-${SERVICE}-${CONFIG_ID}"
